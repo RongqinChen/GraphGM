@@ -21,7 +21,7 @@ dataset:
   edge_encoder_name: TypeDictEdge
   edge_encoder_num_types: 4
   edge_encoder_bn: False
-posenc_GM1:
+posenc_GM2:
   enable: True
   poly_order: 11
   gm_encoder: 'gm_linear'

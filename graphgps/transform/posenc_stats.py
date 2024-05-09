@@ -22,6 +22,7 @@ from torch_scatter import scatter_add
 from .rrwp import add_full_rrwp
 from .bernstain import add_bernstain_polynomials
 from .general_metrics_1 import add_full_gm1
+from .general_metrics_2 import add_full_gm2
 
 
 def compute_posenc_stats(data, pe_types, is_undirected, cfg):
@@ -174,10 +175,10 @@ def compute_posenc_stats(data, pe_types, is_undirected, cfg):
         transform = partial(add_full_gm1, poly_order=param.poly_order)
         data = transform(data)
 
-    # if "GM2" in pe_types:
-    #     param = cfg.posenc_GM2
-    #     transform = partial(add_full_gm2, poly_order=param.poly_order)
-    #     data = transform(data)
+    if "GM2" in pe_types:
+        param = cfg.posenc_GM2
+        transform = partial(add_full_gm2, poly_order=param.poly_order)
+        data = transform(data)
 
     return data
 
