@@ -71,16 +71,24 @@ class GritTransformer(torch.nn.Module):
         self.ablation = False
 
         if cfg.posenc_RRWP.enable:
-            self.rrwp_abs_encoder = register.node_encoder_dict["rrwp_linear"](
+            self.abs_encoder = register.node_encoder_dict["rrwp_linear"](
                 cfg.posenc_RRWP.ksteps, cfg.gnn.dim_inner
             )
-            rel_pe_dim = cfg.posenc_RRWP.ksteps
-            self.rrwp_rel_encoder = register.edge_encoder_dict["rrwp_linear"](
-                rel_pe_dim,
+            self.rel_encoder = register.edge_encoder_dict["rrwp_linear"](
+                cfg.posenc_RRWP.ksteps,
                 cfg.gnn.dim_edge,
                 pad_to_full_graph=cfg.gt.attn.full_attn,
                 add_node_attr_as_self_loop=False,
                 fill_value=0.0,
+            )
+
+        if cfg.posenc_Bern.enable:
+            self.abs_encoder = register.node_encoder_dict["bern_linear"](
+                cfg.posenc_Bern.poly_order + 1, cfg.gnn.dim_inner
+            )
+            self.rel_encoder = register.edge_encoder_dict["bern_linear"](
+                cfg.posenc_Bern.poly_order + 1,
+                cfg.gnn.dim_edge, fill_value=0.0,
             )
 
         if cfg.gnn.layers_pre_mp > 0:
@@ -97,7 +105,7 @@ class GritTransformer(torch.nn.Module):
         TransformerLayer = register.layer_dict.get(global_model_type)
 
         layers = []
-        for l in range(cfg.gt.layers):
+        for _ in range(cfg.gt.layers):
             layers.append(
                 TransformerLayer(
                     in_dim=cfg.gt.dim_hidden,

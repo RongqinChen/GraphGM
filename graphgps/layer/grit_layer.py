@@ -122,11 +122,7 @@ class MultiHeadAttentionLayerGritSparse(nn.Module):
         msg = (
             batch.V_h[batch.edge_index[0]] * score
         )  # (num relative) x num_heads x out_dim
-        batch.wV = torch.zeros_like(
-            batch.V_h
-        )  # (num nodes in batch) x num_heads x out_dim
-        scatter(msg, batch.edge_index[1], dim=0, out=batch.wV, reduce="add")
-
+        batch.wV = scatter(msg, batch.edge_index[1], dim=0, reduce="add")
         if self.edge_enhance and batch.E is not None:
             rowV = scatter(e_t * score, batch.edge_index[1], dim=0, reduce="add")
             rowV = oe.contract("nhd, dhc -> nhc", rowV, self.VeRow, backend="torch")

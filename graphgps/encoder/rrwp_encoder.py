@@ -1,5 +1,5 @@
 """
-    The RRWP encoder for GRIT (ours)
+    The RRWP encoder
 """
 
 import torch
