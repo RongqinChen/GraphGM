@@ -110,9 +110,9 @@ def set_cfg_posenc(cfg):
     # ----------------- Note: General Metrics - 1 --------------
     cfg.posenc_GM1.enable = False
     cfg.posenc_GM1.poly_order = 8
-    cfg.posenc_GM1.encoder = 'gm_mlp'
+    cfg.posenc_GM1.gm_encoder = 'gm_linear'
 
     # ----------------- Note: General Metrics - 2 --------------
     cfg.posenc_GM2.enable = False
     cfg.posenc_GM2.poly_order = 8
-    cfg.posenc_GM2.encoder = 'gm_mlp'
+    cfg.posenc_GM2.gm_encoder = 'gm_linear'

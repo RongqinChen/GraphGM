@@ -24,7 +24,7 @@ dataset:
 posenc_GM1:
   enable: True
   poly_order: 12
-  gm_encoder: 'gm_mlp'
+  gm_encoder: 'gm_linear'
 train:
   mode: custom
   batch_size: 32

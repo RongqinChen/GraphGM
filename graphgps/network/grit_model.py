@@ -96,7 +96,7 @@ class GritTransformer(torch.nn.Module):
                 gm_encoder = cfg.posenc_GM2.gm_encoder
             emb_dim = poly_order + (poly_order - 1) * poly_order // 2
             self.abs_encoder = register.node_encoder_dict[gm_encoder](
-                emb_dim, cfg.gnn.dim_inner, fill_value=0.0,
+                emb_dim, cfg.gnn.dim_inner,
             )
             self.rel_encoder = register.edge_encoder_dict[gm_encoder](
                 emb_dim, cfg.gnn.dim_edge, fill_value=0.0,
