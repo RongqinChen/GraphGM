@@ -21,6 +21,7 @@ from torch_scatter import scatter_add
 
 from .rrwp import add_full_rrwp
 from .bernstain import add_bernstain_polynomials
+from .general_metrics_1 import add_full_gm1
 
 
 def compute_posenc_stats(data, pe_types, is_undirected, cfg):
@@ -46,7 +47,8 @@ def compute_posenc_stats(data, pe_types, is_undirected, cfg):
     for t in pe_types:
         if t not in [
             "LapPE", "EquivStableLapPE", "SignNet", "RWSE",
-            "HKdiagSE", "HKfullPE", "ElstaticSE", "RRWP", "Bern"
+            "HKdiagSE", "HKfullPE", "ElstaticSE", "RRWP",
+            "Bern", "GM1", "GM2"
         ]:
             raise ValueError(f"Unexpected PE stats selection {t} in {pe_types}")
 
@@ -164,13 +166,18 @@ def compute_posenc_stats(data, pe_types, is_undirected, cfg):
 
     if "Bern" in pe_types:
         param = cfg.posenc_Bern
-        transform = partial(
-            add_bernstain_polynomials,
-            poly_order=param.poly_order,
-            attr_name_abs="bern",
-            attr_name_rel="bern",
-        )
+        transform = partial(add_bernstain_polynomials, poly_order=param.poly_order)
         data = transform(data)
+
+    if "GM1" in pe_types:
+        param = cfg.posenc_GM1
+        transform = partial(add_full_gm1, poly_order=param.poly_order)
+        data = transform(data)
+
+    # if "GM2" in pe_types:
+    #     param = cfg.posenc_GM2
+    #     transform = partial(add_full_gm2, poly_order=param.poly_order)
+    #     data = transform(data)
 
     return data
 

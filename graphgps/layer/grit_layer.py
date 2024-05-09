@@ -278,7 +278,6 @@ class GritTransformerLayer(nn.Module):
         # multi-head attention out
 
         h_attn_out, e_attn_out = self.attention(batch)
-
         h = h_attn_out.view(num_nodes, -1)
         h = F.dropout(h, self.dropout, training=self.training)
 

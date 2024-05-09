@@ -2,7 +2,7 @@ from typing import Any, Optional
 
 import torch
 from torch_geometric.data import Data
-from torch_geometric.utils import add_self_loops, remove_self_loops, scatter
+from torch_geometric.utils import add_self_loops, scatter
 from torch_sparse import SparseTensor
 from scipy.special import comb
 
@@ -29,9 +29,9 @@ def add_bernstain_polynomials(
     device = data.edge_index.device
     num_nodes = data.num_nodes
     edge_index = data.edge_index
-    edge_index, _ = remove_self_loops(edge_index)
-
     edge_weight = torch.ones(edge_index.size(1), device=device)
+    # edge_index, _ = remove_self_loops(edge_index)
+
     row, col = edge_index[0], edge_index[1]
     deg = scatter(edge_weight, row, 0, dim_size=num_nodes, reduce="sum")
     deg_inv_sqrt = deg.pow_(-0.5)

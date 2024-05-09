@@ -91,6 +91,19 @@ class GritTransformer(torch.nn.Module):
                 cfg.gnn.dim_edge, fill_value=0.0,
             )
 
+        if cfg.posenc_GM1.enable or cfg.posenc_GM2.enable:
+            if cfg.posenc_GM1.enable:
+                poly_order = cfg.posenc_GM1.poly_order
+            else:
+                poly_order = cfg.posenc_GM2.poly_order
+            emb_dim = poly_order + (poly_order - 1) * poly_order // 2
+            self.abs_encoder = register.node_encoder_dict["gm_linear"](
+                emb_dim, cfg.gnn.dim_inner
+            )
+            self.rel_encoder = register.edge_encoder_dict["gm_linear"](
+                emb_dim, cfg.gnn.dim_edge, fill_value=0.0,
+            )
+
         if cfg.gnn.layers_pre_mp > 0:
             self.pre_mp = GNNPreMP(dim_in, cfg.gnn.dim_inner, cfg.gnn.layers_pre_mp)
             dim_in = cfg.gnn.dim_inner
@@ -100,8 +113,6 @@ class GritTransformer(torch.nn.Module):
         ), "The inner and hidden dims must match."
 
         global_model_type = cfg.gt.get("layer_type", "GritTransformer")
-        # global_model_type = "GritTransformer"
-
         TransformerLayer = register.layer_dict.get(global_model_type)
 
         layers = []

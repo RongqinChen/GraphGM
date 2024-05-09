@@ -15,6 +15,8 @@ def set_cfg_posenc(cfg):
     cfg.posenc_EquivStableLapPE = CN()
     cfg.posenc_RRWP = CN()
     cfg.posenc_Bern = CN()
+    cfg.posenc_GM1 = CN()
+    cfg.posenc_GM2 = CN()
 
     # Common arguments to all PE types.
     for name in [
@@ -25,6 +27,8 @@ def set_cfg_posenc(cfg):
         "posenc_ElstaticSE",
         "posenc_RRWP",
         "posenc_Bern",
+        "posenc_GM1",
+        "posenc_GM2",
     ]:
         pecfg = getattr(cfg, name)
         # Use extended positional encodings
@@ -102,3 +106,11 @@ def set_cfg_posenc(cfg):
     # ----------------- Note: Bern --------------
     cfg.posenc_Bern.enable = False
     cfg.posenc_Bern.poly_order = 23
+
+    # ----------------- Note: General Metrics - 1 --------------
+    cfg.posenc_GM1.enable = False
+    cfg.posenc_GM1.poly_order = 8
+
+    # ----------------- Note: General Metrics - 2 --------------
+    cfg.posenc_GM2.enable = False
+    cfg.posenc_GM2.poly_order = 8
