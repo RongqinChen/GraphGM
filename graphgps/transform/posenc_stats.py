@@ -263,8 +263,7 @@ def get_rw_landing_probs(
         # Explicitly raising P to power k for each k \in ksteps.
         for k in ksteps:
             rws.append(
-                torch.diagonal(P.matrix_power(k), dim1=-2, dim2=-1)
-                * (k ** (space_dim / 2))
+                torch.diagonal(P.matrix_power(k), dim1=-2, dim2=-1) * (k ** (space_dim / 2))
             )
     rw_landing = torch.cat(rws, dim=0).transpose(0, 1)  # (Num nodes) x (K steps)
 
