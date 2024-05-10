@@ -1,3 +1,6 @@
+import warnings 
+warnings.filterwarnings("ignore", category=FutureWarning)
+
 import datetime
 import os
 import torch
