@@ -7,7 +7,7 @@ wandb:
   use: False
   project: MNIST
 dataset:
-  pe_transform_on_the_fly: True # compute PE on the fly to save memory when launching many experiments in parallel
+  # pe_transform_on_the_fly: True # compute PE on the fly to save memory when launching many experiments in parallel
   format: PyG-GNNBenchmarkDataset
   name: MNIST
   task: graph

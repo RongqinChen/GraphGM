@@ -217,7 +217,8 @@ def load_dataset_master(format, name, dataset_dir):
         logging.info(f"  ...estimated to be undirected: {is_undirected}")
         print('name', name)
         if f"{format}_{name}" in {"PyG-ZINC_full"} or \
-                name in {"peptides-functional", "peptides-structural", "CLUSTER", "PATTERN", "PCQM4Mv2-full"}:
+                name in {"peptides-functional", "peptides-structural", "CLUSTER",
+                         "PATTERN", "PCQM4Mv2-full", "CIFAR10", "MNIST"}:
             logging.info(
                 f"Positional Encoding statistics: {pe_enabled_list} "
                 f"will be computed on the fly for all graphs..."

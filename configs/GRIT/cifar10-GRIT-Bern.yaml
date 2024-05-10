@@ -19,12 +19,9 @@ dataset:
   edge_encoder: True
   edge_encoder_name: LinearEdge
   edge_encoder_bn: False
-posenc_RRWP:
+posenc_Bern:
   enable: True
-  ksteps: 18
-  add_identity: True
-  add_node_attr: False
-  add_inverse: False
+  poly_order: 18
 train:
   mode: custom
   batch_size: 16
