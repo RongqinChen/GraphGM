@@ -38,7 +38,7 @@ model:
   edge_decoding: dot
   graph_pooling: add
 gt:
-  layer_type: AdditiveAttn
+  layer_type: GritTransformer
   layers: 10
   n_heads: 8
   dim_hidden: 64  # `gt.dim_hidden` must match `gnn.dim_inner`
@@ -50,7 +50,7 @@ gt:
   attn_dropout: 0.2
   attn:
     clamp: 5.
-    act: 'relu'
+    act: gelu
     full_attn: True
     edge_enhance: True
     O_e: True
@@ -62,7 +62,7 @@ gnn: # decoder --> san_graph = MLP + pooling
   layers_post_mp: 3  # Not used when `gnn.head: san_graph`
   dim_inner: 64  # `gt.dim_hidden` must match `gnn.dim_inner`
   batchnorm: True
-  act: relu
+  act: gelu
   dropout: 0.0
   agg: mean
   normalize_adj: False
