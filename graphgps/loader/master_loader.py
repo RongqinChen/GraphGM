@@ -215,7 +215,9 @@ def load_dataset_master(format, name, dataset_dir):
         # Estimate directedness based on 10 graphs to save time.
         is_undirected = all(d.is_undirected() for d in dataset[:10])
         logging.info(f"  ...estimated to be undirected: {is_undirected}")
-        if f"{format}_{name}" in {"PyG-ZINC_full", "OGB_peptides-functional"}:
+        print('name', name)
+        if f"{format}_{name}" in {"PyG-ZINC_full"} or \
+                name in {"peptides-functional", "peptides-structural", "CLUSTER", "PATTERN"}:
             logging.info(
                 f"Positional Encoding statistics: {pe_enabled_list} "
                 f"will be computed on the fly for all graphs..."
