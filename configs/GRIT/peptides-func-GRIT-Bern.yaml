@@ -1,6 +1,7 @@
 out_dir: results
 metric_best: ap
 accelerator: "cuda:0"
+num_workers: 2
 wandb:
   use: False
   project: peptides-func

@@ -40,6 +40,17 @@
                 "--cfg", "configs/GRIT/zincfull-GRIT-Bern.yaml",
             ],
             "justMyCode": false
+        },
+        {
+            "name": "peptides-func-GRIT-Bern",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "main.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--cfg", "configs/GRIT/peptides-func-GRIT-Bern.yaml",
+            ],
+            "justMyCode": false
         }
     ]
 }

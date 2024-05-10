@@ -1,6 +1,6 @@
 import logging
 import time
-
+from tqdm import tqdm
 import numpy as np
 import torch
 from torch_geometric.graphgym.checkpoint import load_ckpt, save_ckpt, clean_ckpt
@@ -18,7 +18,7 @@ def train_epoch(logger, loader, model, optimizer, scheduler, batch_accumulation)
     optimizer.zero_grad()
     time_start = time.time()
     device = torch.device(cfg.accelerator)
-    for iter, batch in enumerate(loader):
+    for iter, batch in tqdm(enumerate(loader), 'training', total=len(loader), disable=False):
         batch.split = 'train'
         batch.to(device)
         pred, true = model(batch)
