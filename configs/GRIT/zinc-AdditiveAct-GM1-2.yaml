@@ -20,7 +20,7 @@ dataset:
   edge_encoder_name: TypeDictEdge
   edge_encoder_num_types: 4
   edge_encoder_bn: False
-posenc_GM2:
+posenc_GM1:
   enable: True
   poly_order: 11
   gm_encoder: 'gm_linear'
@@ -49,7 +49,7 @@ gt:
   attn_dropout: 0.2
   attn:
     clamp: 5.
-    act: gelu
+    act: relu
     full_attn: True
     edge_enhance: True
     O_e: True
