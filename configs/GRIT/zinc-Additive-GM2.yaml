@@ -49,7 +49,7 @@ gt:
   attn_dropout: 0.2
   attn:
     clamp: 5.
-    act: 'relu'
+    act: relu
     full_attn: True
     edge_enhance: True
     O_e: True

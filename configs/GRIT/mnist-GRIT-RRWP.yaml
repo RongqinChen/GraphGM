@@ -1,6 +1,6 @@
 out_dir: results
 metric_best: accuracy
-tensorboard_each_run: True  # Log to Tensorboard each run
+tensorboard_each_run: False  # Log to Tensorboard each run
 accelerator: "cuda:0"
 num_workers: 15
 wandb:
@@ -46,7 +46,7 @@ gt:  # Hyperparameters optimized for ~100k budget.
   attn_dropout: 0.5
   attn:
     clamp: 5.
-    act: 'relu'
+    act: relu
     full_attn: True
     edge_enhance: True
     O_e: True

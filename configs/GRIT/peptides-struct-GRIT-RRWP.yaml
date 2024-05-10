@@ -44,7 +44,7 @@ gt:
   batch_norm: True
   attn:
     clamp: 5.
-    act: 'relu'
+    act: relu
     full_attn: True
     edge_enhance: True
     O_e: True

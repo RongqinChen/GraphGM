@@ -1,7 +1,7 @@
 out_dir: results
 metric_best: mae
 metric_agg: argmin
-tensorboard_each_run: True  # Log to Tensorboard each run
+tensorboard_each_run: False  # Log to Tensorboard each run
 accelerator: "cuda:0"
 wandb:
   use: False
@@ -30,8 +30,8 @@ train:
   mode: custom
   batch_size: 256
   eval_period: 1
-  enable_ckpt: True  # Checkpointing can now be disabled to save I/O when e.g. just benchmarking.
-  ckpt_best: True  # WARNING: Checkpoint every epoch a better model is found may increase I/O significantly.
+  enable_ckpt: False  # Checkpointing can now be disabled to save I/O when e.g. just benchmarking.
+  ckpt_best: False  # WARNING: Checkpoint every epoch a better model is found may increase I/O significantly.
   ckpt_clean: True # Delete old ckpt each time.
 model:
   type: GritTransformer
@@ -50,12 +50,12 @@ gt:
   attn_dropout: 0.2
   attn:
     clamp: 5.
-    act: 'relu'
+    act: relu
     full_attn: True
     edge_enhance: True
     O_e: True
     norm_e: True
-    signed_sqrt: True
+    # signed_sqrt: True
 gnn: # decoder --> san_graph = MLP + pooling
   head: san_graph
   layers_pre_mp: 0

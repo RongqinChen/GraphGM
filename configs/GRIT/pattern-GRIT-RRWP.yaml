@@ -1,6 +1,6 @@
 out_dir: results
 metric_best: accuracy-SBM
-tensorboard_each_run: True  # Log to Tensorboard each run
+tensorboard_each_run: False  # Log to Tensorboard each run
 accelerator: "cuda:0"
 wandb:
   use: False
@@ -43,7 +43,7 @@ gt:  # Hyperparameters optimized for up to ~500k budget.
   batch_norm: True
   attn:
     clamp: 5.
-    act: 'relu'
+    act: relu
     full_attn: True
     edge_enhance: True
     O_e: True
