@@ -1,6 +1,7 @@
 out_dir: results
 metric_best: mae
 metric_agg: argmin
+num_workers: 4
 tensorboard_each_run: False  # Log to Tensorboard each run
 accelerator: "cuda:0"
 wandb:

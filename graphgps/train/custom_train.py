@@ -11,15 +11,17 @@ from torch_geometric.graphgym.utils.epoch import is_eval_epoch, is_ckpt_epoch
 
 from graphgps.loss.subtoken_prediction_loss import subtoken_cross_entropy
 from graphgps.utils import cfg_to_dict, flatten_dict, make_wandb_name
+from tqdm import tqdm
 
 
 def train_epoch(logger, loader, model, optimizer, scheduler, batch_accumulation):
     model.train()
     optimizer.zero_grad()
     time_start = time.time()
-    for iter, batch in enumerate(loader):
+    device = torch.device(cfg.accelerator)
+    for iter, batch in tqdm(enumerate(loader), 'training', total=len(loader)):
         batch.split = 'train'
-        batch.to(torch.device(cfg.accelerator))
+        batch.to(device)
         pred, true = model(batch)
         if cfg.dataset.name == 'ogbg-code2':
             loss, pred_score = subtoken_cross_entropy(pred, true)
@@ -102,7 +104,7 @@ def custom_train(loggers, loaders, model, optimizer, scheduler):
     if cfg.wandb.use:
         try:
             import wandb
-        except:
+        except Exception:
             raise ImportError('WandB is not installed.')
         if cfg.wandb.name == '':
             wandb_name = make_wandb_name(cfg)
@@ -118,8 +120,7 @@ def custom_train(loggers, loaders, model, optimizer, scheduler):
     perf = [[] for _ in range(num_splits)]
     for cur_epoch in range(start_epoch, cfg.optim.max_epoch):
         start_time = time.perf_counter()
-        train_epoch(loggers[0], loaders[0], model, optimizer, scheduler,
-                    cfg.optim.batch_accumulation)
+        train_epoch(loggers[0], loaders[0], model, optimizer, scheduler, cfg.optim.batch_accumulation)
         perf[0].append(loggers[0].write_epoch(cur_epoch))
 
         if is_eval_epoch(cur_epoch):
@@ -281,11 +282,11 @@ def ogblsc_inference(loggers, loaders, model, optimizer=None, scheduler=None):
 
     # Check PCQM4Mv2 prediction targets.
     logging.info(f"0 ({split_names[0]}): {len(loaders[0].dataset)}")
-    assert(all([not torch.isnan(d.y)[0] for d in loaders[0].dataset]))
+    assert (all([not torch.isnan(d.y)[0] for d in loaders[0].dataset]))
     logging.info(f"1 ({split_names[1]}): {len(loaders[1].dataset)}")
-    assert(all([torch.isnan(d.y)[0] for d in loaders[1].dataset]))
+    assert (all([torch.isnan(d.y)[0] for d in loaders[1].dataset]))
     logging.info(f"2 ({split_names[2]}): {len(loaders[2].dataset)}")
-    assert(all([torch.isnan(d.y)[0] for d in loaders[2].dataset]))
+    assert (all([torch.isnan(d.y)[0] for d in loaders[2].dataset]))
 
     model.eval()
     for i in range(num_splits):
@@ -330,9 +331,9 @@ def log_attn_weights(loggers, loaders, model, optimizer=None, scheduler=None):
     start_time = time.perf_counter()
 
     # The last loader is a test set.
-    l = loaders[-1]
+    loader = loaders[-1]
     # To get a random sample, create a new loader that shuffles the test set.
-    loader = DataLoader(l.dataset, batch_size=l.batch_size,
+    loader = DataLoader(loader.dataset, batch_size=loader.batch_size,
                         shuffle=True, num_workers=0)
 
     output = []
