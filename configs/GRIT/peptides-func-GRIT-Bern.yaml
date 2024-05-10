@@ -16,11 +16,9 @@ dataset:
   edge_encoder: True
   edge_encoder_name: Bond
   edge_encoder_bn: False
-posenc_RRWP:
+posenc_Bern:
   enable: True
-  ksteps: 17
-  add_identity: True
-  add_node_attr: False
+  poly_order: 17
 train:
   mode: custom
 #  batch_size: 32
@@ -42,7 +40,7 @@ gt:
   batch_norm: True
   attn:
     clamp: 5.
-    act: 'relu'
+    act: relu
     full_attn: True
     edge_enhance: True
     O_e: True

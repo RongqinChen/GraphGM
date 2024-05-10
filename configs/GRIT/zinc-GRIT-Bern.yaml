@@ -23,7 +23,6 @@ dataset:
 posenc_Bern:
   enable: True
   poly_order: 21
-  gm_encoder: 'rrwp_linear'
 train:
   mode: custom
   batch_size: 32
