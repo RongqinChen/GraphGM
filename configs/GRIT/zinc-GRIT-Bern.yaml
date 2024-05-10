@@ -23,6 +23,7 @@ dataset:
 posenc_Bern:
   enable: True
   poly_order: 21
+  gm_encoder: 'rrwp_linear'
 train:
   mode: custom
   batch_size: 32
@@ -43,12 +44,12 @@ gt:
   dropout: 0.0
   layer_norm: False
   batch_norm: True
-  bn_momentum: 0.1
+  #  bn_momentum: 0.01
   update_e: True
   attn_dropout: 0.2
   attn:
     clamp: 5.
-    act: 'relu'
+    act: relu
     full_attn: True
     edge_enhance: True
     O_e: True

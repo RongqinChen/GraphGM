@@ -44,7 +44,7 @@ gt:
   dropout: 0.0
   layer_norm: False
   batch_norm: True
-  bn_momentum: 0.1
+  #  bn_momentum: 0.01
   update_e: True
   attn_dropout: 0.2
   attn:
