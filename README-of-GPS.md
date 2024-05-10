@@ -33,6 +33,8 @@ pip install performer-pytorch
 pip install tensorboardX
 pip install ogb
 pip install wandb
+pip install opt_einsum
+pip install -U scikit-learn
 
 conda clean --all
 ```

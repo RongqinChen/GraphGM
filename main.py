@@ -124,10 +124,8 @@ if __name__ == '__main__':
     # Set Pytorch environment
     torch.set_num_threads(cfg.num_threads)
     # Repeat for multiple experiment runs
-    timestamp = datetime.datetime.now().strftime('%m%d%H%M%S')
     for run_id, seed, split_index in zip(*run_loop_settings()):
         # Set configurations for each run
-        run_id = f"{timestamp}/{run_id}"
         custom_set_run_dir(cfg, run_id)
         set_printing()
         cfg.dataset.split_index = split_index
