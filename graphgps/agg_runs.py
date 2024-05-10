@@ -25,7 +25,9 @@ def json_to_dict_list(fname):
     with open(fname) as f:
         lines = f.readlines()
         for line in lines:
-            line = line.rstrip()[:-1]
+            line = line.rstrip()
+            if line[-1] == ',':
+                line = line[:-1]
             dict = json.loads(line)
             if dict['epoch'] not in epoch_set:
                 dict_list.append(dict)
