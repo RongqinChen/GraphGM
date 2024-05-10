@@ -11,7 +11,6 @@ from torch_geometric.graphgym.utils.epoch import is_eval_epoch, is_ckpt_epoch
 
 from graphgps.loss.subtoken_prediction_loss import subtoken_cross_entropy
 from graphgps.utils import cfg_to_dict, flatten_dict, make_wandb_name
-from tqdm import tqdm
 
 
 def train_epoch(logger, loader, model, optimizer, scheduler, batch_accumulation):
@@ -19,7 +18,7 @@ def train_epoch(logger, loader, model, optimizer, scheduler, batch_accumulation)
     optimizer.zero_grad()
     time_start = time.time()
     device = torch.device(cfg.accelerator)
-    for iter, batch in tqdm(enumerate(loader), 'training', total=len(loader)):
+    for iter, batch in enumerate(loader):
         batch.split = 'train'
         batch.to(device)
         pred, true = model(batch)
