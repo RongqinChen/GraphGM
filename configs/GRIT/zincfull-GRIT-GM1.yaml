@@ -1,6 +1,7 @@
 out_dir: results
 metric_best: mae
 metric_agg: argmin
+num_workers: 4
 tensorboard_each_run: False  # Log to Tensorboard each run
 accelerator: "cuda:0"
 wandb:
@@ -8,27 +9,25 @@ wandb:
   project: ZINC
 dataset:
   format: PyG-ZINC
-  name: subset
+  name: full
   task: graph
   task_type: regression
   transductive: False
   node_encoder: True
   node_encoder_name: TypeDictNode
-  node_encoder_num_types: 21 # actually 21 in Zinc-12k, 28 in Zinc-full
+  node_encoder_num_types: 28 # actually 21 in Zinc-12k, 28 in Zinc-full
   node_encoder_bn: False
   edge_encoder: True
   edge_encoder_name: TypeDictEdge
   edge_encoder_num_types: 4
   edge_encoder_bn: False
-posenc_RRWP:
+posenc_GM1:
   enable: True
-  ksteps: 21
-  add_identity: True
-  # add_node_attr: False
-  # add_inverse: False
+  poly_order: 11
+  gm_encoder: 'gm_linear'
 train:
   mode: custom
-  batch_size: 32
+  batch_size: 256
   eval_period: 1
   enable_ckpt: False  # Checkpointing can now be disabled to save I/O when e.g. just benchmarking.
   ckpt_best: False  # WARNING: Checkpoint every epoch a better model is found may increase I/O significantly.
@@ -46,7 +45,7 @@ gt:
   dropout: 0.0
   layer_norm: False
   batch_norm: True
-#  bn_momentum: 0.01
+  # bn_momentum: 0.1
   update_e: True
   attn_dropout: 0.2
   attn:

@@ -1,4 +1,3 @@
-# Original:  zinc-GRIT-2000.yaml
 out_dir: results
 metric_best: mae
 metric_agg: argmin
@@ -45,12 +44,12 @@ gt:
   dropout: 0.0
   layer_norm: False
   batch_norm: True
-  bn_momentum: 0.1
+  #  bn_momentum: 0.01
   update_e: True
   attn_dropout: 0.2
   attn:
     clamp: 5.
-    act: gelu
+    act: relu
     full_attn: True
     edge_enhance: True
     O_e: True
@@ -62,7 +61,7 @@ gnn: # decoder --> san_graph = MLP + pooling
   layers_post_mp: 3  # Not used when `gnn.head: san_graph`
   dim_inner: 64  # `gt.dim_hidden` must match `gnn.dim_inner`
   batchnorm: True
-  act: gelu
+  act: relu
   dropout: 0.0
   agg: mean
   normalize_adj: False

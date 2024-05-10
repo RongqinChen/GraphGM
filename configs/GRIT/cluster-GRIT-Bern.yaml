@@ -2,6 +2,7 @@ out_dir: results
 metric_best: accuracy-SBM
 tensorboard_each_run: False  # Log to Tensorboard each run
 accelerator: "cuda:0"
+num_workers: 4
 wandb:
   use: False
   project: CLUSTER
@@ -18,12 +19,9 @@ dataset:
   edge_encoder: True
   edge_encoder_name: DummyEdge
   edge_encoder_bn: False
-posenc_RRWP:
+posenc_Bern:
   enable: True
-  ksteps: 32
-  add_identity: True
-  add_node_attr: False
-  add_inverse: False
+  poly_order: 18
 train:
   mode: custom
   batch_size: 16

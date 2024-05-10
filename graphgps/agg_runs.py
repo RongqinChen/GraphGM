@@ -178,7 +178,7 @@ def agg_runs(dir, metric_best='auto'):
     with open(out_path, 'w') as wfile:
         metric_mean, metric_std = f"{metric}_mean", f"{metric}_std"
         best_result = [
-            f"{split:5s}\t{metric_mean}: {val_dict[metric_mean]}\t{metric_std}: {val_dict[metric_std]}"
+            f"{split:5s}\t{metric_mean}: {val_dict[metric_mean]:.5f}\t{metric_std}: {val_dict[metric_std]:.5f}"
             for split, val_dict in results_best.items()
         ]
         best_result = "\n".join(best_result)

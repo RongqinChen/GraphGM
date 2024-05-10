@@ -17,16 +17,7 @@
             "program": "main.py",
             "console": "integratedTerminal",
             "args": [
-                "--cfg",
-                "configs/GRIT/zinc-GRIT-RRWP.yaml",
-                "accelerator",
-                "cuda:0",
-                "optim.max_epoch",
-                "2000",
-                "seed",
-                "0",
-                "dataset.dir",
-                "datasets"
+                "--cfg", "configs/GRIT/zinc-GRIT-RRWP.yaml",
             ]
         },
         {
@@ -36,36 +27,30 @@
             "program": "main.py",
             "console": "integratedTerminal",
             "args": [
-                "--cfg",
-                "configs/GRIT/zinc-GRIT-Bern.yaml",
-                "accelerator",
-                "cuda:0",
-                "optim.max_epoch",
-                "2000",
-                "seed",
-                "0",
-                "dataset.dir",
-                "datasets"
+                "--cfg", "configs/GRIT/zinc-GRIT-Bern.yaml",
             ]
         },
         {
-            "name": "zinc-Additive-GM1",
+            "name": "zincfull-GRIT-Bern",
             "type": "debugpy",
             "request": "launch",
             "program": "main.py",
             "console": "integratedTerminal",
             "args": [
-                "--cfg",
-                "configs/GRIT/zinc-Additive-GM1.yaml",
-                "accelerator",
-                "cuda:0",
-                "optim.max_epoch",
-                "2000",
-                "seed",
-                "0",
-                "dataset.dir",
-                "datasets"
-            ]
+                "--cfg", "configs/GRIT/zincfull-GRIT-Bern.yaml",
+            ],
+            "justMyCode": false
+        },
+        {
+            "name": "peptides-func-GRIT-Bern",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "main.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--cfg", "configs/GRIT/peptides-func-GRIT-Bern.yaml",
+            ],
+            "justMyCode": false
         }
     ]
 }

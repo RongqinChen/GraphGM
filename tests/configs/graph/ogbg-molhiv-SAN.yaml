@@ -1,5 +1,5 @@
 out_dir: tests/results
-tensorboard_each_run: True  # Log to Tensorboard each run
+tensorboard_each_run: False  # Log to Tensorboard each run
 metric_best: auc
 dataset:
   format: OGB

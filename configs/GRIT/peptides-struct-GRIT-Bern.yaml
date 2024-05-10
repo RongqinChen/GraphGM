@@ -19,7 +19,7 @@ dataset:
   edge_encoder_bn: False
 posenc_Bern:
   enable: True
-  poly_order: 21
+  poly_order: 24
 train:
   mode: custom
 #  batch_size: 32
@@ -41,12 +41,12 @@ gt:
   batch_norm: True
   attn:
     clamp: 5.
-    act: 'relu'
+    act: relu
     full_attn: True
     edge_enhance: True
     O_e: True
     norm_e: True
-    signed_sqrt: True
+    # signed_sqrt: True
 gnn:
   head: default
   layers_pre_mp: 0
@@ -59,8 +59,7 @@ optim:
   clip_grad_norm: True
   optimizer: adamW
   weight_decay: 0.0
-  base_lr: 0.001
+  base_lr: 0.0003
   max_epoch: 200
   scheduler: cosine_with_warmup
   num_warmup_epochs: 10
-  min_lr: 1e-5

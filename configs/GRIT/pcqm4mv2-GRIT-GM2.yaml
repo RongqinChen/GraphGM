@@ -3,6 +3,7 @@ metric_best: mae
 metric_agg: argmin
 accelerator: "cuda:0"
 tensorboard_each_run: False  # Log to Tensorboard each run
+num_workers: 10
 wandb:
   use: False
   project: pcqm4m
@@ -18,12 +19,10 @@ dataset:
   edge_encoder: True
   edge_encoder_name: Bond
   edge_encoder_bn: False
-posenc_RWPSE:
+posenc_GM2:
   enable: True
-  ksteps: 16
-  add_identity: True
-  add_node_attr: False
-  add_inverse: True
+  poly_order: 11
+  gm_encoder: 'gm_linear'
 train:
   mode: custom
   batch_size: 256
