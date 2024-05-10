@@ -39,7 +39,7 @@ model:
 gt:
   layer_type: AdditiveAttnAct
   layers: 5
-  n_heads: 8
+  n_heads: 12
   dim_hidden: 96  # `gt.dim_hidden` must match `gnn.dim_inner`
   dropout: 0.0
   layer_norm: False
