@@ -5,14 +5,28 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "agg_runs",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "graphgps.agg_runs"
+        },
+        {
             "name": "zinc-GRIT-RRWP",
             "type": "debugpy",
             "request": "launch",
             "program": "main.py",
             "console": "integratedTerminal",
             "args": [
-                "--cfg", "configs/GRIT/zinc-GRIT-RRWP.yaml", "accelerator", "cuda:0", 
-                "optim.max_epoch", "2000", "seed", "0", "dataset.dir", "datasets"
+                "--cfg",
+                "configs/GRIT/zinc-GRIT-RRWP.yaml",
+                "accelerator",
+                "cuda:0",
+                "optim.max_epoch",
+                "2000",
+                "seed",
+                "0",
+                "dataset.dir",
+                "datasets"
             ]
         },
         {
@@ -22,8 +36,16 @@
             "program": "main.py",
             "console": "integratedTerminal",
             "args": [
-                "--cfg", "configs/GRIT/zinc-GRIT-Bern.yaml", "accelerator", "cuda:0", 
-                "optim.max_epoch", "2000", "seed", "0", "dataset.dir", "datasets"
+                "--cfg",
+                "configs/GRIT/zinc-GRIT-Bern.yaml",
+                "accelerator",
+                "cuda:0",
+                "optim.max_epoch",
+                "2000",
+                "seed",
+                "0",
+                "dataset.dir",
+                "datasets"
             ]
         },
         {
@@ -33,8 +55,16 @@
             "program": "main.py",
             "console": "integratedTerminal",
             "args": [
-                "--cfg", "configs/GRIT/zinc-Additive-GM1.yaml", "accelerator", "cuda:0", 
-                "optim.max_epoch", "2000", "seed", "0", "dataset.dir", "datasets"
+                "--cfg",
+                "configs/GRIT/zinc-Additive-GM1.yaml",
+                "accelerator",
+                "cuda:0",
+                "optim.max_epoch",
+                "2000",
+                "seed",
+                "0",
+                "dataset.dir",
+                "datasets"
             ]
         }
     ]

@@ -4,7 +4,7 @@ import torch
 import logging
 
 import graphgps  # noqa, register custom modules
-from graphgps.agg_runs import agg_runs
+# from graphgps.agg_runs import agg_runs
 from graphgps.optimizer.extra_optimizers import ExtendedSchedulerConfig
 
 from torch_geometric.graphgym.cmd_args import parse_args
@@ -165,12 +165,12 @@ if __name__ == '__main__':
         else:
             train_dict[cfg.train.mode](loggers, loaders, model, optimizer,
                                        scheduler)
-    # Aggregate results from different seeds
-    try:
-        agg_runs(cfg.out_dir, cfg.metric_best)
-    except Exception as e:
-        logging.info(f"Failed when trying to aggregate multiple runs: {e}")
-    # When being launched in batch mode, mark a yaml as done
-    if args.mark_done:
-        os.rename(args.cfg_file, f'{args.cfg_file}_done')
+    # # Aggregate results from different seeds
+    # try:
+    #     agg_runs(cfg.out_dir, cfg.metric_best)
+    # except Exception as e:
+    #     logging.info(f"Failed when trying to aggregate multiple runs: {e}")
+    # # When being launched in batch mode, mark a yaml as done
+    # if args.mark_done:
+    #     os.rename(args.cfg_file, f'{args.cfg_file}_done')
     logging.info(f"[*] All done: {datetime.datetime.now()}")

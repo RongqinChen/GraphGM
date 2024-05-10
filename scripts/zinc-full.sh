@@ -5,3 +5,4 @@ python main.py --cfg configs/GRIT/zinc-full-GRIT-RRWP.yaml  wandb.use False acce
 python main.py --cfg configs/GRIT/zinc-full-GRIT-RRWP.yaml  wandb.use False accelerator "cuda:3" seed 3  &
 wait
 
+python -m graphgps.agg_runs 

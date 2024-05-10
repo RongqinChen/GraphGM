@@ -6,3 +6,5 @@ CUDA_VISIBLE_DEVICES=0 python main.py --cfg configs/GRIT/zinc-Additive-GM1.yaml 
 wait
 CUDA_VISIBLE_DEVICES=0 python main.py --cfg configs/GRIT/zinc-Additive-GM1.yaml wandb.use False seed 3  &
 wait
+
+python -m graphgps.agg_runs 
