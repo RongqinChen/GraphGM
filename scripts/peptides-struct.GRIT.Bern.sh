@@ -16,3 +16,4 @@ wait
 
 python -m graphgps.agg_runs 
 
+

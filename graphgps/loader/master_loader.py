@@ -16,7 +16,9 @@ from torch_geometric.datasets import (
     WebKB,
     WikipediaNetwork,
     ZINC,
+    LRGBDataset
 )
+# from torch_geometric.datasets.lrgb import LRGBDataset
 from torch_geometric.graphgym.config import cfg
 from torch_geometric.graphgym.loader import load_pyg, load_ogb, set_dataset_attr
 from torch_geometric.graphgym.register import register_loader
@@ -217,8 +219,8 @@ def load_dataset_master(format, name, dataset_dir):
         logging.info(f"  ...estimated to be undirected: {is_undirected}")
         print('name', name)
         if f"{format}_{name}" in {"PyG-ZINC_full"} or \
-                name in {"peptides-functional", "peptides-structural", "CLUSTER",
-                         "PATTERN", "PCQM4Mv2-full", "CIFAR10", "MNIST", "edge_wt_region_boundary"}:
+                name in {"peptides-functional", "peptides-structural", "CLUSTER", "PATTERN",
+                         "PCQM4Mv2-full", "CIFAR10", "MNIST", "PCQM4Mv2Contact-shuffle", "edge_wt_region_boundary"}:
             logging.info(
                 f"Positional Encoding statistics: {pe_enabled_list} "
                 f"will be computed on the fly for all graphs..."
@@ -511,38 +513,47 @@ def preformat_OGB_PCQM4Mv2(dataset_dir, name):
 
 
 def preformat_PCQM4Mv2Contact(dataset_dir, name):
-    """Load PCQM4Mv2-derived molecular contact link prediction dataset.
-
-    Note: This dataset requires RDKit dependency!
-
-    Args:
-       dataset_dir: path where to store the cached dataset
-       name: the type of dataset split: 'shuffle', 'num-atoms'
-
-    Returns:
-       PyG dataset object
-    """
-    try:
-        # Load locally to avoid RDKit dependency until necessary
-        from graphgps.loader.dataset.pcqm4mv2_contact import (
-            PygPCQM4Mv2ContactDataset,
-            structured_neg_sampling_transform,
-        )
-    except Exception as e:
-        logging.error(
-            "ERROR: Failed to import PygPCQM4Mv2ContactDataset, "
-            "make sure RDKit is installed."
-        )
-        raise e
-
-    split_name = name.split("-", 1)[1]
-    dataset = PygPCQM4Mv2ContactDataset(dataset_dir, subset="530k")
-    # Inductive graph-level split (there is no train/test edge split).
-    s_dict = dataset.get_idx_split(split_name)
-    dataset.split_idxs = [s_dict[s] for s in ["train", "val", "test"]]
-    if cfg.dataset.resample_negative:
-        dataset.transform = structured_neg_sampling_transform
+    # print('name', name)
+    dataset = join_dataset_splits(
+        # ZINC(root=dataset_dir, subset=(name == "subset"), split=split)
+        [
+            LRGBDataset(dataset_dir, "PCQM-Contact", split=split)
+            for split in ["train", "val", "test"]
+        ]
+    )
     return dataset
+    # """Load PCQM4Mv2-derived molecular contact link prediction dataset.
+
+    # Note: This dataset requires RDKit dependency!
+
+    # Args:
+    #    dataset_dir: path where to store the cached dataset
+    #    name: the type of dataset split: 'shuffle', 'num-atoms'
+
+    # Returns:
+    #    PyG dataset object
+    # """
+    # try:
+    #     # Load locally to avoid RDKit dependency until necessary
+    #     from graphgps.loader.dataset.pcqm4mv2_contact import (
+    #         PygPCQM4Mv2ContactDataset,
+    #         structured_neg_sampling_transform,
+    #     )
+    # except Exception as e:
+    #     logging.error(
+    #         "ERROR: Failed to import PygPCQM4Mv2ContactDataset, "
+    #         "make sure RDKit is installed."
+    #     )
+    #     raise e
+
+    # split_name = name.split("-", 1)[1]
+    # dataset = PygPCQM4Mv2ContactDataset(dataset_dir, subset="530k")
+    # # Inductive graph-level split (there is no train/test edge split).
+    # s_dict = dataset.get_idx_split(split_name)
+    # dataset.split_idxs = [s_dict[s] for s in ["train", "val", "test"]]
+    # if cfg.dataset.resample_negative:
+    #     dataset.transform = structured_neg_sampling_transform
+    # return dataset
 
 
 def preformat_Peptides(dataset_dir, name):
