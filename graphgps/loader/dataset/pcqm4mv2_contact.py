@@ -26,7 +26,7 @@ def cxsmiles_to_mol_with_contact(cxsmiles):
         try:
             this_list = [int(val) for val in atom.GetProp("contact").split(";")]
             list_of_contacts[ii] = this_list
-        except:
+        except Exception:
             pass
     max_count = max(sum(list_of_contacts, []) + [-1]) + 1
 

@@ -81,7 +81,7 @@ class CustomLogger(Logger):
             auroc_score = auroc(
                 pred_score.to(torch.device(cfg.accelerator)),
                 true.to(torch.device(cfg.accelerator)),
-                task="binary",
+                # task="binary",
             )
             if self.test_scores:
                 # SK-learn version.

@@ -46,9 +46,15 @@
             "type": "debugpy",
             "request": "launch",
             "program": "main.py",
+        },
+        {
+            "name": "contact-GRIT-Bern",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "main.py",
             "console": "integratedTerminal",
             "args": [
-                "--cfg", "configs/GRIT/peptides-func-GRIT-Bern.yaml",
+                "--cfg", "configs/GRIT/pcqm-contact-GRIT-Bern.yaml",
             ],
             "justMyCode": false
         }

@@ -44,7 +44,7 @@ class GNNInductiveEdgeHead(nn.Module):
                     f'Unknown edge decoding {cfg.model.edge_decoding}.')
 
     def _apply_index(self, batch):
-        return batch.x[batch.edge_index_labeled], batch.edge_label
+        return batch.x[batch.edge_label_index], batch.edge_label
 
     def forward(self, batch):
         if cfg.model.edge_decoding != 'concat':
@@ -67,12 +67,12 @@ class GNNInductiveEdgeHead(nn.Module):
         stats = {}
         for data in batch.to_data_list():
             # print(data.num_nodes)
-            # print(data.edge_index_labeled)
+            # print(data.edge_label_index)
             # print(data.edge_label)
             pred = data.x @ data.x.transpose(0, 1)
             # print(pred.shape)
 
-            pos_edge_index = data.edge_index_labeled[:, data.edge_label == 1]
+            pos_edge_index = data.edge_label_index[:, data.edge_label == 1]
             num_pos_edges = pos_edge_index.shape[1]
             # print(pos_edge_index, num_pos_edges)
 
