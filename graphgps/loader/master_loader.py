@@ -218,7 +218,7 @@ def load_dataset_master(format, name, dataset_dir):
         print('name', name)
         if f"{format}_{name}" in {"PyG-ZINC_full"} or \
                 name in {"peptides-functional", "peptides-structural", "CLUSTER",
-                         "PATTERN", "PCQM4Mv2-full", "CIFAR10", "MNIST"}:
+                         "PATTERN", "PCQM4Mv2-full", "CIFAR10", "MNIST", "edge_wt_region_boundary"}:
             logging.info(
                 f"Positional Encoding statistics: {pe_enabled_list} "
                 f"will be computed on the fly for all graphs..."
