@@ -29,7 +29,7 @@ train:
 model:
   type: GritTransformer
   loss_fun: l1
-  graph_pooling: mean
+  graph_pooling: add
 gt:
   layer_type: GritTransformer
   layers: 4
