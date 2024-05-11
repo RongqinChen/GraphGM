@@ -17,9 +17,10 @@ dataset:
   edge_encoder: True
   edge_encoder_name: Bond
   edge_encoder_bn: False
-posenc_Bern:
+posenc_GM1:
   enable: True
-  poly_order: 24
+  poly_order: 15
+  gm_encoder: 'gm_linear'
 train:
   mode: custom
 #  batch_size: 32

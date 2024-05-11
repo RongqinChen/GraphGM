@@ -1,15 +1,15 @@
 out_dir: results
-metric_best: mae
-metric_agg: argmin
+metric_best: ap
 accelerator: "cuda:0"
+num_workers: 2
 wandb:
   use: False
-  project: peptides-struct
+  project: peptides-func
 dataset:
   format: OGB
-  name: peptides-structural
+  name: peptides-functional
   task: graph
-  task_type: regression
+  task_type: classification_multilabel
   transductive: False
   node_encoder: True
   node_encoder_name: Atom
@@ -17,9 +17,10 @@ dataset:
   edge_encoder: True
   edge_encoder_name: Bond
   edge_encoder_bn: False
-posenc_Bern:
+posenc_GM1:
   enable: True
-  poly_order: 24
+  poly_order: 15
+  gm_encoder: 'gm_linear'
 train:
   mode: custom
 #  batch_size: 32
@@ -28,15 +29,15 @@ train:
   ckpt_period: 100
 model:
   type: GritTransformer
-  loss_fun: l1
+  loss_fun: cross_entropy
   graph_pooling: mean
 gt:
   layer_type: GritTransformer
   layers: 4
-  n_heads: 8
-  dim_hidden: 96 # `gt.dim_hidden` must match `gnn.dim_inner`
-  dropout: 0.05
-  attn_dropout: 0.2
+  n_heads: 4
+  dim_hidden: 96  # `gt.dim_hidden` must match `gnn.dim_inner`
+  dropout: 0.0
+  attn_dropout: 0.5
   layer_norm: False
   batch_norm: True
   attn:
@@ -47,10 +48,11 @@ gt:
     O_e: True
     norm_e: True
     # signed_sqrt: True
+    # fwl: False
 gnn:
   head: default
   layers_pre_mp: 0
-  layers_post_mp: 2 # Not used when `gnn.head: san_graph`
+  layers_post_mp: 1  # Not used when `gnn.head: san_graph`
   dim_inner: 96  # `gt.dim_hidden` must match `gnn.dim_inner`
   batchnorm: True
   act: relu
