@@ -62,12 +62,11 @@ class AdditiveAttn(nn.Module):
         # (num relative) x num_heads x out_dim
         score2 = Ex1 * Ex2
         score = score1 + torch.sqrt(torch.relu(score2)) - torch.sqrt(torch.relu(-score2))
-        score = self.act(score)
-        e_t = score
-        gbatch.oE = score.flatten(1)
+        conn = self.act(score)
+        gbatch.oE = conn.flatten(1)
 
         # final attn
-        score = oe.contract("ehd, dhc->ehc", score, self.Aw, backend="torch")
+        score = oe.contract("ehd, dhc->ehc", conn, self.Aw, backend="torch")
         if self.clamp is not None:
             score = torch.clamp(score, min=-self.clamp, max=self.clamp)
 
@@ -80,8 +79,8 @@ class AdditiveAttn(nn.Module):
         # Aggregate with Attn-Score
         msg = gbatch.V_h[gbatch.edge_index[0]] * score
         # (num relative) x num_heads x out_dim
-        gbatch.oV = scatter(msg, gbatch.edge_index[1], dim=0, reduce="add")
-        rowV = scatter(e_t * score, gbatch.edge_index[1], dim=0, reduce="add")
+        gbatch.oV = gbatch.Q_h + scatter(msg, gbatch.edge_index[1], dim=0, reduce="add")
+        rowV = scatter(conn * score, gbatch.edge_index[1], dim=0, reduce="add")
         rowV = oe.contract("nhd, dhc -> nhc", rowV, self.VeRow, backend="torch")
         gbatch.oV = gbatch.oV + rowV
         gbatch.oV = gbatch.oV.flatten(1)
