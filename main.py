@@ -115,9 +115,7 @@ def run_loop_settings():
 
 
 if __name__ == '__main__':
-    # Load cmd line args
     args = parse_args()
-    # Load config file
     set_cfg(cfg)
     load_cfg(cfg, args)
     custom_set_out_dir(cfg, args.cfg_file, cfg.name_tag)
@@ -164,14 +162,5 @@ if __name__ == '__main__':
             datamodule = GraphGymDataModule()
             train(model, datamodule, logger=True)
         else:
-            train_dict[cfg.train.mode](loggers, loaders, model, optimizer,
-                                       scheduler)
-    # # Aggregate results from different seeds
-    # try:
-    #     agg_runs(cfg.out_dir, cfg.metric_best)
-    # except Exception as e:
-    #     logging.info(f"Failed when trying to aggregate multiple runs: {e}")
-    # # When being launched in batch mode, mark a yaml as done
-    # if args.mark_done:
-    #     os.rename(args.cfg_file, f'{args.cfg_file}_done')
+            train_dict[cfg.train.mode](loggers, loaders, model, optimizer, scheduler)
     logging.info(f"[*] All done: {datetime.datetime.now()}")

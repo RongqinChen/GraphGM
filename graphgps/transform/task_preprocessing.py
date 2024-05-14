@@ -55,10 +55,7 @@ def task_specific_preprocessing(data, cfg):
     supported_encoding_available = cfg.posenc_LapPE.enable
     supported_encoding_available |= cfg.posenc_RWSE.enable
     supported_encoding_available |= cfg.posenc_GraphormerBias.enable
-    supported_encoding_available |= cfg.posenc_RRWP.enable
-    supported_encoding_available |= cfg.posenc_Bern.enable
-    supported_encoding_available |= cfg.posenc_GM1.enable
-    supported_encoding_available |= cfg.posenc_GM2.enable
+    supported_encoding_available |= cfg.posenc_RRW_Bern.enable
 
     if cfg.dataset.name == "TRIANGLES":
         # If encodings are present they can append to the empty data.x

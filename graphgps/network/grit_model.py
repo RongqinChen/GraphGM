@@ -78,29 +78,13 @@ class GritTransformer(torch.nn.Module):
                 fill_value=0.0,
             )
 
-        if cfg.posenc_Bern.enable:
-            self.abs_encoder = register.node_encoder_dict["bern_linear"](
-                cfg.posenc_Bern.poly_order + 1, cfg.gnn.dim_inner
+        if cfg.posenc_RRW_Bern.enable:
+            self.abs_encoder = register.node_encoder_dict["rrw_bern"](
+                cfg.posenc_RRW_Bern.max_poly_order, cfg.gnn.dim_inner
             )
-            self.rel_encoder = register.edge_encoder_dict["bern_linear"](
-                cfg.posenc_Bern.poly_order + 1,
+            self.rel_encoder = register.edge_encoder_dict["rrw_bern"](
+                cfg.posenc_RRW_Bern.max_poly_order,
                 cfg.gnn.dim_edge, fill_value=0.0,
-            )
-
-        if cfg.posenc_GM1.enable or cfg.posenc_GM2.enable:
-            if cfg.posenc_GM1.enable:
-                poly_order = cfg.posenc_GM1.poly_order
-                gm_encoder = cfg.posenc_GM1.gm_encoder
-                emb_dim = (poly_order + 1) + (poly_order + 1) * poly_order // 2
-            else:
-                poly_order = cfg.posenc_GM2.poly_order
-                gm_encoder = cfg.posenc_GM2.gm_encoder
-                emb_dim = (poly_order + 1) + (poly_order + 2) * (poly_order + 1) // 2
-            self.abs_encoder = register.node_encoder_dict[gm_encoder](
-                emb_dim, cfg.gnn.dim_inner,
-            )
-            self.rel_encoder = register.edge_encoder_dict[gm_encoder](
-                emb_dim, cfg.gnn.dim_edge, fill_value=0.0,
             )
 
         if cfg.gnn.layers_pre_mp > 0:

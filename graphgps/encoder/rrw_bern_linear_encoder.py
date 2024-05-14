@@ -21,17 +21,19 @@ def full_edge_index(batch: torch.Tensor):
     cum_nodes = torch.cat([batch.new_zeros(1), num_nodes.cumsum(dim=0)])
     Ns = num_nodes.tolist()
     full_index_list = [
-        torch.ones(
-            (Ns[idx], Ns[idx]), dtype=torch.short, device=batch.device
-        ).nonzero(as_tuple=False).t().contiguous() + cum_nodes[idx]
+        torch.ones((Ns[idx], Ns[idx]), dtype=torch.short, device=batch.device)
+        .nonzero(as_tuple=False)
+        .t()
+        .contiguous()
+        + cum_nodes[idx]
         for idx in range(batch_size)
     ]
     batch_index_full = torch.cat(full_index_list, dim=1).contiguous()
     return batch_index_full
 
 
-@register_node_encoder("gm_mlp")
-class GM_MLP_NodeEncoder(torch.nn.Module):
+@register_node_encoder("rrw_bern")
+class LinearNodeEncoder(torch.nn.Module):
     """
     FC_1(GM) + FC_2 (Node-attr)
     note: FC_2 is given by the Typedict encoder of node-attr in some cases
@@ -41,24 +43,19 @@ class GM_MLP_NodeEncoder(torch.nn.Module):
 
     def __init__(
         self,
-        emb_dim,
+        max_poly_order,
         out_dim,
         use_bias=False,
         batchnorm=False,
         layernorm=False,
-        pe_name="gm",
     ):
         super().__init__()
+        self.name = 'rrw_bern'
         self.batchnorm = batchnorm
         self.layernorm = layernorm
-        self.name = pe_name
-        self.fc = nn.Sequential(
-            nn.Linear(emb_dim, out_dim * 2, bias=use_bias), nn.ReLU(),
-            nn.Linear(out_dim * 2, out_dim, bias=use_bias),
-        )
-        for m in self.fc._modules:
-            if isinstance(m, nn.Linear):
-                torch.nn.init.xavier_uniform_(m.weight)
+        self.emb_dim = (2 + max_poly_order) * (max_poly_order + 1) // 2
+        self.fc = nn.Linear(self.emb_dim, out_dim, bias=use_bias)
+        torch.nn.init.xavier_uniform_(self.fc.weight)
         if self.batchnorm:
             self.bn = nn.BatchNorm1d(out_dim)
         if self.layernorm:
@@ -79,8 +76,8 @@ class GM_MLP_NodeEncoder(torch.nn.Module):
         return batch
 
 
-@register_edge_encoder("gm_mlp")
-class GM_MLP_EdgeEncoder(torch.nn.Module):
+@register_edge_encoder("rrw_bern")
+class LinearEdgeEncoder(torch.nn.Module):
     """
     Merge GM with given edge-attr and Zero-padding to all pairs of node
     FC_1(GM) + FC_2(edge-attr)
@@ -91,11 +88,19 @@ class GM_MLP_EdgeEncoder(torch.nn.Module):
     """
 
     def __init__(
-        self, emb_dim, out_dim, batchnorm=False, layernorm=False, use_bias=False, fill_value=0.0,
+        self,
+        max_poly_order,
+        out_dim,
+        batchnorm=False,
+        layernorm=False,
+        use_bias=False,
+        fill_value=0.0,
     ):
         super().__init__()
+        self.name = 'rrw_bern'
         # note: batchnorm/layernorm might ruin some properties of pe on providing shortest-path distance info
-        self.emb_dim = emb_dim
+        self.emb_dim = (2 + max_poly_order) * (max_poly_order + 1) // 2
+        self.fc = nn.Linear(self.emb_dim, out_dim, bias=use_bias)
         self.out_dim = out_dim
         self.batchnorm = batchnorm
         self.layernorm = layernorm
@@ -104,13 +109,8 @@ class GM_MLP_EdgeEncoder(torch.nn.Module):
                 "batchnorm/layernorm might ruin some properties of pe on providing shortest-path distance info "
             )
 
-        self.fc = nn.Sequential(
-            nn.Linear(emb_dim, out_dim * 2, bias=use_bias), nn.ReLU(),
-            nn.Linear(out_dim * 2, out_dim, bias=use_bias),
-        )
-        for m in self.fc._modules:
-            if isinstance(m, nn.Linear):
-                torch.nn.init.xavier_uniform_(m.weight)
+        self.fc = nn.Linear(self.emb_dim, out_dim, bias=use_bias)
+        torch.nn.init.xavier_uniform_(self.fc.weight)
         self.fill_value = 0.0
         padding = torch.ones(1, out_dim, dtype=torch.float) * fill_value
         self.register_buffer("padding", padding)
@@ -120,22 +120,24 @@ class GM_MLP_EdgeEncoder(torch.nn.Module):
             self.ln = nn.LayerNorm(out_dim)
 
     def forward(self, batch: Data):
-        gm_idx = batch.gm_index
-        gm_val = batch.gm_val
+        rrw_bern_idx = batch.rrw_bern_index
+        rrw_bern_val = batch.rrw_bern_val
         edge_index = batch.edge_index
         edge_attr = batch.edge_attr
-        gm_val = self.fc(gm_val)
+        rrw_bern_val = self.fc(rrw_bern_val)
 
         if edge_attr is None:
-            edge_attr = edge_index.new_zeros(edge_index.size(1), gm_val.size(1))
+            edge_attr = edge_index.new_zeros(edge_index.size(1), rrw_bern_val.size(1))
             # zero padding for non-existing edges
 
         full_index_full = full_edge_index(batch.batch)
         full_attr_pad = self.padding.repeat(full_index_full.size(1), 1)
         out_idx, out_val = torch_sparse.coalesce(
-            torch.cat([edge_index, gm_idx, full_index_full], dim=1),
-            torch.cat([edge_attr, gm_val, full_attr_pad], dim=0),
-            batch.num_nodes, batch.num_nodes, op="add",
+            torch.cat([edge_index, rrw_bern_idx, full_index_full], dim=1),
+            torch.cat([edge_attr, rrw_bern_val, full_attr_pad], dim=0),
+            batch.num_nodes,
+            batch.num_nodes,
+            op="add",
         )
         if self.batchnorm:
             out_val = self.bn(out_val)
