@@ -56,11 +56,12 @@ class AdditiveAttn(nn.Module):
     def propagate_attention(self, gbatch: Data):
         src = gbatch.K_h[gbatch.edge_index[0]]  # (num relative) x num_heads x out_dim
         dest = gbatch.Q_h[gbatch.edge_index[1]]  # (num relative) x num_heads x out_dim
-        score = src + dest  # element-wise multiplication
+        score1 = src + dest  # element-wise multiplication
         Ex = gbatch.E.view(-1, self.num_heads, self.out_dim * 2)
         Ex1, Ex2 = Ex[:, :, :self.out_dim], Ex[:, :, self.out_dim:]
         # (num relative) x num_heads x out_dim
-        score = score + Ex1 * Ex2
+        score2 = Ex1 * Ex2
+        score = score1 + torch.sqrt(torch.relu(score2)) - torch.sqrt(torch.relu(-score2))
         score = self.act(score)
         e_t = score
         gbatch.oE = score.flatten(1)
