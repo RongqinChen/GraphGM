@@ -7,9 +7,9 @@ from torch_sparse import SparseTensor
 from scipy.special import comb
 
 
-def add_rrw_bernstain_polynomials(
+def compute_rrw_bernstain_polynomials(
     data: Data,
-    max_poly_order=8,
+    order=8,
     attr_name_abs="rrw_bern",
     attr_name_rel="rrw_bern",
 ):
@@ -42,16 +42,16 @@ def add_rrw_bernstain_polynomials(
     )
     base2 = base2.to_dense()
 
-    base1_list = [1, base1] + [None] * max_poly_order
-    base2_list = [1, base2] + [None] * max_poly_order
-    for k in range(2, max_poly_order + 1):
+    base1_list = [1, base1] + [None] * order
+    base2_list = [1, base2] + [None] * order
+    for k in range(2, order + 1):
         ldx, rdx = (k) // 2, (k + 1) // 2
         base1_list[k] = base1_list[ldx] @ base1_list[rdx]
         base2_list[k] = base2_list[ldx] @ base2_list[rdx]
 
     poly_list = [torch.eye(num_nodes)]
 
-    for poly_order in range(1, max_poly_order + 1):
+    for poly_order in range(1, order + 1):
         part_poly_list = [base2_list[poly_order]]
         part_poly_list += [
             base1_list[k] @ base2_list[poly_order - k]
@@ -64,11 +64,11 @@ def add_rrw_bernstain_polynomials(
         ]
 
     polys = torch.stack(poly_list, dim=-1)  # n x n x (2+K)*(K+1)/2
-    loops = polys.diagonal().transpose(0, 1)  # n x (2+K)*(K+1)/2
+    diag = polys.diagonal().transpose(0, 1)  # n x (2+K)*(K+1)/2
     poly_adj = SparseTensor.from_dense(polys, has_value=True)
     poly_row, poly_col, poly_val = poly_adj.coo()
     poly_idx = torch.stack([poly_row, poly_col], dim=0)
-    data = add_node_attr(data, loops, attr_name=attr_name_abs)
+    data = add_node_attr(data, diag, attr_name=attr_name_abs)
     data = add_node_attr(data, poly_idx, attr_name=f"{attr_name_rel}_index")
     data = add_node_attr(data, poly_val, attr_name=f"{attr_name_rel}_val")
     data.log_deg = torch.log(deg + 1).unsqueeze_(1)

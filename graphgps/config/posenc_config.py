@@ -14,7 +14,7 @@ def set_cfg_posenc(cfg):
     cfg.posenc_ElstaticSE = CN()
     cfg.posenc_EquivStableLapPE = CN()
     cfg.posenc_RRWP = CN()
-    cfg.posenc_RRW_Bern = CN()
+    cfg.posenc_Poly = CN()
 
     # Common arguments to all PE types.
     for name in [
@@ -24,7 +24,7 @@ def set_cfg_posenc(cfg):
         "posenc_HKdiagSE",
         "posenc_ElstaticSE",
         "posenc_RRWP",
-        "posenc_RRW_Bern",
+        "posenc_Poly",
     ]:
         pecfg = getattr(cfg, name)
         # Use extended positional encodings
@@ -99,8 +99,10 @@ def set_cfg_posenc(cfg):
     cfg.posenc_RRWP.add_identity = True
     cfg.posenc_RRWP.spd = False
 
-    # ----------------- Note: RRW_Bern --------------
-    cfg.posenc_RRW_Bern.enable = False
-    cfg.posenc_RRW_Bern.max_poly_order = 21
-    cfg.posenc_RRW_Bern.attr_name_abs = 'rrw_bern'
-    cfg.posenc_RRW_Bern.attr_name_rel = 'rrw_bern'
+    # # ----------------- Note: Poly --------------
+    cfg.posenc_Poly.enable = False
+    cfg.posenc_Poly.method = 'rrw_bern'
+    cfg.posenc_Poly.order = 21
+    cfg.posenc_Poly.emb_dim = 21
+    cfg.posenc_Poly.attr_name_abs = 'rrw_bern'
+    cfg.posenc_Poly.attr_name_rel = 'rrw_bern'

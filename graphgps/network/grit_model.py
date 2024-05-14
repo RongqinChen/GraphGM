@@ -78,13 +78,12 @@ class GritTransformer(torch.nn.Module):
                 fill_value=0.0,
             )
 
-        if cfg.posenc_RRW_Bern.enable:
-            self.abs_encoder = register.node_encoder_dict["rrw_bern"](
-                cfg.posenc_RRW_Bern.max_poly_order, cfg.gnn.dim_inner
+        if cfg.posenc_Poly.enable:
+            self.abs_encoder = register.node_encoder_dict["poly"](
+                cfg.posenc_Poly.method, cfg.posenc_Poly.emb_dim, cfg.gnn.dim_inner
             )
-            self.rel_encoder = register.edge_encoder_dict["rrw_bern"](
-                cfg.posenc_RRW_Bern.max_poly_order,
-                cfg.gnn.dim_edge, fill_value=0.0,
+            self.rel_encoder = register.edge_encoder_dict["poly"](
+                cfg.posenc_Poly.method, cfg.posenc_Poly.emb_dim, cfg.gnn.dim_edge, fill_value=0.0,
             )
 
         if cfg.gnn.layers_pre_mp > 0:

@@ -32,28 +32,23 @@ def full_edge_index(batch: torch.Tensor):
     return batch_index_full
 
 
-@register_node_encoder("rrw_bern")
+@register_node_encoder("poly")
 class LinearNodeEncoder(torch.nn.Module):
-    """
-    FC_1(GM) + FC_2 (Node-attr)
-    note: FC_2 is given by the Typedict encoder of node-attr in some cases
-    Parameters:
-    num_classes - the number of classes for the embedding mapping to learn
-    """
-
     def __init__(
         self,
-        max_poly_order,
+        name,
+        emb_dim,
         out_dim,
         use_bias=False,
         batchnorm=False,
         layernorm=False,
     ):
         super().__init__()
-        self.name = 'rrw_bern'
+        self.name = name
         self.batchnorm = batchnorm
         self.layernorm = layernorm
-        self.emb_dim = (2 + max_poly_order) * (max_poly_order + 1) // 2
+        self.emb_dim = emb_dim
+        # self.emb_dim = (2 + max_poly_order) * (max_poly_order + 1) // 2
         self.fc = nn.Linear(self.emb_dim, out_dim, bias=use_bias)
         torch.nn.init.xavier_uniform_(self.fc.weight)
         if self.batchnorm:
@@ -76,7 +71,7 @@ class LinearNodeEncoder(torch.nn.Module):
         return batch
 
 
-@register_edge_encoder("rrw_bern")
+@register_edge_encoder("poly")
 class LinearEdgeEncoder(torch.nn.Module):
     """
     Merge GM with given edge-attr and Zero-padding to all pairs of node
@@ -89,7 +84,8 @@ class LinearEdgeEncoder(torch.nn.Module):
 
     def __init__(
         self,
-        max_poly_order,
+        name,
+        emb_dim,
         out_dim,
         batchnorm=False,
         layernorm=False,
@@ -97,9 +93,10 @@ class LinearEdgeEncoder(torch.nn.Module):
         fill_value=0.0,
     ):
         super().__init__()
-        self.name = 'rrw_bern'
+        self.name = name
         # note: batchnorm/layernorm might ruin some properties of pe on providing shortest-path distance info
-        self.emb_dim = (2 + max_poly_order) * (max_poly_order + 1) // 2
+        # self.emb_dim = (2 + max_poly_order) * (max_poly_order + 1) // 2
+        self.emb_dim = emb_dim
         self.fc = nn.Linear(self.emb_dim, out_dim, bias=use_bias)
         self.out_dim = out_dim
         self.batchnorm = batchnorm
@@ -120,21 +117,21 @@ class LinearEdgeEncoder(torch.nn.Module):
             self.ln = nn.LayerNorm(out_dim)
 
     def forward(self, batch: Data):
-        rrw_bern_idx = batch.rrw_bern_index
-        rrw_bern_val = batch.rrw_bern_val
+        poly_idx = batch[f"{self.name}_index"]
+        poly_val = batch[f"{self.name}_val"]
         edge_index = batch.edge_index
         edge_attr = batch.edge_attr
-        rrw_bern_val = self.fc(rrw_bern_val)
+        poly_val = self.fc(poly_val)
 
         if edge_attr is None:
-            edge_attr = edge_index.new_zeros(edge_index.size(1), rrw_bern_val.size(1))
+            edge_attr = edge_index.new_zeros(edge_index.size(1), poly_val.size(1))
             # zero padding for non-existing edges
 
         full_index_full = full_edge_index(batch.batch)
         full_attr_pad = self.padding.repeat(full_index_full.size(1), 1)
         out_idx, out_val = torch_sparse.coalesce(
-            torch.cat([edge_index, rrw_bern_idx, full_index_full], dim=1),
-            torch.cat([edge_attr, rrw_bern_val, full_attr_pad], dim=0),
+            torch.cat([edge_index, poly_idx, full_index_full], dim=1),
+            torch.cat([edge_attr, poly_val, full_attr_pad], dim=0),
             batch.num_nodes,
             batch.num_nodes,
             op="add",

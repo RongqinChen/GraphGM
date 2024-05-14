@@ -14,15 +14,17 @@ dataset:
   transductive: False
   node_encoder: True
   node_encoder_name: TypeDictNode
-  node_encoder_num_types: 21 # actually 21 in Zinc-12k, 28 in Zinc-full
+  node_encoder_num_types: 21  # actually 21 in Zinc-12k, 28 in Zinc-full
   node_encoder_bn: False
   edge_encoder: True
   edge_encoder_name: TypeDictEdge
   edge_encoder_num_types: 4
   edge_encoder_bn: False
-posenc_RRW_Bern:
+posenc_Poly:
   enable: True
-  max_poly_order: 14
+  method: rrw_bern
+  order: 14
+  emb_dim: 120 # (14+2) * (14+1) / 2
   attr_name_abs: rrw_bern
   attr_name_rel: rrw_bern
 train:

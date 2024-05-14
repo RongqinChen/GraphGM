@@ -52,23 +52,23 @@ def task_specific_preprocessing(data, cfg):
 
         data.y = labels.flatten()[final_index]
 
-    supported_encoding_available = cfg.posenc_LapPE.enable
-    supported_encoding_available |= cfg.posenc_RWSE.enable
-    supported_encoding_available |= cfg.posenc_GraphormerBias.enable
-    supported_encoding_available |= cfg.posenc_RRW_Bern.enable
+    # supported_encoding_available = cfg.posenc_LapPE.enable
+    # supported_encoding_available |= cfg.posenc_RWSE.enable
+    # supported_encoding_available |= cfg.posenc_GraphormerBias.enable
+    # supported_encoding_available |= cfg.posenc_rrw_bern.enable
 
-    if cfg.dataset.name == "TRIANGLES":
-        # If encodings are present they can append to the empty data.x
-        if not supported_encoding_available:
-            data.x = torch.zeros((data.x.size(0), 1))
-        data.y = data.y.sub(1).to(torch.long)
+    # if cfg.dataset.name == "TRIANGLES":
+    #     # If encodings are present they can append to the empty data.x
+    #     if not supported_encoding_available:
+    #         data.x = torch.zeros((data.x.size(0), 1))
+    #     data.y = data.y.sub(1).to(torch.long)
 
-    if cfg.dataset.name == "CSL":
+    # if cfg.dataset.name == "CSL":
 
-        # If encodings are present they can append to the empty data.x
-        if not supported_encoding_available:
-            data.x = torch.zeros((data.num_nodes, 1))
-        else:
-            data.x = torch.zeros((data.num_nodes, 0))
+    #     # If encodings are present they can append to the empty data.x
+    #     if not supported_encoding_available:
+    #         data.x = torch.zeros((data.num_nodes, 1))
+    #     else:
+    #         data.x = torch.zeros((data.num_nodes, 0))
 
     return data

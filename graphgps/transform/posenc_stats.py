@@ -20,7 +20,7 @@ from torch_geometric.utils.num_nodes import maybe_num_nodes
 from torch_scatter import scatter_add
 
 from .rrwp import add_full_rrwp
-from .rrw_bernstain import add_rrw_bernstain_polynomials
+from .polynomials import compute_polynomials
 # from .bernstain import add_bernstain_polynomials
 # from .general_metrics_1 import add_full_gm1
 # from .general_metrics_2 import add_full_gm2
@@ -50,7 +50,7 @@ def compute_posenc_stats(data, pe_types, is_undirected, cfg):
         if t not in [
             "LapPE", "EquivStableLapPE", "SignNet", "RWSE",
             "HKdiagSE", "HKfullPE", "ElstaticSE", "RRWP",
-            "RRW_Bern"
+            "Poly"
         ]:
             raise ValueError(f"Unexpected PE stats selection {t} in {pe_types}")
 
@@ -59,6 +59,18 @@ def compute_posenc_stats(data, pe_types, is_undirected, cfg):
         N = data.num_nodes  # Explicitly given number of nodes, e.g. ogbg-ppa
     else:
         N = data.x.shape[0]  # Number of nodes, including disconnected nodes.
+
+    if 'Poly' in pe_types:
+        param = cfg.posenc_Poly
+        transform = partial(
+            compute_polynomials,
+            method=param.method,
+            order=param.order,
+            attr_name_abs=param.attr_name_abs,
+            attr_name_rel=param.attr_name_rel,
+        )
+        data = transform(data)
+
     laplacian_norm_type = cfg.posenc_LapPE.eigen.laplacian_norm.lower()
     if laplacian_norm_type == "none":
         laplacian_norm_type = None
@@ -163,16 +175,6 @@ def compute_posenc_stats(data, pe_types, is_undirected, cfg):
             attr_name_rel="rrwp",
             add_identity=True,
             spd=param.spd,  # by default False
-        )
-        data = transform(data)
-
-    if 'RRW_Bern' in pe_types:
-        param = cfg.posenc_RRW_Bern
-        transform = partial(
-            add_rrw_bernstain_polynomials,
-            max_poly_order=param.max_poly_order,
-            attr_name_abs=param.attr_name_abs,
-            attr_name_rel=param.attr_name_rel,
         )
         data = transform(data)
 
