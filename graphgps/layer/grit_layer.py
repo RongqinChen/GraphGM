@@ -119,9 +119,8 @@ class MultiHeadAttentionLayerGritSparse(nn.Module):
         batch.attn = score
 
         # Aggregate with Attn-Score
-        msg = (
-            batch.V_h[batch.edge_index[0]] * score
-        )  # (num relative) x num_heads x out_dim
+        msg = batch.V_h[batch.edge_index[0]] * score
+        # (num relative) x num_heads x out_dim
         batch.wV = scatter(msg, batch.edge_index[1], dim=0, reduce="add")
         if self.edge_enhance and batch.E is not None:
             rowV = scatter(e_t * score, batch.edge_index[1], dim=0, reduce="add")

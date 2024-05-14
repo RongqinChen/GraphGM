@@ -20,10 +20,13 @@ dataset:
   edge_encoder_name: TypeDictEdge
   edge_encoder_num_types: 4
   edge_encoder_bn: False
-posenc_GM1:
+posenc_Poly:
   enable: True
-  poly_order: 11
-  gm_encoder: 'gm_linear'
+  method: rrw_bern
+  order: 14
+  emb_dim: 120 # (14+2) * (14+1) / 2
+  attr_name_abs: rrw_bern
+  attr_name_rel: rrw_bern
 train:
   mode: custom
   batch_size: 32
