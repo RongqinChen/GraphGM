@@ -1,6 +1,6 @@
 
-CUDA_VISIBLE_DEVICES=0 python main.py --cfg configs/GRIT/pcqm-contact-GRIT-Bern.yaml wandb.use False seed 0  &
-wait
+# CUDA_VISIBLE_DEVICES=0 python main.py --cfg configs/GRIT/pcqm-contact-GRIT-Bern.yaml wandb.use False seed 0  &
+# wait
 
 CUDA_VISIBLE_DEVICES=0 python main.py --cfg configs/GRIT/pcqm-contact-GRIT-Bern.yaml wandb.use False seed 1  &
 wait
