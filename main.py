@@ -27,26 +27,22 @@ from graphgps.logger import create_logger
 from graphgps.optimizer.extra_optimizers import ExtendedSchedulerConfig
 
 warnings.filterwarnings("ignore", category=FutureWarning)
+warnings.filterwarnings("ignore", category=UserWarning)
 
 torch.backends.cuda.matmul.allow_tf32 = True  # Default False in PyTorch 1.12+
 torch.backends.cudnn.allow_tf32 = True  # Default True
 
 
 def new_optimizer_config(cfg):
-    return OptimizerConfig(optimizer=cfg.optim.optimizer,
-                           base_lr=cfg.optim.base_lr,
-                           weight_decay=cfg.optim.weight_decay,
-                           momentum=cfg.optim.momentum)
+    return OptimizerConfig(
+        cfg.optim.optimizer, cfg.optim.base_lr, cfg.optim.weight_decay, cfg.optim.momentum)
 
 
 def new_scheduler_config(cfg):
     return ExtendedSchedulerConfig(
-        scheduler=cfg.optim.scheduler,
-        steps=cfg.optim.steps, lr_decay=cfg.optim.lr_decay,
-        max_epoch=cfg.optim.max_epoch, reduce_factor=cfg.optim.reduce_factor,
-        schedule_patience=cfg.optim.schedule_patience, min_lr=cfg.optim.min_lr,
-        num_warmup_epochs=cfg.optim.num_warmup_epochs,
-        train_mode=cfg.train.mode, eval_period=cfg.train.eval_period)
+        cfg.optim.scheduler, cfg.optim.steps, cfg.optim.lr_decay,
+        cfg.optim.max_epoch, cfg.optim.reduce_factor, cfg.optim.schedule_patience,
+        cfg.optim.min_lr, cfg.optim.num_warmup_epochs, cfg.train.mode, cfg.train.eval_period)
 
 
 def custom_set_out_dir(cfg, cfg_fname, name_tag):
@@ -146,8 +142,7 @@ if __name__ == '__main__':
                 model, cfg.pretrained.dir, cfg.pretrained.freeze_main,
                 cfg.pretrained.reset_prediction_head, seed=cfg.seed
             )
-        optimizer = create_optimizer(model.parameters(),
-                                     new_optimizer_config(cfg))
+        optimizer = create_optimizer(model.parameters(), new_optimizer_config(cfg))
         scheduler = create_scheduler(optimizer, new_scheduler_config(cfg))
         # Print model info
         logging.info(model)

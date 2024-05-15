@@ -116,9 +116,12 @@ def agg_runs(dir, metric_best='auto'):
         if is_seed(seed):
             dir_seed = os.path.join(dir, seed)
             split = 'val'
+            metric = None
             if split in os.listdir(dir_seed):
                 dir_split = os.path.join(dir_seed, split)
                 fname_stats = os.path.join(dir_split, 'stats.json')
+                if not os.path.exists(fname_stats):
+                    continue
                 stats_list = json_to_dict_list(fname_stats)
                 if metric_best == 'auto':
                     for metric in ['auc', 'mae', 'ap', 'aucroc', 'accuracy']:
@@ -133,6 +136,8 @@ def agg_runs(dir, metric_best='auto'):
                 best_epoch = stats_list[eval("performance_np.{}()".format(metric_agg))]['epoch']
                 print(best_epoch)
 
+            if metric is None:
+                continue
             for split in os.listdir(dir_seed):
                 if is_split(split):
                     dir_split = os.path.join(dir_seed, split)
@@ -149,6 +154,7 @@ def agg_runs(dir, metric_best='auto'):
                         results_best[split] = [stats_best]
                     else:
                         results_best[split] += [stats_best]
+
     results = {k: v for k, v in results.items() if v is not None}  # rm None
     results_best = {k: v for k, v in results_best.items() if v is not None}  # rm None
     for key in results:

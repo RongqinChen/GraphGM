@@ -47,11 +47,11 @@ class PeptidesStructuralDataset(InMemoryDataset):
         self.smiles2graph = smiles2graph
         self.folder = osp.join(root, 'peptides-structural')
 
-        ## Unnormalized targets.
+        # Unnormalized targets.
         # self.url = 'https://www.dropbox.com/s/464u3303eu2u4zp/peptide_structure_dataset.csv.gz?dl=1'
         # self.version = '9786061a34298a0684150f2e4ff13f47'
 
-        ## Standardized targets to zero mean and unit variance.
+        # Standardized targets to zero mean and unit variance.
         self.url = 'https://www.dropbox.com/s/0d4aalmq4b4e2nh/peptide_structure_normalized_dataset.csv.gz?dl=1'
         self.version = 'c240c1c15466b5c907c63e180fa8aa89'  # MD5 hash of the intended dataset file
 

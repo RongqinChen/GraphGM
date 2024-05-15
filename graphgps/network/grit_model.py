@@ -115,7 +115,6 @@ class GritTransformer(torch.nn.Module):
                     cfg=cfg.gt,
                 )
             )
-        # layers = []
 
         self.layers = torch.nn.Sequential(*layers)
         GNNHead = register.head_dict[cfg.gnn.head]

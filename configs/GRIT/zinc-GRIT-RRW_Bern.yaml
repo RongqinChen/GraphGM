@@ -23,8 +23,8 @@ dataset:
 posenc_Poly:
   enable: True
   method: rrw_bern
-  order: 14
-  emb_dim: 120 # (14+2) * (14+1) / 2
+  order: 12
+  emb_dim: 91 # (12+2) * (12+1) / 2
   attr_name_abs: rrw_bern
   attr_name_rel: rrw_bern
 train:

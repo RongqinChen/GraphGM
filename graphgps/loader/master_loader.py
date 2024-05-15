@@ -31,10 +31,7 @@ from graphgps.loader.split_generator import prepare_splits, set_dataset_splits
 from graphgps.transform.posenc_stats import compute_posenc_stats
 from graphgps.transform.task_preprocessing import task_specific_preprocessing
 from graphgps.transform.transforms import (
-    pre_transform_in_memory,
-    typecast_x,
-    concat_x_and_pos,
-    clip_graphs_to_size,
+    pre_transform_in_memory, typecast_x, concat_x_and_pos, clip_graphs_to_size,
 )
 
 
@@ -56,18 +53,15 @@ def log_loaded_dataset(dataset, format, name):
         logging.info(f"  num tasks: {dataset.num_tasks}")
 
     if hasattr(dataset.data, "y") and dataset.data.y is not None:
-        if isinstance(dataset.data.y, list):
+        data_y = dataset.data.y
+        if isinstance(data_y, list):
             # A special case for ogbg-code2 dataset.
             logging.info("  num classes: n/a")
-        elif dataset.data.y.numel() == dataset.data.y.size(
-            0
-        ) and torch.is_floating_point(dataset.data.y):
+        elif data_y.numel() == data_y.size(0) and torch.is_floating_point(data_y):
             logging.info("  num classes: (appears to be a regression task)")
         else:
             logging.info(f"  num classes: {dataset.num_classes}")
-    elif hasattr(dataset.data, "train_edge_label") or hasattr(
-        dataset.data, "edge_label"
-    ):
+    elif hasattr(dataset.data, "train_edge_label") or hasattr(dataset.data, "edge_label"):
         # Edge/link prediction task.
         if hasattr(dataset.data, "train_edge_label"):
             labels = dataset.data.train_edge_label  # Transductive link task
@@ -117,86 +111,62 @@ def load_dataset_master(format, name, dataset_dir):
             if name != "none":
                 raise ValueError("Actor class provides only one dataset.")
             dataset = Actor(dataset_dir)
-
         elif pyg_dataset_id == "GNNBenchmarkDataset":
             dataset = preformat_GNNBenchmarkDataset(dataset_dir, name)
-
         elif pyg_dataset_id == "MalNetTiny":
             dataset = preformat_MalNetTiny(dataset_dir, feature_set=name)
-
         elif pyg_dataset_id == "Planetoid":
             dataset = Planetoid(dataset_dir, name)
-
         elif pyg_dataset_id == "TUDataset":
             dataset = preformat_TUDataset(dataset_dir, name)
-
         elif pyg_dataset_id == "WebKB":
             dataset = WebKB(dataset_dir, name)
-
         elif pyg_dataset_id == "WikipediaNetwork":
             if name == "crocodile":
                 raise NotImplementedError("crocodile not implemented")
             dataset = WikipediaNetwork(dataset_dir, name, geom_gcn_preprocess=True)
-
         elif pyg_dataset_id == "ZINC":
             dataset = preformat_ZINC(dataset_dir, name)
-
         elif pyg_dataset_id == "AQSOL":
             dataset = preformat_AQSOL(dataset_dir, name)
-
         elif pyg_dataset_id == "VOCSuperpixels":
-            dataset = preformat_VOCSuperpixels(
-                dataset_dir, name, cfg.dataset.slic_compactness
-            )
-
+            dataset = preformat_VOCSuperpixels(dataset_dir, name, cfg.dataset.slic_compactness)
         elif pyg_dataset_id == "COCOSuperpixels":
-            dataset = preformat_COCOSuperpixels(
-                dataset_dir, name, cfg.dataset.slic_compactness
-            )
-
+            dataset = preformat_COCOSuperpixels(dataset_dir, name, cfg.dataset.slic_compactness)
         else:
             raise ValueError(f"Unexpected PyG Dataset identifier: {format}")
 
     # GraphGym default loader for Pytorch Geometric datasets
     elif format == "PyG":
         dataset = load_pyg(name, dataset_dir)
-
     elif format == "OGB":
         if name.startswith("ogbg"):
             dataset = preformat_OGB_Graph(dataset_dir, name.replace("_", "-"))
-
         elif name.startswith("PCQM4Mv2-"):
             subset = name.split("-", 1)[1]
             dataset = preformat_OGB_PCQM4Mv2(dataset_dir, subset)
-
         elif name.startswith("peptides-"):
             dataset = preformat_Peptides(dataset_dir, name)
-
-        # Link prediction datasets.
         elif name.startswith("ogbl-"):
-            # GraphGym default loader.
-            dataset = load_ogb(name, dataset_dir)
-
-            # OGB link prediction datasets are binary classification tasks,
-            # however the default loader creates float labels => convert to int.
             def convert_to_int(ds, prop):
                 tmp = getattr(ds.data, prop).int()
                 set_dataset_attr(ds, prop, tmp, len(tmp))
 
+            # GraphGym default loader.
+            dataset = load_ogb(name, dataset_dir)
+            # OGB link prediction datasets are binary classification tasks,
+            # however the default loader creates float labels => convert to int.
             convert_to_int(dataset, "train_edge_label")
             convert_to_int(dataset, "val_edge_label")
             convert_to_int(dataset, "test_edge_label")
-
         elif name.startswith("PCQM4Mv2Contact-"):
             dataset = preformat_PCQM4Mv2Contact(dataset_dir, name)
-
         else:
             raise ValueError(f"Unsupported OGB(-derived) dataset: {name}")
     else:
         raise ValueError(f"Unknown data format: {format}")
 
     pre_transform_in_memory(dataset, partial(task_specific_preprocessing, cfg=cfg))
-
     log_loaded_dataset(dataset, format, name)
 
     # Precompute necessary statistics for positional encodings.
@@ -209,10 +179,8 @@ def load_dataset_master(format, name, dataset_dir):
                 # Generate kernel times if functional snippet is set.
                 if pecfg.kernel.times_func:
                     pecfg.kernel.times = list(eval(pecfg.kernel.times_func))
-                logging.info(
-                    f"Parsed {pe_name} PE kernel times / steps: "
-                    f"{pecfg.kernel.times}"
-                )
+                logging.info(f"Parsed {pe_name} PE kernel times / steps: {pecfg.kernel.times}")
+
     if pe_enabled_list:
         # Estimate directedness based on 10 graphs to save time.
         is_undirected = all(d.is_undirected() for d in dataset[:10])
@@ -220,37 +188,26 @@ def load_dataset_master(format, name, dataset_dir):
         print('name', name)
         if f"{format}_{name}" in {"PyG-ZINC_full"} or \
                 name in {"peptides-functional", "peptides-structural", "CLUSTER", "PATTERN",
-                         "PCQM4Mv2-full", "CIFAR10", "MNIST", "PCQM4Mv2Contact-shuffle", "edge_wt_region_boundary"}:
+                         "PCQM4Mv2-full", "CIFAR10", "MNIST", "PCQM4Mv2Contact-shuffle",
+                         "edge_wt_region_boundary"}:
             logging.info(
                 f"Positional Encoding statistics: {pe_enabled_list} "
                 f"will be computed on the fly for all graphs..."
             )
-            dataset.transform = partial(
-                compute_posenc_stats,
-                pe_types=pe_enabled_list,
-                is_undirected=is_undirected,
-                cfg=cfg,
-            )
+            dataset.transform = partial(compute_posenc_stats, pe_types=pe_enabled_list,
+                                        is_undirected=is_undirected, cfg=cfg)
         else:
             start = time.perf_counter()
-            logging.info(
-                f"Precomputing Positional Encoding statistics: "
-                f"{pe_enabled_list} for all graphs..."
-            )
+            logging.info(f"Precomputing Positional Encoding statistics: "
+                         f"{pe_enabled_list} for all graphs...")
             pre_transform_in_memory(
                 dataset,
-                partial(
-                    compute_posenc_stats,
-                    pe_types=pe_enabled_list,
-                    is_undirected=is_undirected,
-                    cfg=cfg,
-                ),
+                partial(compute_posenc_stats, pe_types=pe_enabled_list,
+                        is_undirected=is_undirected, cfg=cfg),
                 show_progress=True,
             )
             elapsed = time.perf_counter() - start
-            timestr = (
-                time.strftime("%H:%M:%S", time.gmtime(elapsed)) + f"{elapsed:.2f}"[-3:]
-            )
+            timestr = time.strftime("%H:%M:%S", time.gmtime(elapsed)) + f"{elapsed:.2f}"[-3:]
             logging.info(f"Done! Took {timestr}")
 
     # Set standard dataset train/val/test splits
@@ -264,8 +221,7 @@ def load_dataset_master(format, name, dataset_dir):
     # Precompute in-degree histogram if needed for PNAConv.
     if cfg.gt.layer_type.startswith("PNA") and len(cfg.gt.pna_degrees) == 0:
         cfg.gt.pna_degrees = compute_indegree_histogram(
-            dataset[dataset.data["train_graph_index"]]
-        )
+            dataset[dataset.data["train_graph_index"]])
         # print(f"Indegrees: {cfg.gt.pna_degrees}")
         # print(f"Avg:{np.mean(cfg.gt.pna_degrees)}")
 
@@ -572,12 +528,8 @@ def preformat_Peptides(dataset_dir, name):
     """
     try:
         # Load locally to avoid RDKit dependency until necessary.
-        from graphgps.loader.dataset.peptides_functional import (
-            PeptidesFunctionalDataset,
-        )
-        from graphgps.loader.dataset.peptides_structural import (
-            PeptidesStructuralDataset,
-        )
+        from graphgps.loader.dataset.peptides_functional import PeptidesFunctionalDataset
+        from graphgps.loader.dataset.peptides_structural import PeptidesStructuralDataset
     except Exception as e:
         logging.error(
             "ERROR: Failed to import Peptides dataset class, "
@@ -709,12 +661,9 @@ def join_dataset_splits(datasets):
     assert len(datasets) == 3, "Expecting train, val, test datasets"
 
     n1, n2, n3 = len(datasets[0]), len(datasets[1]), len(datasets[2])
-    data_list = (
-        [datasets[0].get(i) for i in range(n1)]
-        + [datasets[1].get(i) for i in range(n2)]
-        + [datasets[2].get(i) for i in range(n3)]
-    )
-
+    data_list = [datasets[0].get(i) for i in range(n1)]
+    data_list += [datasets[1].get(i) for i in range(n2)]
+    data_list += [datasets[2].get(i) for i in range(n3)]
     datasets[0]._indices = None
     datasets[0]._data_list = data_list
     datasets[0].data, datasets[0].slices = datasets[0].collate(data_list)
@@ -724,5 +673,4 @@ def join_dataset_splits(datasets):
         list(range(n1 + n2, n1 + n2 + n3)),
     ]
     datasets[0].split_idxs = split_idxs
-
     return datasets[0]
