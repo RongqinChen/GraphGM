@@ -21,11 +21,9 @@ def full_edge_index(batch: torch.Tensor):
     cum_nodes = torch.cat([batch.new_zeros(1), num_nodes.cumsum(dim=0)])
     Ns = num_nodes.tolist()
     full_index_list = [
-        torch.ones((Ns[idx], Ns[idx]), dtype=torch.short, device=batch.device)
-        .nonzero(as_tuple=False)
-        .t()
-        .contiguous()
-        + cum_nodes[idx]
+        torch.ones(
+            (Ns[idx], Ns[idx]), dtype=torch.short, device=batch.device
+        ).nonzero(as_tuple=False).t() + cum_nodes[idx]
         for idx in range(batch_size)
     ]
     batch_index_full = torch.cat(full_index_list, dim=1).contiguous()
@@ -48,7 +46,6 @@ class LinearNodeEncoder(torch.nn.Module):
         self.batchnorm = batchnorm
         self.layernorm = layernorm
         self.emb_dim = emb_dim
-        # self.emb_dim = (2 + max_poly_order) * (max_poly_order + 1) // 2
         self.fc = nn.Linear(self.emb_dim, out_dim, bias=use_bias)
         torch.nn.init.xavier_uniform_(self.fc.weight)
         if self.batchnorm:
@@ -57,7 +54,6 @@ class LinearNodeEncoder(torch.nn.Module):
             self.ln = nn.LayerNorm(out_dim)
 
     def forward(self, batch):
-        # Encode just the first dimension if more exist
         gm = batch[f"{self.name}"]
         gm = self.fc(gm)
         if self.batchnorm:
@@ -73,15 +69,6 @@ class LinearNodeEncoder(torch.nn.Module):
 
 @register_edge_encoder("poly")
 class LinearEdgeEncoder(torch.nn.Module):
-    """
-    Merge GM with given edge-attr and Zero-padding to all pairs of node
-    FC_1(GM) + FC_2(edge-attr)
-    - FC_2 given by the TypedictEncoder in same cases
-    - Zero-padding for non-existing edges in fully-connected graph
-    - (optional) add node-attr as the E_{i,i}'s attr
-        note: assuming  node-attr and edge-attr is with the same dimension after Encoders
-    """
-
     def __init__(
         self,
         name,

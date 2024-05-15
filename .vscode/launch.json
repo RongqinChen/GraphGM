@@ -11,13 +11,13 @@
             "module": "graphgps.agg_runs"
         },
         {
-            "name": "zinc-GRIT-RRWP",
+            "name": "zinc-GRIT-RRW_Bern",
             "type": "debugpy",
             "request": "launch",
             "program": "main.py",
             "console": "integratedTerminal",
             "args": [
-                "--cfg", "configs/GRIT/zinc-GRIT-RRWP.yaml",
+                "--cfg", "configs/GRIT/zinc-Additive-RRW_Bern.yaml",
             ]
         },
         {

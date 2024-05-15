@@ -32,57 +32,70 @@ class AdditiveAttn(nn.Module):
         self, in_dim, h_dim, num_heads, use_bias, clamp=5.0, dropout=0.0, act=None
     ):
         super().__init__()
-        self.h_dim = h_dim
+        self.out_dim = h_dim
         self.num_heads = num_heads
-        self.act = act_dict[act]()
         self.dropout = nn.Dropout(dropout)
         self.clamp = np.abs(clamp) if clamp is not None else None
-        self.Nq = nn.Linear(in_dim, h_dim * num_heads, bias=True)
-        self.Nk = nn.Linear(in_dim, h_dim * num_heads, bias=use_bias)
-        self.Nv = nn.Linear(in_dim, h_dim * num_heads, bias=use_bias)
-        self.Eq = nn.Linear(in_dim, h_dim * num_heads, bias=True)
-        self.Aw = nn.Parameter(torch.zeros(self.h_dim, self.num_heads, 1))
-        self.Ew = nn.Parameter(torch.zeros(self.h_dim, self.num_heads, self.h_dim))
-        nn.init.xavier_normal_(self.Nq.weight)
-        nn.init.xavier_normal_(self.Nk.weight)
-        nn.init.xavier_normal_(self.Nv.weight)
-        nn.init.xavier_normal_(self.Eq.weight)
+        self.Q = nn.Linear(in_dim, h_dim * num_heads, bias=True)
+        self.K = nn.Linear(in_dim, h_dim * num_heads, bias=True)
+        self.E = nn.Linear(in_dim, h_dim * num_heads * 2, bias=True)
+        self.V = nn.Linear(in_dim, h_dim * num_heads, bias=True)
+        self.Aw = nn.Parameter(torch.zeros(self.out_dim, self.num_heads, 1))
+        self.VeRow = nn.Parameter(torch.zeros(self.out_dim, self.num_heads, self.out_dim))
+        nn.init.xavier_normal_(self.Q.weight)
+        nn.init.xavier_normal_(self.K.weight)
+        nn.init.xavier_normal_(self.E.weight)
+        nn.init.xavier_normal_(self.V.weight)
         nn.init.xavier_normal_(self.Aw)
-        nn.init.xavier_normal_(self.Ew)
+        nn.init.xavier_normal_(self.VeRow)
+        if act is None:
+            self.act = nn.Identity()
+        else:
+            self.act = act_dict[act]()
 
     def propagate_attention(self, gbatch: Data):
-        src, dst = gbatch.edge_index
-        conn = gbatch.Nk[src] + gbatch.Nq[dst] + gbatch.Eq
-        conn = self.act(conn)
-        gbatch.Eo = conn
-        # conn: ehd, Aw: dhc
-        score = oe.contract("ehd, dhc -> ehc", conn, self.Aw, backend="torch")
+        src = gbatch.K_h[gbatch.edge_index[0]]  # (num relative) x num_heads x out_dim
+        dest = gbatch.Q_h[gbatch.edge_index[1]]  # (num relative) x num_heads x out_dim
+        score1 = src + dest  # element-wise multiplication
+        Ex = gbatch.E.view(-1, self.num_heads, self.out_dim * 2)
+        Ex1, Ex2 = Ex[:, :, :self.out_dim], Ex[:, :, self.out_dim:]
+        # (num relative) x num_heads x out_dim
+        score2 = Ex1 * Ex2
+        score = score1 + torch.sqrt(torch.relu(score2)) - torch.sqrt(torch.relu(-score2))
+        conn = self.act(score)
+        gbatch.oE = conn.flatten(1)
+
+        # final attn
+        score = oe.contract("ehd, dhc->ehc", conn, self.Aw, backend="torch")
         if self.clamp is not None:
             score = torch.clamp(score, min=-self.clamp, max=self.clamp)
 
-        score = pyg_softmax(score, dst, gbatch.num_nodes)  # ehd
+        # raw_attn = score
+        score = pyg_softmax(score, gbatch.edge_index[1], gbatch.num_nodes)
+        # (num relative) x num_heads x 1
         score = self.dropout(score)
         gbatch.attn = score
 
-        srcv = gbatch.Nv[src]
-        agg1 = scatter(srcv * score, dst, dim=0, reduce='add')
-        agg2 = scatter(conn * score, dst, dim=0, reduce="add")
-        agg3 = oe.contract("nhd, dhc -> nhc", agg2, self.Ew, backend="torch")
-        agg = agg1 + agg3
-        gbatch.No = agg
+        # Aggregate with Attn-Score
+        msg = gbatch.V_h[gbatch.edge_index[0]] * score
+        # (num relative) x num_heads x out_dim
+        gbatch.oV = gbatch.Q_h + scatter(msg, gbatch.edge_index[1], dim=0, reduce="add")
+        rowV = scatter(conn * score, gbatch.edge_index[1], dim=0, reduce="add")
+        rowV = oe.contract("nhd, dhc -> nhc", rowV, self.VeRow, backend="torch")
+        gbatch.oV = gbatch.oV + rowV
+        gbatch.oV = gbatch.oV.flatten(1)
 
     def forward(self, gbatch: Data):
-        Nq = self.Nq(gbatch.x)
-        Nk = self.Nk(gbatch.x)
-        Nv = self.Nv(gbatch.x)
-        Eq = self.Eq(gbatch.edge_attr)
-        gbatch.Nq = Nq.view(-1, self.num_heads, self.h_dim)
-        gbatch.Nk = Nk.view(-1, self.num_heads, self.h_dim)
-        gbatch.Nv = Nv.view(-1, self.num_heads, self.h_dim)
-        gbatch.Eq = Eq.view(-1, self.num_heads, self.h_dim)
+        Q_h = self.Q(gbatch.x)
+        K_h = self.K(gbatch.x)
+        V_h = self.V(gbatch.x)
+        gbatch.E = self.E(gbatch.edge_attr)
+        gbatch.Q_h = Q_h.view(-1, self.num_heads, self.out_dim)
+        gbatch.K_h = K_h.view(-1, self.num_heads, self.out_dim)
+        gbatch.V_h = V_h.view(-1, self.num_heads, self.out_dim)
         self.propagate_attention(gbatch)
-        n_out = gbatch.No.view(-1, self.num_heads * self.h_dim)
-        e_out = gbatch.Eo.view(-1, self.num_heads * self.h_dim)
+        n_out = gbatch.oV
+        e_out = gbatch.oE
         return n_out, e_out
 
 
@@ -116,9 +129,7 @@ class AdditiveAttnLayer(nn.Module):
             dropout=attn_dropout,
             act=cfg.attn.get("act", "relu"),
         )
-        self.deg_coef = nn.Parameter(
-            torch.zeros(1, head_dim * num_heads, 2)
-        )
+        self.deg_coef = nn.Parameter(torch.zeros(1, head_dim * num_heads, 2))
         nn.init.xavier_normal_(self.deg_coef)
         self.No = nn.Linear(head_dim * num_heads, out_dim)
         self.Eo = nn.Linear(head_dim * num_heads, out_dim)
