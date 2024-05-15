@@ -54,16 +54,18 @@ class AdditiveAttn(nn.Module):
             self.act = act_dict[act]()
 
     def propagate_attention(self, gbatch: Data):
-        src = gbatch.K_h[gbatch.edge_index[0]]  # (num relative) x num_heads x out_dim
-        dest = gbatch.Q_h[gbatch.edge_index[1]]  # (num relative) x num_heads x out_dim
-        score1 = src + dest  # element-wise multiplication
-        Ex = gbatch.E.view(-1, self.num_heads, self.out_dim * 2)
+        src, dst = gbatch.edge_index
+        src_k = gbatch.Kh[src]
+        dst_q = gbatch.Qh[dst]
+        score1 = src_k + dst_q
+        Ex = gbatch.Ex.view(-1, self.num_heads, self.out_dim * 2)
         Ex1, Ex2 = Ex[:, :, :self.out_dim], Ex[:, :, self.out_dim:]
-        # (num relative) x num_heads x out_dim
-        score2 = Ex1 * Ex2
-        score = score1 + torch.sqrt(torch.relu(score2)) - torch.sqrt(torch.relu(-score2))
+
+        score2 = Ex1 * Ex2  # num_edges, num_heads, out_dim
+        score2 = torch.sqrt(torch.relu(score2)) - torch.sqrt(torch.relu(-score2))
+        score = score1 + score2
         conn = self.act(score)
-        gbatch.oE = conn.flatten(1)
+        gbatch.Eo = conn
 
         # final attn
         score = oe.contract("ehd, dhc->ehc", conn, self.Aw, backend="torch")
@@ -71,31 +73,31 @@ class AdditiveAttn(nn.Module):
             score = torch.clamp(score, min=-self.clamp, max=self.clamp)
 
         # raw_attn = score
-        score = pyg_softmax(score, gbatch.edge_index[1], gbatch.num_nodes)
+        score = pyg_softmax(score, dst, gbatch.num_nodes)
         # (num relative) x num_heads x 1
         score = self.dropout(score)
         gbatch.attn = score
 
         # Aggregate with Attn-Score
-        msg = gbatch.V_h[gbatch.edge_index[0]] * score
+        msg = gbatch.Vh[src] * score
         # (num relative) x num_heads x out_dim
-        gbatch.oV = gbatch.Q_h + scatter(msg, gbatch.edge_index[1], dim=0, reduce="add")
-        rowV = scatter(conn * score, gbatch.edge_index[1], dim=0, reduce="add")
+        Vo = gbatch.Qh + scatter(msg, dst, dim=0, reduce="add")
+        rowV = scatter(conn * score, dst, dim=0, reduce="add")
         rowV = oe.contract("nhd, dhc -> nhc", rowV, self.VeRow, backend="torch")
-        gbatch.oV = gbatch.oV + rowV
-        gbatch.oV = gbatch.oV.flatten(1)
+        Vo = Vo + rowV
+        gbatch.Vo = Vo
 
     def forward(self, gbatch: Data):
-        Q_h = self.Q(gbatch.x)
-        K_h = self.K(gbatch.x)
-        V_h = self.V(gbatch.x)
-        gbatch.E = self.E(gbatch.edge_attr)
-        gbatch.Q_h = Q_h.view(-1, self.num_heads, self.out_dim)
-        gbatch.K_h = K_h.view(-1, self.num_heads, self.out_dim)
-        gbatch.V_h = V_h.view(-1, self.num_heads, self.out_dim)
+        Qh = self.Q(gbatch.x)
+        Kh = self.K(gbatch.x)
+        Vh = self.V(gbatch.x)
+        gbatch.Ex = self.E(gbatch.edge_attr)
+        gbatch.Qh = Qh.view(-1, self.num_heads, self.out_dim)
+        gbatch.Kh = Kh.view(-1, self.num_heads, self.out_dim)
+        gbatch.Vh = Vh.view(-1, self.num_heads, self.out_dim)
         self.propagate_attention(gbatch)
-        n_out = gbatch.oV
-        e_out = gbatch.oE
+        n_out = gbatch.Vo.flatten(1)
+        e_out = gbatch.Eo.flatten(1)
         return n_out, e_out
 
 
