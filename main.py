@@ -58,6 +58,7 @@ def custom_set_out_dir(cfg, cfg_fname, name_tag):
     run_name = os.path.splitext(os.path.basename(cfg_fname))[0]
     run_name += f"-{name_tag}" if name_tag else ""
     cfg.out_dir = os.path.join(cfg.out_dir, run_name)
+    os.makedirs(cfg.out_dir, exist_ok=True)
 
 
 def custom_set_run_dir(cfg, run_id):
