@@ -18,7 +18,7 @@ def train_epoch(logger, loader, model, optimizer, scheduler, batch_accumulation)
     optimizer.zero_grad()
     time_start = time.time()
     device = torch.device(cfg.accelerator)
-    for iter, batch in tqdm(enumerate(loader), 'training', total=len(loader), disable=True):
+    for iter, batch in tqdm(enumerate(loader), 'training', total=len(loader), disable=('stdout' != cfg.print)):
         batch.split = 'train'
         batch.to(device)
         pred, true = model(batch)
