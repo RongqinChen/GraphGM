@@ -24,7 +24,6 @@ def set_cfg_posenc(cfg):
         "posenc_HKdiagSE",
         "posenc_ElstaticSE",
         "posenc_RRWP",
-        "posenc_Poly",
     ]:
         pecfg = getattr(cfg, name)
         # Use extended positional encodings
