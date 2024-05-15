@@ -11,50 +11,13 @@
             "module": "graphgps.agg_runs"
         },
         {
-            "name": "zinc-GRIT-RRW_Bern",
+            "name": "zinc",
             "type": "debugpy",
             "request": "launch",
             "program": "main.py",
             "console": "integratedTerminal",
             "args": [
-                "--cfg", "configs/GRIT/zinc-Additive-RRW_Bern.yaml",
-            ]
-        },
-        {
-            "name": "zinc-GRIT-Bern",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "main.py",
-            "console": "integratedTerminal",
-            "args": [
-                "--cfg", "configs/GRIT/zinc-GRIT-Bern.yaml",
-            ]
-        },
-        {
-            "name": "zincfull-GRIT-Bern",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "main.py",
-            "console": "integratedTerminal",
-            "args": [
-                "--cfg", "configs/GRIT/zincfull-GRIT-Bern.yaml",
-            ],
-            "justMyCode": false
-        },
-        {
-            "name": "peptides-func-GRIT-Bern",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "main.py",
-        },
-        {
-            "name": "contact-GRIT-Bern",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "main.py",
-            "console": "integratedTerminal",
-            "args": [
-                "--cfg", "configs/GRIT/pcqm-contact-GRIT-Bern.yaml",
+                "--cfg", "configs/GSE/zinc/zinc-GT-GRIT-Poly.yaml",
             ],
             "justMyCode": false
         }

@@ -1,12 +1,14 @@
-from .rrw_bernstain import compute_rrw_bernstain_polynomials
+from .combined_bernstain import compute_combined_bernstain_polynomials
+from .mixed_bernstain import compute_mixed_bernstain_polynomials
 method_dict = {
-    'rrw_bern': compute_rrw_bernstain_polynomials,
+    'comb_bern': compute_combined_bernstain_polynomials,
+    'mixed_bern': compute_mixed_bernstain_polynomials,
 }
 
 
-def compute_polynomials(data, method, order, attr_name_abs, attr_name_rel):
+def compute_polynomials(data, method, order):
     if method in method_dict:
-        data = method_dict[method](data, order, attr_name_abs, attr_name_rel)
+        data = method_dict[method](data, order)
     else:
         raise NotImplementedError
 

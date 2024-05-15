@@ -57,13 +57,12 @@ class AdditiveAttn(nn.Module):
         src, dst = gbatch.edge_index
         src_k = gbatch.Kh[src]
         dst_q = gbatch.Qh[dst]
-        score1 = src_k + dst_q
         Ex = gbatch.Ex.view(-1, self.num_heads, self.out_dim * 2)
         Ex1, Ex2 = Ex[:, :, :self.out_dim], Ex[:, :, self.out_dim:]
 
-        score2 = Ex1 * Ex2  # num_edges, num_heads, out_dim
-        score2 = torch.sqrt(torch.relu(score2)) - torch.sqrt(torch.relu(-score2))
-        score = score1 + score2
+        score1 = src_k * dst_q * Ex1  # num_edges, num_heads, out_dim
+        score2 = torch.sqrt(torch.relu(score1)) - torch.sqrt(torch.relu(-score1))
+        score = score2 + Ex2
         conn = self.act(score)
         gbatch.Eo = conn
 
@@ -81,7 +80,7 @@ class AdditiveAttn(nn.Module):
         # Aggregate with Attn-Score
         msg = gbatch.Vh[src] * score
         # (num relative) x num_heads x out_dim
-        Vo = gbatch.Qh + scatter(msg, dst, dim=0, reduce="add")
+        Vo = scatter(msg, dst, dim=0, reduce="add")
         rowV = scatter(conn * score, dst, dim=0, reduce="add")
         rowV = oe.contract("nhd, dhc -> nhc", rowV, self.VeRow, backend="torch")
         Vo = Vo + rowV

@@ -7,12 +7,12 @@ from torch_sparse import SparseTensor
 from scipy.special import comb
 
 
-def compute_rrw_bernstain_polynomials(
+def compute_combined_bernstain_polynomials(
     data: Data,
     order=8,
-    attr_name_abs="rrw_bern",
-    attr_name_rel="rrw_bern",
 ):
+    attr_name_abs = "comb_bern"
+    attr_name_rel = "comb_bern"
     device = data.edge_index.device
     num_nodes = data.num_nodes
     edge_index = data.edge_index

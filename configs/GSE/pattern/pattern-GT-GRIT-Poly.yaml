@@ -21,11 +21,11 @@ dataset:
   edge_encoder_bn: False
 posenc_Poly:
   enable: True
-  method: rrw_bern
+  method: comb_bern
   order: 14
   emb_dim: 120 # (14+2) * (14+1) / 2
-  attr_name_abs: rrw_bern
-  attr_name_rel: rrw_bern
+  attr_name_abs: combined_bern
+  attr_name_rel: combined_bern
 train:
   mode: custom
   batch_size: 32

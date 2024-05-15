@@ -22,11 +22,11 @@ dataset:
   edge_encoder_bn: False
 posenc_Poly:
   enable: True
-  method: rrw_bern
+  method: comb_bern
   order: 10
   emb_dim: 66 # (10+2) * (10+1) / 2
-  attr_name_abs: rrw_bern
-  attr_name_rel: rrw_bern
+  attr_name_abs: combined_bern
+  attr_name_rel: combined_bern
 train:
   mode: custom
   batch_size: 32
@@ -40,7 +40,7 @@ model:
   edge_decoding: dot
   graph_pooling: add
 gt:
-  layer_type: GritTransformer
+  layer_type: AdditiveAttn
   layers: 10
   n_heads: 8
   dim_hidden: 64  # `gt.dim_hidden` must match `gnn.dim_inner`
