@@ -5,7 +5,7 @@ CUDA_VISIBLE_DEVICES=0 \
     posenc_Poly.method mixed_bern posenc_Poly.order $((K)) posenc_Poly.emb_dim $(( (K+2) ))  \
     name_tag mixed_bern_K$((K)) &
 
-wait
+# wait
 
 K=18
 CUDA_VISIBLE_DEVICES=1 \
@@ -13,7 +13,7 @@ CUDA_VISIBLE_DEVICES=1 \
     posenc_Poly.method mixed_bern posenc_Poly.order $((K)) posenc_Poly.emb_dim $(( (K+2) ))  \
     name_tag mixed_bern_K$((K)) &
 
-wait
+# wait
 
 
 K=20
@@ -22,7 +22,7 @@ CUDA_VISIBLE_DEVICES=0 \
     posenc_Poly.method mixed_bern posenc_Poly.order $((K)) posenc_Poly.emb_dim $(( (K+2) ))  \
     name_tag mixed_bern_K$((K)) &
 
-wait
+# wait
 
 
 K=22

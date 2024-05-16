@@ -1,12 +1,11 @@
+import warnings
+
 import datetime
 import logging
 import os
-import random
-import warnings
 
-import numpy as np
 import torch
-# from torch_geometric import seed_everything
+from torch_geometric import seed_everything
 from torch_geometric.graphgym.cmd_args import parse_args
 from torch_geometric.graphgym.config import (cfg, dump_cfg, load_cfg,
                                              makedirs_rm_exist, set_cfg)
@@ -32,19 +31,6 @@ warnings.filterwarnings("ignore", category=UserWarning)
 
 torch.backends.cuda.matmul.allow_tf32 = True  # Default False in PyTorch 1.12+
 torch.backends.cudnn.allow_tf32 = True  # Default True
-
-
-def seed_everything(seed, accelerator):
-    random.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    torch.backends.cudnn.deterministic = True
-    torch.use_deterministic_algorithms(True)
-    if accelerator == "cuda":
-        os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
-        torch.cuda.manual_seed(seed)
-        torch.cuda.manual_seed_all(seed)
-        torch.backends.cudnn.benchmark = False
 
 
 def new_optimizer_config(cfg):
@@ -141,8 +127,8 @@ if __name__ == '__main__':
         cfg.dataset.split_index = split_index
         cfg.seed = seed
         cfg.run_id = run_id
+        seed_everything(cfg.seed)
         auto_select_device()
-        seed_everything(cfg.seed, cfg.accelerator)
         if cfg.pretrained.dir:
             cfg = load_pretrained_model_cfg(cfg)
         logging.info(f"[*] Run ID {run_id}: seed={cfg.seed}, "
