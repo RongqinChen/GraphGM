@@ -14,7 +14,7 @@ from torch_scatter import scatter
 import warnings
 
 
-def full_edge_index(batch: torch.Tensor):
+def compute_full_edge_index(batch: torch.Tensor):
     batch_size = batch.max().item() + 1
     one = batch.new_ones(batch.size(0))
     num_nodes = scatter(one, batch, dim=0, dim_size=batch_size, reduce="add")
@@ -122,7 +122,7 @@ class LinearEdgeEncoder(torch.nn.Module):
         if 'full_edge_index' in batch:
             full_edge_index = batch['full_edge_index']
         else:
-            full_edge_index = full_edge_index(batch.batch)
+            full_edge_index = compute_full_edge_index(batch.batch)
         full_attr_pad = self.padding.repeat(full_edge_index.size(1), 1)
         out_idx, out_val = torch_sparse.coalesce(
             torch.cat([edge_index, poly_idx, full_edge_index], dim=1),
