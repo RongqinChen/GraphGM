@@ -55,8 +55,8 @@ def compute_full_edge_index(edge_index, batch=None):
         # _edge_index, _ = remove_self_loops(_edge_index)
         negative_index_list.append(_edge_index + cum_nodes[i])
 
-    edge_index_full = torch.cat(negative_index_list, dim=1).contiguous()
-    return edge_index_full
+    full_edge_index = torch.cat(negative_index_list, dim=1).contiguous()
+    return full_edge_index
 
 
 @register_node_encoder("rrwp_linear")
@@ -341,13 +341,17 @@ class PadToFullGraphEdgeEncoder(torch.nn.Module):
         out_idx, out_val = edge_index, edge_attr
 
         if self.pad_to_full_graph:
-            edge_index_full = compute_full_edge_index(out_idx, batch=batch.batch)
-            # edge_attr_pad = self.padding.repeat(edge_index_full.size(1), 1)
+            # full_edge_index = compute_full_edge_index(out_idx, batch=batch.batch)
+            if 'full_edge_index' in batch:
+                full_edge_index = batch['full_edge_index']
+            else:
+                full_edge_index = compute_full_edge_index(batch.batch)
+            # edge_attr_pad = self.padding.repeat(full_edge_index.size(1), 1)
             edge_attr_pad = edge_attr.new_zeros(
-                edge_index_full.size(1), edge_attr.size(1)
+                full_edge_index.size(1), edge_attr.size(1)
             )
             # zero padding to fully-connected graphs
-            out_idx = torch.cat([out_idx, edge_index_full], dim=1)
+            out_idx = torch.cat([out_idx, full_edge_index], dim=1)
             out_val = torch.cat([out_val, edge_attr_pad], dim=0)
             out_idx, out_val = torch_sparse.coalesce(
                 out_idx, out_val, batch.num_nodes, batch.num_nodes, op="add"
