@@ -10,7 +10,7 @@ from scipy.special import comb
 def compute_mixed_bernstain_polynomials(
     data: Data,
     order=8,
-    add_full_edge_index: bool = True
+    add_full_edge_index: bool = False
 ):
     assert order > 2
     assert order % 2 == 0, "Parameter `order` should be an even number."

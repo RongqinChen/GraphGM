@@ -39,6 +39,7 @@ def add_full_rrwp(
     attr_name_rel="rrwp",  # name: ('rrwp_idx', 'rrwp_val')
     add_identity=True,
     spd=False,
+    add_full_edge_index: bool = False
     # **kwargs,
 ):
     # device = data.edge_index.device
@@ -94,4 +95,11 @@ def add_full_rrwp(
     data.log_deg = torch.log(deg + 1)
     data.deg = deg.type(torch.long)
 
+    if add_full_edge_index:
+        if num_nodes ** 2 == rel_pe_row.size(0):
+            full_edge_index = rel_pe_idx
+        else:
+            full_mat = torch.ones((num_nodes, num_nodes), dtype=torch.short)
+            full_edge_index = full_mat.nonzero(as_tuple=False).t()
+        data["full_edge_index"] = full_edge_index
     return data
