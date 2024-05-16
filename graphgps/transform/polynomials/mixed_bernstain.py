@@ -7,6 +7,7 @@ from torch_sparse import SparseTensor
 from scipy.special import comb
 
 
+@torch.no_grad()
 def compute_mixed_bernstain_polynomials(
     data: Data,
     order=8,
