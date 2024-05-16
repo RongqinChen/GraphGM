@@ -123,14 +123,23 @@ class LinearEdgeEncoder(torch.nn.Module):
             full_edge_index = batch['full_edge_index']
         else:
             full_edge_index = compute_full_edge_index(batch.batch)
-        full_attr_pad = self.padding.repeat(full_edge_index.size(1), 1)
-        out_idx, out_val = torch_sparse.coalesce(
-            torch.cat([edge_index, poly_idx, full_edge_index], dim=1),
-            torch.cat([edge_attr, poly_val, full_attr_pad], dim=0),
-            batch.num_nodes,
-            batch.num_nodes,
-            op="add",
-        )
+        if full_edge_index.size(1) == poly_idx.size(1):
+            out_idx, out_val = torch_sparse.coalesce(
+                torch.cat([edge_index, poly_idx], dim=1),
+                torch.cat([edge_attr, poly_val], dim=0),
+                batch.num_nodes,
+                batch.num_nodes,
+                op="add",
+            )
+        else:
+            full_attr_pad = self.padding.repeat(full_edge_index.size(1), 1)
+            out_idx, out_val = torch_sparse.coalesce(
+                torch.cat([edge_index, poly_idx, full_edge_index], dim=1),
+                torch.cat([edge_attr, poly_val, full_attr_pad], dim=0),
+                batch.num_nodes,
+                batch.num_nodes,
+                op="add",
+            )
         batch.edge_index, batch.edge_attr = out_idx, out_val
         return batch
 

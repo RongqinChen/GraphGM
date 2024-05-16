@@ -10,6 +10,7 @@ from scipy.special import comb
 def compute_combined_bernstain_polynomials(
     data: Data,
     order=8,
+    add_full_edge_index: bool = False
 ):
     attr_name_abs = "comb_bern"
     attr_name_rel = "comb_bern"
