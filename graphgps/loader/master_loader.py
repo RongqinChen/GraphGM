@@ -187,7 +187,7 @@ def load_dataset_master(format, name, dataset_dir):
         logging.info(f"  ...estimated to be undirected: {is_undirected}")
         print('name', name)
         if f"{format}_{name}" in {"PyG-ZINC_full"} or \
-                name in {"peptides-functional", "peptides-structural", "CLUSTER", "PATTERN",
+                name in {"peptides-functional", "peptides-structural", "CLUSTER",
                          "PCQM4Mv2-full", "CIFAR10", "MNIST", "PCQM4Mv2Contact-shuffle",
                          "edge_wt_region_boundary"}:
             logging.info(
