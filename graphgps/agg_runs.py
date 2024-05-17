@@ -112,6 +112,8 @@ def agg_runs(dir, metric_best='auto'):
     '''
     results = {'train': None, 'val': None, 'test': None}
     results_best = {'train': None, 'val': None, 'test': None}
+    if not os.path.isdir(dir):
+        return
     for seed in os.listdir(dir):
         if is_seed(seed):
             dir_seed = os.path.join(dir, seed)
@@ -194,4 +196,7 @@ def agg_runs(dir, metric_best='auto'):
 
 if __name__ == "__main__":
     for run in os.listdir("results"):
-        agg_runs(os.path.join("results", run))
+        try:
+            agg_runs(os.path.join("results", run))
+        except Exception:
+            continue

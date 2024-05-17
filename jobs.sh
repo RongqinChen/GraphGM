@@ -1,11 +1,11 @@
 #!/bin/bash
 
-#SBATCH --job-name              clu-grit-mixed_bern
+#SBATCH --job-name              cifar-add-mixed_bern
 #SBATCH --time                  48:00:00
 #SBATCH --cpus-per-task         6
 #SBATCH --gres                  gpu:1
 #SBATCH --mem                   200G
-#SBATCH --output=results/clu-grit-mixed_bern.out
+#SBATCH --output=results/cifar-add-mixed_bern.out
 #SBATCH --partition             h800_batch
 
 your_cleanup_function()
