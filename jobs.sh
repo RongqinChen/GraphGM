@@ -1,11 +1,11 @@
 #!/bin/bash
 
-#SBATCH --job-name              clu-grit-mixed_bern
+#SBATCH --job-name              cifar-add-mixed_bern
 #SBATCH --time                  48:00:00
 #SBATCH --cpus-per-task         6
 #SBATCH --gres                  gpu:1
 #SBATCH --mem                   200G
-#SBATCH --output=results/clu-grit-mixed_bern.out
+#SBATCH --output=results/cifar-add-mixed_bern.out
 #SBATCH --partition             h800_batch
 
 your_cleanup_function()
@@ -29,10 +29,10 @@ nvidia-smi
 echo ""
 
 
-K=30
+K=8
 
 CUDA_VISIBLE_DEVICES=0 \
-    python main.py --repeat 5 --cfg configs/GSE/cluster/cluster-GT-GRIT-Poly.yaml  \
+    python main.py --repeat 5 --cfg configs/GSE/cifar/cifar10-GT-Add-Poly.yaml  \
     posenc_Poly.method mixed_bern posenc_Poly.order $((K)) posenc_Poly.emb_dim $(( (K+2) ))  \
     name_tag mixed_bern_K$((K)) &
 

@@ -19,8 +19,6 @@ dataset:
 posenc_RRWP:
   enable: True
   ksteps: 17
-  add_identity: True
-  add_node_attr: False
 train:
   mode: custom
 #  batch_size: 32
