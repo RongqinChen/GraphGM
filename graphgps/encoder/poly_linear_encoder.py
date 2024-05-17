@@ -95,8 +95,8 @@ class LinearEdgeEncoder(torch.nn.Module):
 
         self.fc = nn.Linear(self.emb_dim, out_dim, bias=use_bias)
         torch.nn.init.xavier_uniform_(self.fc.weight)
-        self.fill_value = 0.0
-        padding = torch.ones(1, out_dim, dtype=torch.float) * fill_value
+        self.fill_value = fill_value
+        padding = torch.ones(1, out_dim, dtype=torch.float) * self.fill_value
         self.register_buffer("padding", padding)
         if self.batchnorm:
             self.bn = nn.BatchNorm1d(out_dim)
