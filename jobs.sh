@@ -1,11 +1,11 @@
 #!/bin/bash
 
-#SBATCH --job-name              pat_grit_bern
+#SBATCH --job-name              clu-grit-mixed_bern
 #SBATCH --time                  48:00:00
 #SBATCH --cpus-per-task         6
 #SBATCH --gres                  gpu:1
 #SBATCH --mem                   200G
-#SBATCH --output=results/pat_grit_bern.out
+#SBATCH --output=results/clu-grit-mixed_bern.out
 #SBATCH --partition             h800_batch
 
 your_cleanup_function()
@@ -28,28 +28,15 @@ echo ""
 nvidia-smi
 echo ""
 
-# /home/yc07917/mambaforge/envs/gnn210/bin/python main.py --cfg configs/GRIT/peptides-func-GRIT-Bern.yaml wandb.use False seed 0 
-# /home/yc07917/mambaforge/envs/gnn210/bin/python main.py --cfg configs/GRIT/peptides-func-GRIT-Bern.yaml wandb.use False seed 1 
-# /home/yc07917/mambaforge/envs/gnn210/bin/python main.py --cfg configs/GRIT/peptides-func-GRIT-Bern.yaml wandb.use False seed 2 
-# /home/yc07917/mambaforge/envs/gnn210/bin/python main.py --cfg configs/GRIT/peptides-func-GRIT-Bern.yaml wandb.use False seed 3 
-# /home/yc07917/mambaforge/envs/gnn210/bin/python main.py --cfg configs/GRIT/peptides-func-GRIT-Bern.yaml wandb.use False seed 4 
 
-# /home/yc07917/mambaforge/envs/gnn210/bin/python main.py --cfg configs/GRIT/peptides-struct-GRIT-Bern.yaml wandb.use False seed 0 
-# /home/yc07917/mambaforge/envs/gnn210/bin/python main.py --cfg configs/GRIT/peptides-struct-GRIT-Bern.yaml wandb.use False seed 1 
-# /home/yc07917/mambaforge/envs/gnn210/bin/python main.py --cfg configs/GRIT/peptides-struct-GRIT-Bern.yaml wandb.use False seed 2 
-# /home/yc07917/mambaforge/envs/gnn210/bin/python main.py --cfg configs/GRIT/peptides-struct-GRIT-Bern.yaml wandb.use False seed 3 
-# /home/yc07917/mambaforge/envs/gnn210/bin/python main.py --cfg configs/GRIT/peptides-struct-GRIT-Bern.yaml wandb.use False seed 4 
+K=30
 
-# /home/yc07917/mambaforge/envs/gnn210/bin/python main.py --cfg configs/GRIT/cluster-GRIT-Bern.yaml wandb.use False seed 0 
-# /home/yc07917/mambaforge/envs/gnn210/bin/python main.py --cfg configs/GRIT/cluster-GRIT-Bern.yaml wandb.use False seed 1 
-# /home/yc07917/mambaforge/envs/gnn210/bin/python main.py --cfg configs/GRIT/cluster-GRIT-Bern.yaml wandb.use False seed 2 
-# /home/yc07917/mambaforge/envs/gnn210/bin/python main.py --cfg configs/GRIT/cluster-GRIT-Bern.yaml wandb.use False seed 3 
-# /home/yc07917/mambaforge/envs/gnn210/bin/python main.py --cfg configs/GRIT/cluster-GRIT-Bern.yaml wandb.use False seed 4 
+CUDA_VISIBLE_DEVICES=0 \
+    python main.py --repeat 5 --cfg configs/GSE/cluster/cluster-GT-GRIT-Poly.yaml  \
+    posenc_Poly.method mixed_bern posenc_Poly.order $((K)) posenc_Poly.emb_dim $(( (K+2) ))  \
+    name_tag mixed_bern_K$((K)) &
 
-/home/yc07917/mambaforge/envs/gnn210/bin/python main.py --cfg configs/GRIT/pattern-GRIT-Bern.yaml wandb.use False seed 0 
-/home/yc07917/mambaforge/envs/gnn210/bin/python main.py --cfg configs/GRIT/pattern-GRIT-Bern.yaml wandb.use False seed 1 
-/home/yc07917/mambaforge/envs/gnn210/bin/python main.py --cfg configs/GRIT/pattern-GRIT-Bern.yaml wandb.use False seed 2 
-/home/yc07917/mambaforge/envs/gnn210/bin/python main.py --cfg configs/GRIT/pattern-GRIT-Bern.yaml wandb.use False seed 3 
-/home/yc07917/mambaforge/envs/gnn210/bin/python main.py --cfg configs/GRIT/pattern-GRIT-Bern.yaml wandb.use False seed 4 
+wait
+
 
 echo "finished!!!"

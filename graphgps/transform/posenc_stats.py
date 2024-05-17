@@ -66,6 +66,7 @@ def compute_posenc_stats(data, pe_types, is_undirected, cfg):
             compute_polynomials,
             method=param.method,
             order=param.order,
+            add_full_edge_index=param.add_full_edge_index,
         )
         data = transform(data)
 

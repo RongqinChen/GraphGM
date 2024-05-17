@@ -124,7 +124,7 @@ def agg_runs(dir, metric_best='auto'):
                     continue
                 stats_list = json_to_dict_list(fname_stats)
                 if metric_best == 'auto':
-                    for metric in ['auc', 'mae', 'ap', 'aucroc', 'accuracy']:
+                    for metric in ['accuracy-SBM', 'ap', 'mae', 'aucroc', 'f1', 'accuracy', 'auc']:
                         if metric in stats_list[0]:
                             break
                 else:

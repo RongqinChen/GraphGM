@@ -6,9 +6,9 @@ method_dict = {
 }
 
 
-def compute_polynomials(data, method, order):
+def compute_polynomials(data, method, order, add_full_edge_index):
     if method in method_dict:
-        data = method_dict[method](data, order)
+        data = method_dict[method](data, order, add_full_edge_index)
     else:
         raise NotImplementedError
 

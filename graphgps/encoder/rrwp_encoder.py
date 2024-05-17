@@ -17,13 +17,13 @@ from torch_geometric.graphgym.register import (
 from torch_geometric.utils import (
     # remove_self_loops,
     add_remaining_self_loops,
-    add_self_loops,
+    # add_self_loops,
 )
 from torch_scatter import scatter
 import warnings
 
 
-def full_edge_index(edge_index, batch=None):
+def compute_full_edge_index(edge_index, batch=None):
     """
     Retunr the Full batched sparse adjacency matrices given by edge indices.
     Returns batched sparse adjacency matrices with exactly those edges that
@@ -55,8 +55,8 @@ def full_edge_index(edge_index, batch=None):
         # _edge_index, _ = remove_self_loops(_edge_index)
         negative_index_list.append(_edge_index + cum_nodes[i])
 
-    edge_index_full = torch.cat(negative_index_list, dim=1).contiguous()
-    return edge_index_full
+    full_edge_index = torch.cat(negative_index_list, dim=1).contiguous()
+    return full_edge_index
 
 
 @register_node_encoder("rrwp_linear")
@@ -167,18 +167,30 @@ class RRWPLinearEdgeEncoder(torch.nn.Module):
         edge_attr = batch.edge_attr
         rrwp_val = self.fc(rrwp_val)
 
+        if self.batchnorm:
+            rrwp_val = self.bn(rrwp_val)
+
+        if self.layernorm:
+            rrwp_val = self.ln(rrwp_val)
+
         if edge_attr is None:
             edge_attr = edge_index.new_zeros(edge_index.size(1), rrwp_val.size(1))
             # zero padding for non-existing edges
 
-        if self.overwrite_old_attr:
-            out_idx, out_val = rrwp_idx, rrwp_val
-        else:
-            # edge_index, edge_attr = add_remaining_self_loops(edge_index, edge_attr, num_nodes=batch.num_nodes, fill_value=0.)
-            edge_index, edge_attr = add_self_loops(
-                edge_index, edge_attr, num_nodes=batch.num_nodes, fill_value=0.0
+        if self.pad_to_full_graph:
+            if 'full_edge_index' in batch:
+                full_edge_index = batch['full_edge_index']
+            else:
+                full_edge_index = compute_full_edge_index(batch.batch)
+            full_attr_pad = self.padding.repeat(full_edge_index.size(1), 1)
+            out_idx, out_val = torch_sparse.coalesce(
+                torch.cat([edge_index, rrwp_idx, full_edge_index], dim=1),
+                torch.cat([edge_attr, rrwp_val, full_attr_pad], dim=0),
+                batch.num_nodes,
+                batch.num_nodes,
+                op="add",
             )
-
+        else:
             out_idx, out_val = torch_sparse.coalesce(
                 torch.cat([edge_index, rrwp_idx], dim=1),
                 torch.cat([edge_attr, rrwp_val], dim=0),
@@ -186,22 +198,6 @@ class RRWPLinearEdgeEncoder(torch.nn.Module):
                 batch.num_nodes,
                 op="add",
             )
-
-        if self.pad_to_full_graph:
-            edge_index_full = full_edge_index(out_idx, batch=batch.batch)
-            edge_attr_pad = self.padding.repeat(edge_index_full.size(1), 1)
-            # zero padding to fully-connected graphs
-            out_idx = torch.cat([out_idx, edge_index_full], dim=1)
-            out_val = torch.cat([out_val, edge_attr_pad], dim=0)
-            out_idx, out_val = torch_sparse.coalesce(
-                out_idx, out_val, batch.num_nodes, batch.num_nodes, op="add"
-            )
-
-        if self.batchnorm:
-            out_val = self.bn(out_val)
-
-        if self.layernorm:
-            out_val = self.ln(out_val)
 
         batch.edge_index, batch.edge_attr = out_idx, out_val
         return batch
@@ -345,13 +341,17 @@ class PadToFullGraphEdgeEncoder(torch.nn.Module):
         out_idx, out_val = edge_index, edge_attr
 
         if self.pad_to_full_graph:
-            edge_index_full = full_edge_index(out_idx, batch=batch.batch)
-            # edge_attr_pad = self.padding.repeat(edge_index_full.size(1), 1)
+            # full_edge_index = compute_full_edge_index(out_idx, batch=batch.batch)
+            if 'full_edge_index' in batch:
+                full_edge_index = batch['full_edge_index']
+            else:
+                full_edge_index = compute_full_edge_index(batch.batch)
+            # edge_attr_pad = self.padding.repeat(full_edge_index.size(1), 1)
             edge_attr_pad = edge_attr.new_zeros(
-                edge_index_full.size(1), edge_attr.size(1)
+                full_edge_index.size(1), edge_attr.size(1)
             )
             # zero padding to fully-connected graphs
-            out_idx = torch.cat([out_idx, edge_index_full], dim=1)
+            out_idx = torch.cat([out_idx, full_edge_index], dim=1)
             out_val = torch.cat([out_val, edge_attr_pad], dim=0)
             out_idx, out_val = torch_sparse.coalesce(
                 out_idx, out_val, batch.num_nodes, batch.num_nodes, op="add"
