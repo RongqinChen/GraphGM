@@ -29,7 +29,7 @@ nvidia-smi
 echo ""
 
 
-K=16
+K=8
 
 CUDA_VISIBLE_DEVICES=0 \
     python main.py --repeat 5 --cfg configs/GSE/cifar/cifar10-GT-Add-Poly.yaml  \
