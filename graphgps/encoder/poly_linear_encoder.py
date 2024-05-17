@@ -14,7 +14,7 @@ from torch_scatter import scatter
 import warnings
 
 
-def full_edge_index(batch: torch.Tensor):
+def compute_full_edge_index(batch: torch.Tensor):
     batch_size = batch.max().item() + 1
     one = batch.new_ones(batch.size(0))
     num_nodes = scatter(one, batch, dim=0, dim_size=batch_size, reduce="add")
@@ -33,13 +33,7 @@ def full_edge_index(batch: torch.Tensor):
 @register_node_encoder("poly")
 class LinearNodeEncoder(torch.nn.Module):
     def __init__(
-        self,
-        name,
-        emb_dim,
-        out_dim,
-        use_bias=False,
-        batchnorm=False,
-        layernorm=False,
+        self, name, emb_dim, out_dim, use_bias=False, batchnorm=False, layernorm=False,
     ):
         super().__init__()
         self.name = name
@@ -70,14 +64,7 @@ class LinearNodeEncoder(torch.nn.Module):
 @register_edge_encoder("poly")
 class LinearEdgeEncoder(torch.nn.Module):
     def __init__(
-        self,
-        name,
-        emb_dim,
-        out_dim,
-        batchnorm=False,
-        layernorm=False,
-        use_bias=False,
-        fill_value=0.0,
+        self, name, emb_dim, out_dim, batchnorm=False, layernorm=False, use_bias=False, fill_value=0.0,
     ):
         super().__init__()
         self.name = name
@@ -122,15 +109,21 @@ class LinearEdgeEncoder(torch.nn.Module):
         if 'full_edge_index' in batch:
             full_edge_index = batch['full_edge_index']
         else:
-            full_edge_index = full_edge_index(batch.batch)
-        full_attr_pad = self.padding.repeat(full_edge_index.size(1), 1)
-        out_idx, out_val = torch_sparse.coalesce(
-            torch.cat([edge_index, poly_idx, full_edge_index], dim=1),
-            torch.cat([edge_attr, poly_val, full_attr_pad], dim=0),
-            batch.num_nodes,
-            batch.num_nodes,
-            op="add",
-        )
+            full_edge_index = compute_full_edge_index(batch.batch)
+
+        if poly_idx.size(1) == full_edge_index.size(1):
+            out_idx, out_val = torch_sparse.coalesce(
+                torch.cat([edge_index, poly_idx], dim=1),
+                torch.cat([edge_attr, poly_val], dim=0),
+                batch.num_nodes, batch.num_nodes, op="add",
+            )
+        else:
+            full_attr_pad = self.padding.repeat(full_edge_index.size(1), 1)
+            out_idx, out_val = torch_sparse.coalesce(
+                torch.cat([edge_index, poly_idx, full_edge_index], dim=1),
+                torch.cat([edge_attr, poly_val, full_attr_pad], dim=0),
+                batch.num_nodes, batch.num_nodes, op="add",
+            )
         batch.edge_index, batch.edge_attr = out_idx, out_val
         return batch
 
