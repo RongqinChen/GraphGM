@@ -11,19 +11,19 @@ Layer_dict = {
 
 @register_layer("GseMessagingBlock")
 class GseMessagingBlock(nn.Module):
-    def __init__(self, num_layers, layer_type, in_dim, out_dim, num_heads, dropout=0.0, attn_dropout=0.0) -> None:
+    def __init__(self, repeats, layer_type, in_dim, out_dim, num_heads, dropout=0.0, attn_dropout=0.0) -> None:
         super().__init__()
-        self.num_layers = num_layers
+        self.repeats = repeats
         Layer = Layer_dict[layer_type]
         self.layer_list = nn.ModuleList()
         if layer_type == 'grit':
-            for _ in range(num_layers):
+            for _ in range(repeats):
                 layer = Layer(in_dim, out_dim, num_heads, dropout, attn_dropout)
                 self.layer_list.append(layer)
         else:
             raise NotImplementedError
 
     def forward(self, batch: Batch):
-        for idx in range(self.num_layers):
+        for idx in range(self.repeats):
             batch = self.layer_list[idx](batch)
         return batch

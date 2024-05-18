@@ -80,7 +80,7 @@ class GritMessagePassing(nn.Module):
             self.act = act_dict[act]()
 
     def propagate_attention(self, batch):
-        dst, src = batch.edge_index
+        dst, src = batch.poly_edge_index
         Qdst = batch.Qh[dst]
         Ksrc = batch.Kh[src]
         Vsrc = batch.Vh[src]
@@ -288,7 +288,7 @@ def get_log_deg(batch):
         log_deg = torch.log(deg + 1).unsqueeze(-1)
     else:
         warnings.warn("Compute the degree on the fly; Might be problematric if have applied edge-padding to complete graphs")
-        deg = pyg.utils.degree(batch.edge_index[1], num_nodes=batch.num_nodes, dtype=torch.float)
+        deg = pyg.utils.degree(batch.poly_edge_index[1], num_nodes=batch.num_nodes, dtype=torch.float)
         log_deg = torch.log(deg + 1)
     log_deg = log_deg.view(batch.num_nodes, 1)
     return log_deg
