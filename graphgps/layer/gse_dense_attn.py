@@ -1,11 +1,10 @@
-import torch
 from torch import nn
 from torch_geometric.utils import to_dense_batch
 
 
-class GraphormerLayer(torch.nn.Module):
+class GraphDenseAttn(nn.Module):
     def __init__(self, embed_dim: int, num_heads: int, dropout: float,
-                 attention_dropout: float, mlp_dropout: float):
+                 attention_dropout: float, mlp_dropout: float, input_norm: bool):
         """Implementation of the Graphormer layer.
         This layer is based on the implementation at:
         https://github.com/microsoft/Graphormer/tree/v1.0
@@ -20,18 +19,19 @@ class GraphormerLayer(torch.nn.Module):
         """
         super().__init__()
         self.attention = nn.MultiheadAttention(embed_dim, num_heads, attention_dropout, batch_first=True)
-        self.input_norm = torch.nn.LayerNorm(embed_dim)
-        self.dropout = torch.nn.Dropout(dropout)
+        self.input_norm = nn.LayerNorm(embed_dim) if input_norm else nn.Identity()
+        self.dropout = nn.Dropout(dropout)
 
         # We follow the paper in that all hidden dims are
         # equal to the embedding dim
-        self.mlp = torch.nn.Sequential(
-            torch.nn.LayerNorm(embed_dim),
-            torch.nn.Linear(embed_dim, embed_dim),
-            torch.nn.GELU(),
-            torch.nn.Dropout(mlp_dropout),
-            torch.nn.Linear(embed_dim, embed_dim),
-            torch.nn.Dropout(dropout),
+        self.mlp = nn.Sequential(
+            nn.BatchNorm1d(embed_dim),
+            nn.Linear(embed_dim, embed_dim),
+            nn.GELU(),
+            nn.Dropout(mlp_dropout),
+            nn.Linear(embed_dim, embed_dim),
+            nn.BatchNorm1d(embed_dim),
+            nn.Dropout(dropout),
         )
 
     def forward(self, data):

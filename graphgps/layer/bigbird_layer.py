@@ -112,6 +112,7 @@ def apply_chunking_to_forward(
 
     return forward_fn(*input_tensors)
 
+
 class BigBirdSelfAttention(nn.Module):
     def __init__(self, config):
         super().__init__()

@@ -24,12 +24,9 @@ def pyg_softmax(src, index, num_nodes=None):
     """
 
     num_nodes = maybe_num_nodes(index, num_nodes)
-
     out = src - scatter_max(src, index, dim=0, dim_size=num_nodes)[0][index]
     out = out.exp()
-    out = out / (
-            scatter_add(out, index, dim=0, dim_size=num_nodes)[index] + 1e-16)
-
+    out = out / (scatter_add(out, index, dim=0, dim_size=num_nodes)[index] + 1e-16)
     return out
 
 
@@ -46,14 +43,11 @@ class MultiHeadAttention2Layer(nn.Module):
 
         self.out_dim = out_dim
         self.num_heads = num_heads
-        self.gamma = nn.Parameter(torch.tensor(0.5, dtype=float),
-                                  requires_grad=True)
+        self.gamma = nn.Parameter(torch.tensor(gamma, dtype=float), requires_grad=True)
         self.full_graph = full_graph
-
         self.Q = nn.Linear(in_dim, out_dim * num_heads, bias=use_bias)
         self.K = nn.Linear(in_dim, out_dim * num_heads, bias=use_bias)
         self.E = nn.Linear(in_dim, out_dim * num_heads, bias=use_bias)
-
         if self.full_graph:
             self.Q_2 = nn.Linear(in_dim, out_dim * num_heads, bias=use_bias)
             self.K_2 = nn.Linear(in_dim, out_dim * num_heads, bias=use_bias)
@@ -106,7 +100,6 @@ class MultiHeadAttention2Layer(nn.Module):
             msg_2 = batch.V_h[fake_edge_index[0]] * score_2
             # Add messages along fake edges to destination nodes
             scatter(msg_2, fake_edge_index[1], dim=0, out=batch.wV, reduce='add')
-
 
     def forward(self, batch):
         Q_h = self.Q(batch.x)

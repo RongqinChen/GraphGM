@@ -22,11 +22,9 @@ class MultiHeadAttentionLayer(nn.Module):
         self.num_heads = num_heads
         self.gamma = gamma
         self.full_graph = full_graph
-
         self.Q = nn.Linear(in_dim, out_dim * num_heads, bias=use_bias)
         self.K = nn.Linear(in_dim, out_dim * num_heads, bias=use_bias)
         self.E = nn.Linear(in_dim, out_dim * num_heads, bias=use_bias)
-
         if self.full_graph:
             self.Q_2 = nn.Linear(in_dim, out_dim * num_heads, bias=use_bias)
             self.K_2 = nn.Linear(in_dim, out_dim * num_heads, bias=use_bias)
