@@ -7,14 +7,14 @@ def set_cfg_posenc(cfg):
     """Extend configuration with positional encoding options."""
 
     # Argument group for each Positional Encoding class.
-    cfg.posenc_LapPE = CN()
-    cfg.posenc_SignNet = CN()
-    cfg.posenc_RWSE = CN()
-    cfg.posenc_HKdiagSE = CN()
-    cfg.posenc_ElstaticSE = CN()
-    cfg.posenc_EquivStableLapPE = CN()
-    cfg.posenc_RRWP = CN()
-    cfg.posenc_Poly = CN()
+    cfg.posenc_LapPE = CN({"enable": False})
+    cfg.posenc_SignNet = CN({"enable": False})
+    cfg.posenc_RWSE = CN({"enable": False})
+    cfg.posenc_HKdiagSE = CN({"enable": False})
+    cfg.posenc_ElstaticSE = CN({"enable": False})
+    cfg.posenc_EquivStableLapPE = CN({"enable": False})
+    cfg.posenc_RRWP = CN({"enable": False})
+    cfg.posenc_Poly = CN({"enable": False})
 
     # Common arguments to all PE types.
     for name in [
@@ -27,7 +27,7 @@ def set_cfg_posenc(cfg):
     ]:
         pecfg = getattr(cfg, name)
         # Use extended positional encodings
-        pecfg.enable = False
+        # pecfg.enable = False
 
         # Neural-net model type within the PE encoder:
         # 'DeepSet', 'Transformer', 'Linear', 'none', ...

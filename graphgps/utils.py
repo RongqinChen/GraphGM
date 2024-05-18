@@ -7,6 +7,9 @@ from torch_geometric.utils import degree
 from torch_geometric.utils import remove_self_loops
 from torch_geometric.utils import scatter
 from yacs.config import CfgNode
+import os
+import os.path as osp
+import yaml
 
 
 def negate_edge_index(edge_index, batch=None):
@@ -124,7 +127,7 @@ def make_wandb_name(cfg):
 
     if cfg.dataset.infer_link_label in ["edge"]:
         dataset_name += f"+{cfg.dataset.infer_link_label}"
-    
+
     # Format model name.
     model_name = cfg.model.type
     if cfg.model.type in ['gnn', 'custom_gnn']:
@@ -184,3 +187,32 @@ def unbatch_edge_index(edge_index: Tensor, batch: Tensor) -> List[Tensor]:
     edge_index = edge_index - ptr[edge_batch]
     sizes = degree(edge_batch, dtype=torch.int64).cpu().tolist()
     return edge_index.split(sizes, dim=1)
+
+
+def dump_cfg(cfg: CfgNode):
+    r"""Dumps the config to the output directory specified in
+    :obj:`cfg.out_dir`.
+
+    Args:
+        cfg (CfgNode): Configuration node
+    """
+    os.makedirs(cfg.out_dir, exist_ok=True)
+    cfg_file = osp.join(cfg.out_dir, cfg.cfg_dest)
+
+    def convert_to_dict(cfg_node):
+        if not isinstance(cfg_node, CfgNode):
+            return cfg_node
+        else:
+            cfg_dict = dict(cfg_node)
+            if 'enable' in cfg_dict and not cfg_dict['enable']:
+                return {'enable': False}
+            for k, v in cfg_dict.items():
+                cfg_dict[k] = convert_to_dict(v)
+            return cfg_dict
+
+    cn_as_dict = convert_to_dict(cfg)
+
+    with open(cfg_file, 'w') as wfile:
+        yaml.dump(cn_as_dict, wfile)
+
+    return cn_as_dict

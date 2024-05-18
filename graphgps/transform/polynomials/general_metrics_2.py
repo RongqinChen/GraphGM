@@ -24,8 +24,8 @@ def add_node_attr(data: Data, value: Any, attr_name: Optional[str] = None) -> Da
 def add_full_gm2(
     data: Data,
     poly_order=8,
-    attr_name_abs="gm",  # name: 'gm'
-    attr_name_rel="gm",  # name: ('gm_idx', 'gm_val')
+    attr_name_abs="node_h",  # name: 'node_h'
+    attr_name_rel="node_h",  # name: ('gm_idx', 'gm_val')
 ):
     device = data.edge_index.device
     num_nodes = data.num_nodes

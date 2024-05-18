@@ -5,6 +5,7 @@ from yacs.config import CfgNode as CN
 @register_config('cfg_graphormer')
 def set_cfg_gt(cfg):
     cfg.graphormer = CN()
+    cfg.graphormer.enable = False
     cfg.graphormer.num_layers = 6
     cfg.graphormer.embed_dim = 80
     cfg.graphormer.num_heads = 4

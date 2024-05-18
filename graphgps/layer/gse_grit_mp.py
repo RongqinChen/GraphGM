@@ -1,4 +1,5 @@
 import numpy as np
+from typing import Mapping
 import torch
 from torch import nn
 import torch.nn.functional as F
@@ -80,7 +81,7 @@ class GritMessagePassing(nn.Module):
             self.act = act_dict[act]()
 
     def propagate_attention(self, batch):
-        dst, src = batch.poly_edge_index
+        dst, src = batch.poly_idx
         Qdst = batch.Qh[dst]
         Ksrc = batch.Kh[src]
         Vsrc = batch.Vh[src]
@@ -95,9 +96,10 @@ class GritMessagePassing(nn.Module):
 
         Eo = self.Eo(conn)
         # output edge
-        batch.Oe = Eo.flatten(1)
+        batch.Oe = Eo
 
         # final attn
+        conn = conn.view(-1, self.num_heads, self.out_dim)
         score = oe.contract("ehd, dhc->ehc", conn, self.Aw, backend="torch")
         if self.clamp is not None:
             score = torch.clamp(score, min=-self.clamp, max=self.clamp)
@@ -115,23 +117,26 @@ class GritMessagePassing(nn.Module):
         score = self.dropout(score)
 
         # Aggregate with Attn-Score
+        Vsrc = Vsrc.view(-1, self.num_heads, self.out_dim)
+        Eo = Eo.view(-1, self.num_heads, self.out_dim)
         agg = scatter(Vsrc * score, dst, dim=0, reduce=self.agg)
         rowV = scatter(Eo * score, dst, dim=0, reduce=self.agg)
         rowV = oe.contract("nhd, dhc -> nhc", rowV, self.BW, backend="torch")
-        batch.On = agg + rowV
+        On = agg + rowV
+        batch.On = On.flatten(1)
 
     def forward(self, batch):
-        Qh = self.Q(batch.x)
-        Kh = self.K(batch.x)
-        Vh = self.V(batch.x)
-        Ew = self.Ew(batch.edge_attr)
-        Eb = self.Eb(batch.edge_attr)
+        batch.Qh = self.Q(batch.x)
+        batch.Kh = self.K(batch.x)
+        batch.Vh = self.V(batch.x)
+        batch.Ew = self.Ew(batch.poly_val)
+        batch.Eb = self.Eb(batch.poly_val)
 
-        batch.Qh = Qh.view(-1, self.num_heads, self.out_dim)
-        batch.Kh = Kh.view(-1, self.num_heads, self.out_dim)
-        batch.Vh = Vh.view(-1, self.num_heads, self.out_dim)
-        batch.Ew = Ew.view(-1, self.num_heads, self.out_dim)
-        batch.Eb = Eb.view(-1, self.num_heads, self.out_dim)
+        # batch.Qh = Qh.view(-1, self.num_heads, self.out_dim)
+        # batch.Kh = Kh.view(-1, self.num_heads, self.out_dim)
+        # batch.Vh = Vh.view(-1, self.num_heads, self.out_dim)
+        # batch.Ew = Ew.view(-1, self.num_heads, self.out_dim)
+        # batch.Eb = Eb.view(-1, self.num_heads, self.out_dim)
 
         self.propagate_attention(batch)
         h_out = batch.On
@@ -140,9 +145,9 @@ class GritMessagePassing(nn.Module):
 
 
 class GritMessagePassingLayer(nn.Module):
-    def __init__(self, in_dim, out_dim, num_heads, dropout=0.0, attn_dropout=0.0,
-                 layer_norm=False, batch_norm=True, residual=True, act='relu',
-                 norm_e=True, cfg=dict(), **kwargs):
+    def __init__(self, in_dim, out_dim, num_heads, cfg: Mapping, dropout=0.0, attn_dropout=0.0,
+                 layer_norm=False, batch_norm=True, residual=True, act='relu', norm_e=True, **kwargs):
+
         super().__init__()
         assert out_dim % num_heads == 0
         self.debug = False
@@ -155,25 +160,23 @@ class GritMessagePassingLayer(nn.Module):
         self.residual = residual
         self.layer_norm = layer_norm
         self.batch_norm = batch_norm
-        self.bn_momentum = cfg.bn_momentum
-        self.bn_no_runner = cfg.bn_no_runner
+        cfg = dict(cfg)
+        self.bn_momentum = cfg.get('bn_momentum', 0.1)
+        self.bn_no_runner = cfg.get('bn_no_runner', False)
         self.rezero = cfg.get("rezero", False)
         self.act = act_dict[act]() if act is not None else nn.Identity()
-        if cfg.get("attn", None) is None:
-            cfg.attn = dict()
-        self.deg_scaler = cfg.attn.get("deg_scaler", True)
+        self.deg_scaler = cfg.get("deg_scaler", False)
 
         att_dim = out_dim // num_heads
         self.message_pass = GritMessagePassing(
             in_dim=in_dim,
             out_dim=att_dim,
             num_heads=num_heads,
-            clamp=cfg.attn.get("clamp", 5.),
+            clamp=cfg.get("clamp", 5.),
             dropout=attn_dropout,
-            weight_fn=cfg.attn.get("weight_fn", "softmax"),
-            add=cfg.attn.get("add", "softmax"),
-            agg=cfg.attn.get("agg", "add"),
-            act=cfg.attn.get("act", "relu"),
+            weight_fn=cfg.get("weight_fn", "softmax"),
+            agg=cfg.get("agg", "add"),
+            act=act,
         )
 
         self.O_h = nn.Linear(out_dim // num_heads * num_heads, out_dim)
@@ -190,9 +193,9 @@ class GritMessagePassingLayer(nn.Module):
 
         if self.batch_norm:
             # when the batch_size is really small, use smaller momentum to avoid bad mini-batch leading to extremely bad val/test loss (NaN)
-            self.batch_norm1_h = nn.BatchNorm1d(out_dim, track_running_stats=not self.bn_no_runner, eps=1e-5, momentum=cfg.bn_momentum)
+            self.batch_norm1_h = nn.BatchNorm1d(out_dim, track_running_stats=not self.bn_no_runner, eps=1e-5, momentum=self.bn_momentum)
             if norm_e:
-                self.batch_norm1_e = nn.BatchNorm1d(out_dim, track_running_stats=not self.bn_no_runner, eps=1e-5, momentum=cfg.bn_momentum)
+                self.batch_norm1_e = nn.BatchNorm1d(out_dim, track_running_stats=not self.bn_no_runner, eps=1e-5, momentum=self.bn_momentum)
             else:
                 self.batch_norm1_e = nn.Identity()
 
@@ -204,7 +207,7 @@ class GritMessagePassingLayer(nn.Module):
             self.layer_norm2_h = nn.LayerNorm(out_dim)
 
         if self.batch_norm:
-            self.batch_norm2_h = nn.BatchNorm1d(out_dim, track_running_stats=not self.bn_no_runner, eps=1e-5, momentum=cfg.bn_momentum)
+            self.batch_norm2_h = nn.BatchNorm1d(out_dim, track_running_stats=not self.bn_no_runner, eps=1e-5, momentum=self.bn_momentum)
 
         if self.rezero:
             self.alpha1_h = nn.Parameter(torch.zeros(1, 1))
@@ -212,15 +215,15 @@ class GritMessagePassingLayer(nn.Module):
             self.alpha1_e = nn.Parameter(torch.zeros(1, 1))
 
     def forward(self, batch):
-        num_nodes = batch.num_nodes
+        # num_nodes = batch.num_nodes
         log_deg = get_log_deg(batch)
         h_in1 = batch.x  # for first residual connection
-        e_in1 = batch.edge_attr
+        e_in1 = batch.poly_val
         # multi-head attention out
         h_attn_out, e_attn_out = self.message_pass(batch)
 
-        h = h_attn_out.view(num_nodes, -1)
-        h = F.dropout(h, self.dropout, training=self.training)
+        # h = h_attn_out.view(num_nodes, -1)
+        h = F.dropout(h_attn_out, self.dropout, training=self.training)
         # degree scaler
         if self.deg_scaler:
             h = torch.stack([h, h * log_deg], dim=-1)
@@ -228,8 +231,8 @@ class GritMessagePassingLayer(nn.Module):
 
         h = self.O_h(h)
 
-        e = e_attn_out.flatten(1)
-        e = F.dropout(e, self.dropout, training=self.training)
+        # e = e_attn_out.flatten(1)
+        e = F.dropout(e_attn_out, self.dropout, training=self.training)
         e = self.O_e(e)
 
         if self.residual:
@@ -267,7 +270,7 @@ class GritMessagePassingLayer(nn.Module):
             h = self.batch_norm2_h(h)
 
         batch.x = h
-        batch.edge_attr = e
+        batch.poly_val = e
         return batch
 
     def __repr__(self):
@@ -288,7 +291,7 @@ def get_log_deg(batch):
         log_deg = torch.log(deg + 1).unsqueeze(-1)
     else:
         warnings.warn("Compute the degree on the fly; Might be problematric if have applied edge-padding to complete graphs")
-        deg = pyg.utils.degree(batch.poly_edge_index[1], num_nodes=batch.num_nodes, dtype=torch.float)
+        deg = pyg.utils.degree(batch.poly_idx[1], num_nodes=batch.num_nodes, dtype=torch.float)
         log_deg = torch.log(deg + 1)
     log_deg = log_deg.view(batch.num_nodes, 1)
     return log_deg

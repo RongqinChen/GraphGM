@@ -7,7 +7,7 @@ import os
 import torch
 from torch_geometric import seed_everything
 from torch_geometric.graphgym.cmd_args import parse_args
-from torch_geometric.graphgym.config import (cfg, dump_cfg, load_cfg,
+from torch_geometric.graphgym.config import (cfg, load_cfg,
                                              makedirs_rm_exist, set_cfg)
 from torch_geometric.graphgym.loader import create_loader
 from torch_geometric.graphgym.logger import set_printing
@@ -23,7 +23,7 @@ import graphgps  # noqa, register custom modules
 from graphgps.finetuning import (init_model_from_pretrained,
                                  load_pretrained_model_cfg)
 from graphgps.logger import create_logger
-# from graphgps.agg_runs import agg_runs
+from graphgps.utils import dump_cfg
 from graphgps.optimizer.extra_optimizers import ExtendedSchedulerConfig
 
 warnings.filterwarnings("ignore", category=FutureWarning)
@@ -116,7 +116,7 @@ if __name__ == '__main__':
     set_cfg(cfg)
     load_cfg(cfg, args)
     custom_set_out_dir(cfg, args.cfg_file, cfg.name_tag)
-    dump_cfg(cfg)
+    cfg_dict = dump_cfg(cfg)
     # Set Pytorch environment
     torch.set_num_threads(cfg.num_threads)
     # Repeat for multiple experiment runs
@@ -147,7 +147,7 @@ if __name__ == '__main__':
         scheduler = create_scheduler(optimizer, new_scheduler_config(cfg))
         # Print model info
         logging.info(model)
-        logging.info(cfg)
+        logging.info(cfg_dict)
         cfg.params = params_count(model)
         logging.info('Num parameters: %s', cfg.params)
         # Start training
