@@ -44,7 +44,7 @@ gse_model:
   num_heads: 10
   dropout: 0.0
   attn_dropout: 0.0
-  weight_fn: 'sigmoid'
+  weight_fn: 'softmax'
   messaging:
     layer_type: 'grit'
     repeats: 1

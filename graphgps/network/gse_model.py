@@ -120,12 +120,6 @@ class GseModel(torch.nn.Module):
             self.block_dict[f"{lidx}_rel_enc"] = rel_encoder
             self.block_dict[f"{lidx}_messaging"] = messaging_block
 
-        if cfg.gse_model.full.num_layers > 0:
-            abs_encoder = AbsEncoder(self.poly_method, cfg.posenc_Poly.emb_dim, cfg.gse_model.hidden_dim)
-            rel_encoder = RelEncoder(self.poly_method, cfg.posenc_Poly.emb_dim, cfg.gse_model.hidden_dim)
-            self.block_dict["full_abs_enc"] = abs_encoder
-            self.block_dict["full_rel_enc"] = rel_encoder
-
         for lidx in range(1, cfg.gse_model.full.num_layers + 1):
             full_block = GseFullBlock(
                 cfg.gse_model.full.repeats,
@@ -203,22 +197,20 @@ class GseModel(torch.nn.Module):
             batch = self.block_dict[f"{lidx}_messaging"](batch)
 
         if cfg.gse_model.full.num_layers > 0:
-            abs_h = self.block_dict["full_abs_enc"](whole_abs_val)
-            batch.x = batch.x + abs_h
-            poly_h: torch.Tensor = self.block_dict["full_rel_enc"](whole_poly_val)
             if 'full_edge_index' in batch:
                 full_edge_index = batch['full_edge_index']
             else:
                 full_edge_index = compute_full_edge_index(batch.batch)
 
-            full_pad = poly_h.new_zeros((full_edge_index.size(1), cfg.gse_model.hidden_dim))
-            poly_idx, poly_val = torch_sparse.coalesce(
-                torch.cat([batch.poly_idx, full_edge_index], dim=1),
-                torch.cat([batch.poly_val + poly_h, full_pad], dim=0),
-                batch.num_nodes, batch.num_nodes, op="add",
-            )
-            batch.poly_idx = poly_idx
-            batch.poly_val = poly_val
+            if full_edge_index.size(1) > batch.poly_idx.size(1):
+                full_pad = poly_h.new_zeros((full_edge_index.size(1), cfg.gse_model.hidden_dim))
+                poly_idx, poly_val = torch_sparse.coalesce(
+                    torch.cat([batch.poly_idx, full_edge_index], dim=1),
+                    torch.cat([batch.poly_val, full_pad], dim=0),
+                    batch.num_nodes, batch.num_nodes, op="add",
+                )
+                batch.poly_idx = poly_idx
+                batch.poly_val = poly_val
 
         for lidx in range(1, cfg.gse_model.full.num_layers + 1):
             batch = self.block_dict[f"full_{lidx}"](batch)

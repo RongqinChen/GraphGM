@@ -16,7 +16,7 @@ def gse_gnn_cfg(cfg):
     cfg.gse_model.num_heads = 12
     cfg.gse_model.dropout = 0.0
     cfg.gse_model.attn_dropout = 0.2
-    cfg.gse_model.weight_fn = 'softmax'
+    cfg.gse_model.weight_fn = 'sigmoid'
     cfg.gse_model.agg = 'add'
 
     cfg.gse_model.messaging = CN()
