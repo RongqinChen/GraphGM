@@ -245,14 +245,6 @@ class GritMessagePassingLayer(nn.Module):
         batch.poly_val = e
         return batch
 
-    def __repr__(self):
-        return '{}(in_channels={}, out_channels={}, heads={}, residual={})\n[{}]'.format(
-            self.__class__.__name__,
-            self.in_channels,
-            self.out_channels, self.attn_heads, self.residual,
-            super().__repr__(),
-        )
-
 
 @torch.no_grad()
 def get_log_deg(batch):

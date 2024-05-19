@@ -67,7 +67,7 @@ class GseModel(torch.nn.Module):
 
     def __init__(self, dim_in, dim_out):
         super().__init__()
-        assert (cfg.posenc_Poly.emb_dim - 2) == 2 ** (cfg.gse_model.messaging.num_layers)
+        assert (cfg.posenc_Poly.emb_dim - 2) >= 2 ** (cfg.gse_model.messaging.num_layers - 1)
         self.feat_encoder = FeatureEncoder(cfg.gse_model.hidden_dim)
 
         GseMessagingBlock = register.layer_dict["GseMessagingBlock"]
@@ -99,7 +99,7 @@ class GseModel(torch.nn.Module):
             # orders: [0, 2, 2, 4, 4, ..., 2**(K-1), 2**(K-1), 2**K, 2**K, 2**K]
             # order2idx_map: {2: 2, 4: 4, 8: 8, 16: 16}
             self._poly_order_map = {
-                lidx: 2**lidx
+                lidx: 2 ** (lidx - 1)
                 for lidx in range(1, cfg.gse_model.messaging.num_layers + 1)
             }
         else:

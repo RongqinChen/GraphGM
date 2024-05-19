@@ -58,11 +58,11 @@ gse_model:
   messaging:
     layer_type: 'grit'
     repeats: 2
-    num_layers: 3
+    num_layers: 4
   full:
     layer_type: 'grit'
     enable: True
-    repeats: 3
+    repeats: 2
   head: 'san_graph'
 optim:
   clip_grad_norm: True

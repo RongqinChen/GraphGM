@@ -214,5 +214,3 @@ def dump_cfg(cfg: CfgNode):
 
     with open(cfg_file, 'w') as wfile:
         yaml.dump(cn_as_dict, wfile)
-
-    return cn_as_dict

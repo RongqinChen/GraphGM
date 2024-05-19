@@ -116,9 +116,8 @@ if __name__ == '__main__':
     set_cfg(cfg)
     load_cfg(cfg, args)
     custom_set_out_dir(cfg, args.cfg_file, cfg.name_tag)
-    cfg_dict = dump_cfg(cfg)
-    # Set Pytorch environment
-    torch.set_num_threads(cfg.num_threads)
+    dump_cfg(cfg)
+    # Set Pytorch environment    torch.set_num_threads(cfg.num_threads)
     # Repeat for multiple experiment runs
     for run_id, seed, split_index in zip(*run_loop_settings()):
         # Set configurations for each run
@@ -147,7 +146,7 @@ if __name__ == '__main__':
         scheduler = create_scheduler(optimizer, new_scheduler_config(cfg))
         # Print model info
         logging.info(model)
-        logging.info(cfg_dict)
+        logging.info(cfg)
         cfg.params = params_count(model)
         logging.info('Num parameters: %s', cfg.params)
         # Start training
