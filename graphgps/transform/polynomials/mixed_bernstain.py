@@ -68,15 +68,17 @@ def compute_mixed_bernstain_polynomials(
             base_dict[k][2] * ((2 ** -k) * comb(k, k // 2 + 1))
         )
     polys.append(base_dict[K][1] * ((2 ** -K) * comb(K, K // 2)))
+    polys.append(adj1)
 
-    polys = torch.stack(polys, dim=-1)  # n x n x (K+2)
-    diag = polys.diagonal().transpose(0, 1)  # n x (K+2)
+    polys = torch.stack(polys, dim=-1)
+    diag = polys.diagonal().transpose(0, 1)  # n x (K+2+1)
     poly_adj = SparseTensor.from_dense(polys, has_value=True)
     poly_row, poly_col, poly_val = poly_adj.coo()
     poly_idx = torch.stack([poly_row, poly_col], dim=0)
-    data[method_name] = diag
+    data[method_name] = diag[:, :-1]   # n x (K+2)
     data[f"{method_name}_index"] = poly_idx
-    data[f"{method_name}_val"] = poly_val
+    data[f"{method_name}_val"] = poly_val[:, :-1]  # n x n x (K+2)
+    data[f"{method_name}_order1_flag"] = poly_val[:, -1] != 0
     data.log_deg = torch.log(deg + 1).unsqueeze_(1)
 
     if add_full_edge_index:

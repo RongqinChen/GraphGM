@@ -12,6 +12,7 @@ def set_cfg_gt(cfg):
 
     # Positional encodings argument group
     cfg.gt = CN()
+    cfg.gt.enable = False
 
     # Type of Graph Transformer layer to use
     # cfg.gt.layer_type = 'SANLayer'

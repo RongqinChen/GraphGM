@@ -11,6 +11,7 @@ def set_cfg_wandb(cfg):
     cfg.wandb = CN()
 
     # Use wandb or not
+    cfg.wandb.enable = False
     cfg.wandb.use = False
 
     # Wandb entity name, should exist beforehand

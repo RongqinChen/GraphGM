@@ -48,16 +48,16 @@ class LinearNodeEncoder(torch.nn.Module):
             self.ln = nn.LayerNorm(out_dim)
 
     def forward(self, batch):
-        gm = batch[f"{self.name}"]
-        gm = self.fc(gm)
+        node_h = batch[f"{self.name}"]
+        node_h = self.fc(node_h)
         if self.batchnorm:
-            gm = self.bn(gm)
+            node_h = self.bn(node_h)
         if self.layernorm:
-            gm = self.ln(gm)
+            node_h = self.ln(node_h)
         if "x" in batch:
-            batch.x = batch.x + gm
+            batch.x = batch.x + node_h
         else:
-            batch.x = gm
+            batch.x = node_h
         return batch
 
 
@@ -71,24 +71,22 @@ class LinearEdgeEncoder(torch.nn.Module):
         # note: batchnorm/layernorm might ruin some properties of pe on providing shortest-path distance info
         # self.emb_dim = (2 + max_poly_order) * (max_poly_order + 1) // 2
         self.emb_dim = emb_dim
-        self.fc = nn.Linear(self.emb_dim, out_dim, bias=use_bias)
         self.out_dim = out_dim
+        self.fc = nn.Linear(self.emb_dim, out_dim, bias=use_bias)
+        torch.nn.init.xavier_uniform_(self.fc.weight)
         self.batchnorm = batchnorm
         self.layernorm = layernorm
         if self.batchnorm or self.layernorm:
             warnings.warn(
                 "batchnorm/layernorm might ruin some properties of pe on providing shortest-path distance info "
             )
-
-        self.fc = nn.Linear(self.emb_dim, out_dim, bias=use_bias)
-        torch.nn.init.xavier_uniform_(self.fc.weight)
-        self.fill_value = 0.0
-        padding = torch.ones(1, out_dim, dtype=torch.float) * fill_value
-        self.register_buffer("padding", padding)
         if self.batchnorm:
             self.bn = nn.BatchNorm1d(out_dim)
         if self.layernorm:
             self.ln = nn.LayerNorm(out_dim)
+        self.fill_value = fill_value
+        padding = torch.ones(1, out_dim, dtype=torch.float) * self.fill_value
+        self.register_buffer("padding", padding)
 
     def forward(self, batch: Data):
         poly_idx = batch[f"{self.name}_index"]
