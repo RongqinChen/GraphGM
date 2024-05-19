@@ -7,7 +7,6 @@ from torch_geometric.graphgym.config import cfg
 from torch_geometric.graphgym.models.layer import BatchNorm1dNode, new_layer_config
 from torch_geometric.graphgym.register import register_network
 from torch_scatter import scatter
-from graphgps.layer.gse_grit_mp import GritMessagePassingLayer
 
 
 def compute_full_edge_index(batch: torch.Tensor):
@@ -68,9 +67,19 @@ class InitialLayer(torch.nn.Module):
         hidden_dim (int): Input feature dimension
     """
 
-    def __init__(self, hidden_dim, num_heads, cfg, dropout, attn_dropout):
+    def __init__(self,):
         super(InitialLayer, self).__init__()
-        self.mpnn = GritMessagePassingLayer(hidden_dim, hidden_dim, num_heads, cfg, dropout, attn_dropout)
+        GseMessagingBlock = register.layer_dict["GseMessagingBlock"]
+        self.mpnn = GseMessagingBlock(
+            cfg.gse_model.messaging.repeats,
+            cfg.gse_model.messaging.layer_type,
+            cfg.gse_model.hidden_dim,
+            cfg.gse_model.hidden_dim,
+            cfg.gse_model.num_heads,
+            cfg.gse_model,
+            cfg.gse_model.dropout,
+            cfg.gse_model.attn_dropout,
+        )
 
     def forward(self, batch: Batch):
         batch.poly_val = batch.edge_attr
