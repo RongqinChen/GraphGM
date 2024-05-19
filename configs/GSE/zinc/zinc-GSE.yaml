@@ -41,18 +41,28 @@ model:
 gse_model:
   enable: True
   hidden_dim: 64
-  num_heads: 8
-  dropout: 0.0
-  attn_dropout: 0.0
-  weight_fn: 'sigmoid'
+  attn_heads: 8
+  drop_prob: 0.0
+  attn_drop_prob: 0.2
+  residual: True
+  layer_norm: False
+  batch_norm: True
+  bn_momentum: 0.1
+  bn_no_runner: False
+  rezero: False
+  deg_scaler: True
+  clamp: 5.0
+  weight_fn: 'softmax'
+  agg: 'add'
+  act: 'relu'
   messaging:
     layer_type: 'grit'
     repeats: 2
     num_layers: 3
   full:
     layer_type: 'grit'
-    repeats: 1
-    num_layers: 2
+    enable: True
+    repeats: 3
   head: 'san_graph'
 optim:
   clip_grad_norm: True

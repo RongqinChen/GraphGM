@@ -13,10 +13,7 @@ Layer_dict = {
 
 @register_layer("GseFullBlock")
 class GseFullBlock(nn.Module):
-    def __init__(
-        self, repeats, layer_type, in_dim, out_dim, num_heads, cfg,
-        dropout=0.0, attn_dropout=0.0, mlp_dropout=0.0, input_norm=True
-    ) -> None:
+    def __init__(self, repeats, layer_type, cfg) -> None:
 
         super().__init__()
         self.repeats = repeats
@@ -24,11 +21,20 @@ class GseFullBlock(nn.Module):
         self.layer_list = nn.ModuleList()
         if layer_type == 'grit':
             for _ in range(repeats):
-                layer = Layer(in_dim, out_dim, num_heads, cfg, dropout, attn_dropout)
+                layer = Layer(
+                    cfg.hidden_dim, cfg.attn_heads, cfg.drop_prob,
+                    cfg.attn_drop_prob, cfg.residual, cfg.layer_norm,
+                    cfg.batch_norm, cfg.bn_momentum, cfg.bn_no_runner,
+                    cfg.rezero, cfg.deg_scaler, cfg.clamp,
+                    cfg.weight_fn, cfg.agg, cfg.act,
+                )
                 self.layer_list.append(layer)
         elif layer_type == 'dense':
             for _ in range(repeats):
-                layer = Layer(in_dim, num_heads, dropout, attn_dropout, mlp_dropout, input_norm)
+                layer = Layer(
+                    cfg.hidden_dim, cfg.attn_heads, cfg.drop_prob, cfg.attn_drop_prob,
+                    cfg.drop_prob, cfg.full.input_norm
+                )
                 self.layer_list.append(layer)
         else:
             raise NotImplementedError

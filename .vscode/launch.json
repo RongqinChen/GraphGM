@@ -19,7 +19,7 @@
             "args": [
                 "--cfg", "configs/GSE/zinc/zinc-GSE.yaml",
             ],
-            "justMyCode": true
+            "justMyCode": false
         }
     ]
 }

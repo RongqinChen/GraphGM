@@ -1,16 +1,14 @@
+import warnings
+
 import numpy as np
-from typing import Mapping
+import opt_einsum as oe
 import torch
-from torch import nn
 import torch.nn.functional as F
 import torch_geometric as pyg
-from torch_geometric.utils.num_nodes import maybe_num_nodes
-from torch_scatter import scatter, scatter_max, scatter_add
+from torch import nn
 from torch_geometric.graphgym.register import act_dict
-
-import opt_einsum as oe
-
-import warnings
+from torch_geometric.utils.num_nodes import maybe_num_nodes
+from torch_scatter import scatter, scatter_add, scatter_max
 
 
 def pyg_softmax(src, index, num_nodes=None):
@@ -50,35 +48,31 @@ def sigmoid(x: torch.Tensor):
 
 class GritMessagePassing(nn.Module):
 
-    def __init__(self, in_dim, out_dim, num_heads, clamp=5., dropout=0.,
-                 weight_fn='softmax', agg='add', act=None, **kwargs):
+    def __init__(self, in_dim, attn_dim, attn_heads, clamp, attn_drop_prob, weight_fn, agg, act):
         super().__init__()
-        self.out_dim = out_dim
-        self.num_heads = num_heads
+        self.attn_dim = attn_dim
+        self.attn_heads = attn_heads
         self.weight_fn = weight_fn
         self.agg = agg
-        self.dropout = nn.Dropout(dropout)
+        self.attn_dropout = nn.Dropout(attn_drop_prob)
         self.clamp = np.abs(clamp) if clamp is not None else None
-        self.Q = nn.Linear(in_dim, out_dim * num_heads, bias=False)
-        self.K = nn.Linear(in_dim, out_dim * num_heads, bias=False)
-        self.V = nn.Linear(in_dim, out_dim * num_heads, bias=False)
-        self.Ew = nn.Linear(in_dim, out_dim * num_heads, bias=False)
-        self.Eb = nn.Linear(in_dim, out_dim * num_heads, bias=True)
-        self.Eo = nn.Linear(out_dim * num_heads, out_dim * num_heads)
+        self.Q = nn.Linear(in_dim, attn_dim * attn_heads, bias=False)
+        self.K = nn.Linear(in_dim, attn_dim * attn_heads, bias=False)
+        self.V = nn.Linear(in_dim, attn_dim * attn_heads, bias=False)
+        self.Ew = nn.Linear(in_dim, attn_dim * attn_heads, bias=False)
+        self.Eb = nn.Linear(in_dim, attn_dim * attn_heads, bias=True)
+        self.Eo = nn.Linear(attn_dim * attn_heads, attn_dim * attn_heads, bias=True)
+        self.Aw = nn.Parameter(torch.zeros(self.attn_dim, self.attn_heads, 1))
+        self.BW = nn.Parameter(torch.zeros(self.attn_dim, self.attn_heads, self.attn_dim))
         nn.init.xavier_normal_(self.Q.weight)
         nn.init.xavier_normal_(self.K.weight)
         nn.init.xavier_normal_(self.V.weight)
         nn.init.xavier_normal_(self.Ew.weight)
         nn.init.xavier_normal_(self.Eb.weight)
         nn.init.xavier_normal_(self.Eo.weight)
-        self.Aw = nn.Parameter(torch.zeros(self.out_dim, self.num_heads, 1))
-        self.BW = nn.Parameter(torch.zeros(self.out_dim, self.num_heads, self.out_dim))
         nn.init.xavier_normal_(self.Aw)
         nn.init.xavier_normal_(self.BW)
-        if act is None:
-            self.act = nn.Identity()
-        else:
-            self.act = act_dict[act]()
+        self.act = act_dict[act]()
 
     def propagate_attention(self, batch):
         dst, src = batch.poly_idx
@@ -93,20 +87,19 @@ class GritMessagePassing(nn.Module):
         conn2 = torch.sqrt(torch.relu(conn1)) - torch.sqrt(torch.relu(-conn1))
         conn3 = conn2 + Eb
         conn = self.act(conn3)
-
-        Eo = self.Eo(conn)
+        conn = self.Eo(conn)
         # output edge
-        batch.Oe = Eo
+        batch.Oe = conn
 
         # final attn
-        conn = conn.view(-1, self.num_heads, self.out_dim)
+        conn = conn.view(-1, self.attn_heads, self.attn_dim)
         score = oe.contract("ehd, dhc->ehc", conn, self.Aw, backend="torch")
         if self.clamp is not None:
             score = torch.clamp(score, min=-self.clamp, max=self.clamp)
 
         # raw_attn = score
         if self.weight_fn == 'softmax':
-            score = pyg_softmax(score, dst)  # (num relative) x num_heads x 1
+            score = pyg_softmax(score, dst)  # (num relative) x attn_heads x 1
         elif self.weight_fn == 'sigmoid':
             score = sigmoid(score)
         elif self.weight_fn == 'tanh':
@@ -114,13 +107,12 @@ class GritMessagePassing(nn.Module):
         else:
             raise NotImplementedError
 
-        score = self.dropout(score)
-
+        score = self.attn_dropout(score)
         # Aggregate with Attn-Score
-        Vsrc = Vsrc.view(-1, self.num_heads, self.out_dim)
-        Eo = Eo.view(-1, self.num_heads, self.out_dim)
+        Vsrc = Vsrc.view(-1, self.attn_heads, self.attn_dim)
+        conn = conn.view(-1, self.attn_heads, self.attn_dim)
         agg = scatter(Vsrc * score, dst, dim=0, reduce=self.agg)
-        rowV = scatter(Eo * score, dst, dim=0, reduce=self.agg)
+        rowV = scatter(conn * score, dst, dim=0, reduce=self.agg)
         rowV = oe.contract("nhd, dhc -> nhc", rowV, self.BW, backend="torch")
         On = agg + rowV
         batch.On = On.flatten(1)
@@ -131,13 +123,6 @@ class GritMessagePassing(nn.Module):
         batch.Vh = self.V(batch.x)
         batch.Ew = self.Ew(batch.poly_val)
         batch.Eb = self.Eb(batch.poly_val)
-
-        # batch.Qh = Qh.view(-1, self.num_heads, self.out_dim)
-        # batch.Kh = Kh.view(-1, self.num_heads, self.out_dim)
-        # batch.Vh = Vh.view(-1, self.num_heads, self.out_dim)
-        # batch.Ew = Ew.view(-1, self.num_heads, self.out_dim)
-        # batch.Eb = Eb.view(-1, self.num_heads, self.out_dim)
-
         self.propagate_attention(batch)
         h_out = batch.On
         e_out = batch.Oe
@@ -145,69 +130,58 @@ class GritMessagePassing(nn.Module):
 
 
 class GritMessagePassingLayer(nn.Module):
-    def __init__(self, in_dim, out_dim, num_heads, cfg: Mapping, dropout=0.0, attn_dropout=0.0,
-                 layer_norm=False, batch_norm=True, residual=True, act='relu', norm_e=True, **kwargs):
+    def __init__(
+        self, hidden_dim, attn_heads, drop_prob, attn_drop_prob,
+        residual, layer_norm, batch_norm, bn_momentum, bn_no_runner,
+        rezero, deg_scaler, clamp, weight_fn, agg, act,
+    ):
 
         super().__init__()
-        assert out_dim % num_heads == 0
-        self.debug = False
-        self.in_channels = in_dim
-        self.out_channels = out_dim
-        self.in_dim = in_dim
-        self.out_dim = out_dim
-        self.num_heads = num_heads
-        self.dropout = dropout
+        assert hidden_dim % attn_heads == 0
+        self.hidden_dim = hidden_dim
+        self.attn_heads = attn_heads
+        self.attn_dim = attn_dim = hidden_dim // attn_heads
+        self.drop_prob = drop_prob
+        self.attn_drop_prob = attn_drop_prob
         self.residual = residual
         self.layer_norm = layer_norm
         self.batch_norm = batch_norm
-        cfg = dict(cfg)
-        self.bn_momentum = cfg.get('bn_momentum', 0.1)
-        self.bn_no_runner = cfg.get('bn_no_runner', False)
-        self.rezero = cfg.get("rezero", False)
-        self.act = act_dict[act]() if act is not None else nn.Identity()
-        self.deg_scaler = cfg.get("deg_scaler", False)
+        self.bn_momentum = bn_momentum
+        self.bn_no_runner = bn_no_runner
+        self.rezero = rezero
+        self.act = act_dict[act]()
+        self.deg_scaler = deg_scaler
 
-        att_dim = out_dim // num_heads
         self.message_pass = GritMessagePassing(
-            in_dim=in_dim,
-            out_dim=att_dim,
-            num_heads=num_heads,
-            clamp=cfg.get("clamp", 5.),
-            dropout=attn_dropout,
-            weight_fn=cfg.get("weight_fn", "softmax"),
-            agg=cfg.get("agg", "add"),
-            act=act,
+            hidden_dim, attn_dim, attn_heads, clamp, attn_drop_prob, weight_fn, agg, act
         )
 
-        self.O_h = nn.Linear(out_dim // num_heads * num_heads, out_dim)
-        self.O_e = nn.Linear(out_dim // num_heads * num_heads, out_dim)
+        self.O_h = nn.Linear(hidden_dim, hidden_dim)
+        self.O_e = nn.Linear(hidden_dim, hidden_dim)
 
         # -------- Deg Scaler Option ------
         if self.deg_scaler:
-            self.deg_coef = nn.Parameter(torch.zeros(1, out_dim // num_heads * num_heads, 2))
+            self.deg_coef = nn.Parameter(torch.zeros(1, hidden_dim, 2))
             nn.init.xavier_normal_(self.deg_coef)
 
         if self.layer_norm:
-            self.layer_norm1_h = nn.LayerNorm(out_dim)
-            self.layer_norm1_e = nn.LayerNorm(out_dim) if norm_e else nn.Identity()
+            self.layer_norm1_h = nn.LayerNorm(hidden_dim)
+            self.layer_norm1_e = nn.LayerNorm(hidden_dim)
 
         if self.batch_norm:
             # when the batch_size is really small, use smaller momentum to avoid bad mini-batch leading to extremely bad val/test loss (NaN)
-            self.batch_norm1_h = nn.BatchNorm1d(out_dim, track_running_stats=not self.bn_no_runner, eps=1e-5, momentum=self.bn_momentum)
-            if norm_e:
-                self.batch_norm1_e = nn.BatchNorm1d(out_dim, track_running_stats=not self.bn_no_runner, eps=1e-5, momentum=self.bn_momentum)
-            else:
-                self.batch_norm1_e = nn.Identity()
+            self.batch_norm1_h = nn.BatchNorm1d(hidden_dim, track_running_stats=not self.bn_no_runner, eps=1e-5, momentum=self.bn_momentum)
+            self.batch_norm1_e = nn.BatchNorm1d(hidden_dim, track_running_stats=not self.bn_no_runner, eps=1e-5, momentum=self.bn_momentum)
 
         # FFN for h
-        self.FFN_h_layer1 = nn.Linear(out_dim, out_dim * 2)
-        self.FFN_h_layer2 = nn.Linear(out_dim * 2, out_dim)
+        self.FFN_h_layer1 = nn.Linear(hidden_dim, hidden_dim * 2)
+        self.FFN_h_layer2 = nn.Linear(hidden_dim * 2, hidden_dim)
 
         if self.layer_norm:
-            self.layer_norm2_h = nn.LayerNorm(out_dim)
+            self.layer_norm2_h = nn.LayerNorm(hidden_dim)
 
         if self.batch_norm:
-            self.batch_norm2_h = nn.BatchNorm1d(out_dim, track_running_stats=not self.bn_no_runner, eps=1e-5, momentum=self.bn_momentum)
+            self.batch_norm2_h = nn.BatchNorm1d(hidden_dim, track_running_stats=not self.bn_no_runner, eps=1e-5, momentum=self.bn_momentum)
 
         if self.rezero:
             self.alpha1_h = nn.Parameter(torch.zeros(1, 1))
@@ -215,24 +189,22 @@ class GritMessagePassingLayer(nn.Module):
             self.alpha1_e = nn.Parameter(torch.zeros(1, 1))
 
     def forward(self, batch):
-        # num_nodes = batch.num_nodes
-        log_deg = get_log_deg(batch)
         h_in1 = batch.x  # for first residual connection
         e_in1 = batch.poly_val
         # multi-head attention out
         h_attn_out, e_attn_out = self.message_pass(batch)
 
         # h = h_attn_out.view(num_nodes, -1)
-        h = F.dropout(h_attn_out, self.dropout, training=self.training)
+        h = F.dropout(h_attn_out, self.drop_prob, training=self.training)
         # degree scaler
         if self.deg_scaler:
+            log_deg = get_log_deg(batch)
             h = torch.stack([h, h * log_deg], dim=-1)
             h = (h * self.deg_coef).sum(dim=-1)
 
         h = self.O_h(h)
-
         # e = e_attn_out.flatten(1)
-        e = F.dropout(e_attn_out, self.dropout, training=self.training)
+        e = F.dropout(e_attn_out, self.drop_prob, training=self.training)
         e = self.O_e(e)
 
         if self.residual:
@@ -256,7 +228,7 @@ class GritMessagePassingLayer(nn.Module):
         h_in2 = h  # for second residual connection
         h = self.FFN_h_layer1(h)
         h = self.act(h)
-        h = F.dropout(h, self.dropout, training=self.training)
+        h = F.dropout(h, self.drop_prob, training=self.training)
         h = self.FFN_h_layer2(h)
 
         if self.residual:
@@ -277,7 +249,7 @@ class GritMessagePassingLayer(nn.Module):
         return '{}(in_channels={}, out_channels={}, heads={}, residual={})\n[{}]'.format(
             self.__class__.__name__,
             self.in_channels,
-            self.out_channels, self.num_heads, self.residual,
+            self.out_channels, self.attn_heads, self.residual,
             super().__repr__(),
         )
 
