@@ -22,11 +22,10 @@ dataset:
   edge_encoder_bn: False
 posenc_Poly:
   enable: True
-  method: comb_bern
-  order: 10
-  emb_dim: 66 # (10+2) * (10+1) / 2
-  attr_name_abs: combined_bern
-  attr_name_rel: combined_bern
+  add_full_edge_index: True
+  method: mixed_bern
+  order: 20
+  emb_dim: 22
 train:
   mode: custom
   batch_size: 32
