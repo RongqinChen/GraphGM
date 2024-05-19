@@ -40,14 +40,14 @@ model:
   graph_pooling: add
 gse_model:
   enable: True
-  hidden_dim: 80
-  num_heads: 10
+  hidden_dim: 64
+  num_heads: 8
   dropout: 0.0
   attn_dropout: 0.0
   weight_fn: 'sigmoid'
   messaging:
     layer_type: 'grit'
-    repeats: 1
+    repeats: 2
     num_layers: 3
   full:
     layer_type: 'grit'

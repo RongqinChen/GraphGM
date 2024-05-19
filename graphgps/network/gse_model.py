@@ -99,10 +99,7 @@ class GseModel(torch.nn.Module):
         super().__init__()
         assert (cfg.posenc_Poly.emb_dim - 2) == 2 ** (cfg.gse_model.messaging.num_layers)
         self.feat_encoder = FeatureEncoder(cfg.gse_model.hidden_dim)
-        self.init_layer = InitialLayer(
-            cfg.gse_model.hidden_dim, cfg.gse_model.num_heads, cfg.gse_model,
-            cfg.gse_model.dropout, cfg.gse_model.attn_dropout
-        )
+        self.init_layer = InitialLayer()
 
         GseMessagingBlock = register.layer_dict["GseMessagingBlock"]
         GseFullBlock = register.layer_dict["GseFullBlock"]
@@ -171,6 +168,8 @@ class GseModel(torch.nn.Module):
             order = self._poly_order_map[lidx]
             if lidx == 1:
                 abs_val = whole_abs_val[:, :order]
+                abs_h = self.block_dict[f"{lidx}_abs_enc"](abs_val)
+                batch.x = batch.x + abs_h
                 order1_idx = whole_poly_idx[:, order1_flag]
                 order1_val = whole_poly_val[order1_flag, :order]
                 order1_h = self.block_dict[f"{lidx}_rel_enc"](order1_val)
