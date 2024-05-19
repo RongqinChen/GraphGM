@@ -97,9 +97,9 @@ def add_full_rrwp(
 
     if add_full_edge_index:
         if num_nodes ** 2 == rel_pe_row.size(0):
-            full_edge_index = rel_pe_idx
+            full_index = rel_pe_idx
         else:
             full_mat = torch.ones((num_nodes, num_nodes), dtype=torch.short)
-            full_edge_index = full_mat.nonzero(as_tuple=False).t()
-        data["full_edge_index"] = full_edge_index
+            full_index = full_mat.nonzero(as_tuple=False).t()
+        data["full_index"] = full_index
     return data

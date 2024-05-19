@@ -27,18 +27,18 @@ def compute_mixed_bernstain_polynomials(
     deg_inv_sqrt.masked_fill_(deg_inv_sqrt == float("inf"), 0)
     edge_weight = deg_inv_sqrt[row] * edge_weight * deg_inv_sqrt[col]
 
-    # Adj1 = I - A_norm.
+    # Adj1 = I + A_norm.
     index_1, weight_1 = add_self_loops(
-        edge_index, -edge_weight, fill_value=1.0, num_nodes=num_nodes
+        edge_index, edge_weight, fill_value=1.0, num_nodes=num_nodes
     )
     adj1 = SparseTensor.from_edge_index(
         index_1, weight_1, sparse_sizes=(num_nodes, num_nodes)
     )
     adj1 = adj1.to_dense()
 
-    # Adj2 = I + A_norm.
+    # Adj2 = I - A_norm.
     index_2, weight_2 = add_self_loops(
-        edge_index, edge_weight, fill_value=1.0, num_nodes=num_nodes
+        edge_index, -edge_weight, fill_value=1.0, num_nodes=num_nodes
     )
     adj2 = SparseTensor.from_edge_index(
         index_2, weight_2, sparse_sizes=(num_nodes, num_nodes)
@@ -58,7 +58,7 @@ def compute_mixed_bernstain_polynomials(
         ]
         base_dict[k] = base_list
 
-    polys = [torch.eye(num_nodes)]
+    polys = [adj1]
     for k in range(2, K + 1, 2):
         base_list = base_dict[k]
         polys.append(
@@ -68,26 +68,24 @@ def compute_mixed_bernstain_polynomials(
             base_dict[k][2] * ((2 ** -k) * comb(k, k // 2 + 1))
         )
     polys.append(base_dict[K][1] * ((2 ** -K) * comb(K, K // 2)))
-    polys.append(adj1)
 
-    polys = torch.stack(polys, dim=-1)
-    diag = polys.diagonal().transpose(0, 1)  # n x (K+2+1)
+    polys = torch.stack(polys, dim=-1)  # n x n x (K+2)
+    loop = polys.diagonal().transpose(0, 1)  # n x (K+2)
     poly_adj = SparseTensor.from_dense(polys, has_value=True)
     poly_row, poly_col, poly_val = poly_adj.coo()
     poly_idx = torch.stack([poly_row, poly_col], dim=0)
-    data[method_name] = diag[:, :-1]   # n x (K+2)
+    data[f"{method_name}_loop"] = loop
     data[f"{method_name}_index"] = poly_idx
-    data[f"{method_name}_val"] = poly_val[:, :-1]  # n x n x (K+2)
-    data[f"{method_name}_order1_flag"] = poly_val[:, -1] != 0
+    data[f"{method_name}_conn"] = poly_val
     data.log_deg = torch.log(deg + 1).unsqueeze_(1)
 
     if add_full_edge_index:
         if num_nodes ** 2 == poly_row.size(0):
-            full_edge_index = poly_idx
+            full_index = poly_idx
         else:
             full_mat = torch.ones((num_nodes, num_nodes), dtype=torch.short)
-            full_edge_index = full_mat.nonzero(as_tuple=False).t()
-        data["full_edge_index"] = full_edge_index
+            full_index = full_mat.nonzero(as_tuple=False).t()
+        data["full_index"] = full_index
     return data
 
 

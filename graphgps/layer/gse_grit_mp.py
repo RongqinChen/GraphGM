@@ -48,19 +48,20 @@ def sigmoid(x: torch.Tensor):
 
 class GritMessagePassing(nn.Module):
 
-    def __init__(self, in_dim, attn_dim, attn_heads, clamp, attn_drop_prob, weight_fn, agg, act):
+    def __init__(self, poly_method, hidden_dim, attn_dim, attn_heads, clamp, attn_drop_prob, weight_fn, agg, act):
         super().__init__()
+        self.poly_method = poly_method
         self.attn_dim = attn_dim
         self.attn_heads = attn_heads
         self.weight_fn = weight_fn
         self.agg = agg
         self.attn_dropout = nn.Dropout(attn_drop_prob)
         self.clamp = np.abs(clamp) if clamp is not None else None
-        self.Q = nn.Linear(in_dim, attn_dim * attn_heads, bias=False)
-        self.K = nn.Linear(in_dim, attn_dim * attn_heads, bias=False)
-        self.V = nn.Linear(in_dim, attn_dim * attn_heads, bias=False)
-        self.Ew = nn.Linear(in_dim, attn_dim * attn_heads, bias=False)
-        self.Eb = nn.Linear(in_dim, attn_dim * attn_heads, bias=True)
+        self.Q = nn.Linear(hidden_dim, attn_dim * attn_heads, bias=False)
+        self.K = nn.Linear(hidden_dim, attn_dim * attn_heads, bias=False)
+        self.V = nn.Linear(hidden_dim, attn_dim * attn_heads, bias=False)
+        self.Ew = nn.Linear(hidden_dim, attn_dim * attn_heads, bias=False)
+        self.Eb = nn.Linear(hidden_dim, attn_dim * attn_heads, bias=True)
         self.Eo = nn.Linear(attn_dim * attn_heads, attn_dim * attn_heads, bias=True)
         self.Aw = nn.Parameter(torch.zeros(self.attn_dim, self.attn_heads, 1))
         self.BW = nn.Parameter(torch.zeros(self.attn_dim, self.attn_heads, self.attn_dim))
@@ -75,7 +76,7 @@ class GritMessagePassing(nn.Module):
         self.act = act_dict[act]()
 
     def propagate_attention(self, batch):
-        dst, src = batch.poly_idx
+        dst, src = batch[self.poly_method + "_index"]
         Qdst = batch.Qh[dst]
         Ksrc = batch.Kh[src]
         Vsrc = batch.Vh[src]
@@ -121,8 +122,8 @@ class GritMessagePassing(nn.Module):
         batch.Qh = self.Q(batch.x)
         batch.Kh = self.K(batch.x)
         batch.Vh = self.V(batch.x)
-        batch.Ew = self.Ew(batch.poly_val)
-        batch.Eb = self.Eb(batch.poly_val)
+        batch.Ew = self.Ew(batch[self.poly_method + "_conn"])
+        batch.Eb = self.Eb(batch[self.poly_method + "_conn"])
         self.propagate_attention(batch)
         h_out = batch.On
         e_out = batch.Oe
@@ -131,13 +132,14 @@ class GritMessagePassing(nn.Module):
 
 class GritMessagePassingLayer(nn.Module):
     def __init__(
-        self, hidden_dim, attn_heads, drop_prob, attn_drop_prob,
+        self, poly_method, hidden_dim, attn_heads, drop_prob, attn_drop_prob,
         residual, layer_norm, batch_norm, bn_momentum, bn_no_runner,
         rezero, deg_scaler, clamp, weight_fn, agg, act,
     ):
 
         super().__init__()
         assert hidden_dim % attn_heads == 0
+        self.poly_method = poly_method
         self.hidden_dim = hidden_dim
         self.attn_heads = attn_heads
         self.attn_dim = attn_dim = hidden_dim // attn_heads
@@ -153,7 +155,8 @@ class GritMessagePassingLayer(nn.Module):
         self.deg_scaler = deg_scaler
 
         self.message_pass = GritMessagePassing(
-            hidden_dim, attn_dim, attn_heads, clamp, attn_drop_prob, weight_fn, agg, act
+            poly_method, hidden_dim, attn_dim, attn_heads,
+            clamp, attn_drop_prob, weight_fn, agg, act
         )
 
         self.O_h = nn.Linear(hidden_dim, hidden_dim)
@@ -190,7 +193,7 @@ class GritMessagePassingLayer(nn.Module):
 
     def forward(self, batch):
         h_in1 = batch.x  # for first residual connection
-        e_in1 = batch.poly_val
+        e_in1 = batch[self.poly_method + "_conn"]
         # multi-head attention out
         h_attn_out, e_attn_out = self.message_pass(batch)
 
@@ -242,7 +245,7 @@ class GritMessagePassingLayer(nn.Module):
             h = self.batch_norm2_h(h)
 
         batch.x = h
-        batch.poly_val = e
+        batch[self.poly_method + "_conn"] = e
         return batch
 
 

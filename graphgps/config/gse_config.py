@@ -31,7 +31,7 @@ def gse_gnn_cfg(cfg):
     cfg.gse_model.messaging = CN()
     cfg.gse_model.messaging.layer_type = 'grit'
     cfg.gse_model.messaging.repeats = 2
-    cfg.gse_model.messaging.num_layers = 3
+    cfg.gse_model.messaging.num_blocks = 3
 
     cfg.gse_model.full = CN()
     cfg.gse_model.full.layer_type = 'grit'

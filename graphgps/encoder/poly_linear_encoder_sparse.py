@@ -8,7 +8,7 @@ from torch_geometric.graphgym.register import register_node_encoder, register_ed
 import warnings
 
 
-@register_node_encoder("poly_sparse")
+@register_node_encoder("sparse_poly")
 class LinearNodeEncoder(torch.nn.Module):
     def __init__(
         self, name, emb_dim, out_dim, use_bias=False, batchnorm=False, layernorm=False,
@@ -34,7 +34,7 @@ class LinearNodeEncoder(torch.nn.Module):
         return node_h
 
 
-@register_edge_encoder("poly_sparse")
+@register_edge_encoder("sparse_poly")
 class SparseLinearEdgeEncoder(torch.nn.Module):
     def __init__(
         self, name, emb_dim, out_dim, batchnorm=False, layernorm=False, use_bias=False,

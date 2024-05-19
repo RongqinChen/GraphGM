@@ -12,14 +12,15 @@ Layer_dict = {
 
 @register_layer("GseMessagingBlock")
 class GseMessagingBlock(nn.Module):
-    def __init__(self, repeats, layer_type, cfg: CfgNode) -> None:
+    def __init__(self, poly_method, cfg: CfgNode) -> None:
         super().__init__()
-        self.repeats = repeats
-        Layer = Layer_dict[layer_type]
+        self.repeats = cfg.messaging.repeats
+        Layer = Layer_dict[cfg.messaging.layer_type]
         self.layer_list = nn.ModuleList()
-        if layer_type == 'grit':
-            for _ in range(repeats):
+        if cfg.messaging.layer_type == 'grit':
+            for _ in range(self.repeats):
                 layer = Layer(
+                    poly_method,
                     cfg.hidden_dim, cfg.attn_heads, cfg.drop_prob,
                     cfg.attn_drop_prob, cfg.residual, cfg.layer_norm,
                     cfg.batch_norm, cfg.bn_momentum, cfg.bn_no_runner,

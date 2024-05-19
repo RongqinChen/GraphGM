@@ -3,7 +3,7 @@ from torch_geometric.utils import to_dense_batch
 
 
 class GraphDenseAttn(nn.Module):
-    def __init__(self, embed_dim: int, num_heads: int, dropout: float,
+    def __init__(self, poly_method, embed_dim: int, num_heads: int, dropout: float,
                  attention_dropout: float, mlp_dropout: float, input_norm: bool):
         """Implementation of the Graphormer layer.
         This layer is based on the implementation at:
@@ -18,6 +18,7 @@ class GraphDenseAttn(nn.Module):
             input_dropout: Dropout applied within the MLP
         """
         super().__init__()
+        self.poly_method = poly_method
         self.attention = nn.MultiheadAttention(embed_dim, num_heads, attention_dropout, batch_first=True)
         self.input_norm = nn.LayerNorm(embed_dim) if input_norm else nn.Identity()
         self.dropout = nn.Dropout(dropout)
@@ -34,14 +35,15 @@ class GraphDenseAttn(nn.Module):
             nn.Dropout(dropout),
         )
 
-    def forward(self, data):
-        x = self.input_norm(data.x)
-        x, real_nodes = to_dense_batch(x, data.batch)
+    def forward(self, batch):
+        x_in = batch.x
+        x = self.input_norm(x_in)
+        x, real_nodes = to_dense_batch(x, batch.batch)
 
-        if hasattr(data, "attn_bias"):
-            x = self.attention(x, x, x, ~real_nodes, attn_mask=data.attn_bias)[0][real_nodes]
+        if hasattr(batch, "attn_bias"):
+            x = self.attention(x, x, x, ~real_nodes, attn_mask=batch.attn_bias)[0][real_nodes]
         else:
             x = self.attention(x, x, x, ~real_nodes)[0][real_nodes]
-        x = self.dropout(x) + data.x
-        data.x = self.mlp(x) + x
-        return data
+        x = self.dropout(x) + x_in
+        batch.x = self.mlp(x) + x
+        return batch

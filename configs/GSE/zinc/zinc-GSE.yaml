@@ -57,12 +57,13 @@ gse_model:
   act: 'relu'
   messaging:
     layer_type: 'grit'
+    num_blocks: 4
     repeats: 2
-    num_layers: 4
   full:
     layer_type: 'grit'
     enable: True
     repeats: 2
+    input_norm: False
   head: 'san_graph'
 optim:
   clip_grad_norm: True

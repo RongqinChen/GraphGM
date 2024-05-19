@@ -9,7 +9,7 @@ from torch_geometric.graphgym.register import register_network
 from torch_scatter import scatter
 
 
-def compute_full_edge_index(batch: torch.Tensor):
+def compute_full_index(batch: torch.Tensor):
     batch_size = batch.max().item() + 1
     one = batch.new_ones(batch.size(0))
     num_nodes = scatter(one, batch, dim=0, dim_size=batch_size, reduce="add")
@@ -67,26 +67,27 @@ class GseModel(torch.nn.Module):
 
     def __init__(self, dim_in, dim_out):
         super().__init__()
-        assert (cfg.posenc_Poly.emb_dim - 2) >= 2 ** (cfg.gse_model.messaging.num_layers - 1)
+        assert (cfg.posenc_Poly.emb_dim - 2) >= 2 ** (cfg.gse_model.messaging.num_blocks - 1)
         self.feat_encoder = FeatureEncoder(cfg.gse_model.hidden_dim)
 
         GseMessagingBlock = register.layer_dict["GseMessagingBlock"]
         GseFullBlock = register.layer_dict["GseFullBlock"]
-        AbsEncoder = register.node_encoder_dict["poly_sparse"]
-        RelEncoder = register.edge_encoder_dict["poly_sparse"]
+        LoopEncoder = register.node_encoder_dict["sparse_poly"]
+        ConnEncoder = register.edge_encoder_dict["sparse_poly"]
 
-        self.poly_method = cfg.posenc_Poly.method
+        poly_method = "sparse_" + cfg.posenc_Poly.method
         self.block_dict = nn.ModuleDict()
-        for lidx in range(1, cfg.gse_model.messaging.num_layers + 1):
-            abs_encoder = AbsEncoder(self.poly_method, cfg.posenc_Poly.emb_dim, cfg.gse_model.hidden_dim)
-            rel_encoder = RelEncoder(self.poly_method, cfg.posenc_Poly.emb_dim, cfg.gse_model.hidden_dim)
-            messaging_block = GseMessagingBlock(cfg.gse_model.messaging.repeats, cfg.gse_model.messaging.layer_type, cfg.gse_model)
-            self.block_dict[f"{lidx}_abs_enc"] = abs_encoder
-            self.block_dict[f"{lidx}_rel_enc"] = rel_encoder
+        for lidx in range(cfg.gse_model.messaging.num_blocks):
+            loop_encoder = LoopEncoder(poly_method, cfg.posenc_Poly.emb_dim, cfg.gse_model.hidden_dim)
+            conn_encoder = ConnEncoder(poly_method, cfg.posenc_Poly.emb_dim, cfg.gse_model.hidden_dim)
+            messaging_block = GseMessagingBlock(poly_method, cfg.gse_model)
+            self.block_dict[f"{lidx}_loop_enc"] = loop_encoder
+            self.block_dict[f"{lidx}_conn_enc"] = conn_encoder
             self.block_dict[f"{lidx}_messaging"] = messaging_block
 
         if cfg.gse_model.full.enable:
-            full_block = GseFullBlock(cfg.gse_model.full.repeats, cfg.gse_model.full.layer_type, cfg.gse_model)
+            poly_method = "full_" + cfg.posenc_Poly.method
+            full_block = GseFullBlock(poly_method, cfg.gse_model)
             self.block_dict["full"] = full_block
 
         GNNHead = register.head_dict[cfg.gse_model.head]
@@ -96,73 +97,65 @@ class GseModel(torch.nn.Module):
             # orders = [0] + [
             #     (idx + 1) // 2**2 for idx in range(2, cfg.posenc_Poly.order + 1)
             # ] + [cfg.posenc_Poly.order]
-            # orders: [0, 2, 2, 4, 4, ..., 2**(K-1), 2**(K-1), 2**K, 2**K, 2**K]
-            # order2idx_map: {2: 2, 4: 4, 8: 8, 16: 16}
+            # orders: [1, 2, 2, 4, 4, ..., 2**(K-1), 2**(K-1), 2**K, 2**K, 2**K]
             self._poly_order_map = {
-                lidx: 2 ** (lidx - 1)
-                for lidx in range(1, cfg.gse_model.messaging.num_layers + 1)
+                lidx: 2 ** lidx
+                for lidx in range(cfg.gse_model.messaging.num_blocks)
             }
         else:
             raise NotImplementedError
 
     def forward(self, batch: Batch):
+        all_loop_val = batch[cfg.posenc_Poly.method + "_loop"]
+        all_poly_idx = batch[cfg.posenc_Poly.method + "_index"]
+        all_poly_val = batch[cfg.posenc_Poly.method + "_conn"]
+
         batch = self.feat_encoder(batch)
-        whole_poly_idx = batch[f"{cfg.posenc_Poly.method}_index"]
-        whole_poly_val = batch[f"{cfg.posenc_Poly.method}_val"]
-        whole_abs_val = batch[f"{cfg.posenc_Poly.method}"]
-        order1_flag = batch[f"{cfg.posenc_Poly.method}_order1_flag"]
+        sparse_poly = "sparse_" + cfg.posenc_Poly.method
+        batch[sparse_poly + "_index"] = batch.edge_index
+        batch[sparse_poly + "_conn"] = batch.edge_attr
 
-        for lidx in range(1, cfg.gse_model.messaging.num_layers + 1):
-            if lidx == 1:
-                abs_h = self.block_dict[f"{lidx}_abs_enc"](whole_abs_val)
-                batch.x = batch.x + abs_h
-                order1_idx = whole_poly_idx[:, order1_flag]
-                order1_val = whole_poly_val[order1_flag, :]
-                order1_h = self.block_dict[f"{lidx}_rel_enc"](order1_val)
-                poly_idx, poly_val = torch_sparse.coalesce(
-                    torch.cat([batch.edge_index, order1_idx], dim=1),
-                    torch.cat([batch.edge_attr, order1_h], dim=0),
-                    batch.num_nodes, batch.num_nodes, op="add",
-                )
+        for lidx in range(cfg.gse_model.messaging.num_blocks):
+            order = self._poly_order_map[lidx]
+            if lidx < cfg.gse_model.messaging.num_blocks:
+                poly_sgn = all_poly_val[:, order - 1] != 0
+                poly_idx = all_poly_idx[:, poly_sgn]
+                poly_val = all_poly_val[poly_sgn, :]
             else:
-                order = self._poly_order_map[lidx]
-                if lidx < cfg.gse_model.messaging.num_layers:
-                    poly_flag = whole_poly_val[:, order] != 0
-                    poly_idx = whole_poly_idx[:, poly_flag]
-                    poly_val = whole_poly_val[poly_flag, :]
-                else:
-                    poly_idx = whole_poly_idx
-                    poly_val = whole_poly_val
+                # poly_sgn: all true
+                poly_idx = all_poly_idx
+                poly_val = all_poly_val
 
-                abs_h = self.block_dict[f"{lidx}_abs_enc"](whole_abs_val)
-                batch.x = batch.x + abs_h
-                poly_h = self.block_dict[f"{lidx}_rel_enc"](poly_val)
-                poly_idx, poly_val = torch_sparse.coalesce(
-                    torch.cat([batch.poly_idx, poly_idx], dim=1),
-                    torch.cat([batch.poly_val, poly_h], dim=0),
-                    batch.num_nodes, batch.num_nodes, op="add",
-                )
+            loop_h = self.block_dict[f"{lidx}_loop_enc"](all_loop_val)
+            poly_h = self.block_dict[f"{lidx}_conn_enc"](poly_val)
+            poly_idx, poly_h = torch_sparse.coalesce(
+                torch.cat([poly_idx, batch[sparse_poly + "_index"]], dim=1),
+                torch.cat([poly_h, batch[sparse_poly + "_conn"]], dim=0),
+                batch.num_nodes, batch.num_nodes, op="add",
+            )
 
-            batch.poly_idx = poly_idx
-            batch.poly_val = poly_val
+            batch.x += loop_h
+            batch[sparse_poly + "_index"] = poly_idx
+            batch[sparse_poly + "_conn"] = poly_h
             batch = self.block_dict[f"{lidx}_messaging"](batch)
 
         if cfg.gse_model.full.enable:
-            if 'full_edge_index' in batch:
-                full_edge_index = batch['full_edge_index']
+            full_method = "full_" + cfg.posenc_Poly.method
+            if 'full_index' in batch:
+                full_index = batch['full_index']
             else:
-                full_edge_index = compute_full_edge_index(batch.batch)
+                full_index = compute_full_index(batch.batch)
 
-            if full_edge_index.size(1) > batch.poly_idx.size(1):
-                full_pad = poly_h.new_zeros((full_edge_index.size(1), cfg.gse_model.hidden_dim))
+            if full_index.size(1) > poly_val.size(1):
+                full_pad = poly_h.new_zeros((full_index.size(1), cfg.gse_model.hidden_dim))
                 poly_idx, poly_val = torch_sparse.coalesce(
-                    torch.cat([batch.poly_idx, full_edge_index], dim=1),
-                    torch.cat([batch.poly_val, full_pad], dim=0),
+                    torch.cat([full_index, batch[sparse_poly + "_index"]], dim=1),
+                    torch.cat([full_pad, batch[sparse_poly + "_conn"]], dim=0),
                     batch.num_nodes, batch.num_nodes, op="add",
                 )
-                batch.poly_idx = poly_idx
-                batch.poly_val = poly_val
 
+            batch[full_method + "_index"] = poly_idx
+            batch[full_method + "_conn"] = poly_val
             batch = self.block_dict["full"](batch)
 
         batch = self.post_mp(batch)
