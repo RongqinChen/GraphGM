@@ -1,44 +1,40 @@
 out_dir: results
-metric_best: accuracy-SBM
-tensorboard_each_run: False  # Log to Tensorboard each run
-accelerator: "cuda:0"
-num_workers: 6
+metric_best: f1
 wandb:
   use: False
-  project: CLUSTER
+  project: Pascal
 dataset:
-  format: PyG-GNNBenchmarkDataset
-  name: CLUSTER
-  on_the_fly: True
-  task: graph
+  format: PyG-VOCSuperpixels
+  name: edge_wt_region_boundary
+  slic_compactness: 30
+  task: graph  # Even if VOC is node-level task, this needs to be set as 'graph'
   task_type: classification
   transductive: False
-  split_mode: standard
   node_encoder: True
-  node_encoder_name: LinearNode
+  node_encoder_name: VOCNode
   node_encoder_bn: False
   edge_encoder: True
-  edge_encoder_name: DummyEdge
+  edge_encoder_name: VOCEdge
   edge_encoder_bn: False
 posenc_Poly:
   enable: True
+  add_full_edge_index: False
   method: mixed_bern
-  order: 32
-  emb_dim: 34
+  order: 8
+  emb_dim: 10
 train:
   mode: custom
-  batch_size: 16
+  batch_size: 32
   eval_period: 1
   ckpt_period: 100
 model:
   type: GseModel
   loss_fun: weighted_cross_entropy
-  edge_decoding: dot
 gse_model:
   enable: True
-  hidden_dim: 48
+  hidden_dim: 64
   attn_heads: 8
-  drop_prob: 0.01
+  drop_prob: 0.0
   attn_drop_prob: 0.2
   residual: True
   layer_norm: False
@@ -53,21 +49,19 @@ gse_model:
   act: relu
   messaging:
     layer_type: grit
-    num_blocks: 6
-    repeats: 2
+    num_blocks: 4
+    repeats: 1
   full:
     layer_type: grit
     enable: True
-    repeats: 2
+    repeats: 1
     input_norm: False
-  head: inductive_node
-gnn:
   head: inductive_node
 optim:
   clip_grad_norm: True
   optimizer: adamW
-  weight_decay: 1e-5
+  weight_decay: 0.0
   base_lr: 0.0005
-  max_epoch: 100
+  max_epoch: 300
   scheduler: cosine_with_warmup
-  num_warmup_epochs: 5
+  num_warmup_epochs: 10

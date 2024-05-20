@@ -56,7 +56,7 @@ gse_model:
     num_blocks: 6
     repeats: 2
   full:
-    layer_type: grit
+    layer_type: dense
     enable: True
     repeats: 2
     input_norm: False
