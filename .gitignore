@@ -1,5 +1,5 @@
 datasets
-datasets/
-results/
+results
+output
 old_results
 __pycache__
