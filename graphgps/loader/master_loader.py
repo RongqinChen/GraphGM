@@ -190,7 +190,8 @@ def load_dataset_master(format, name, dataset_dir):
             name in {
                 # "peptides-functional", "peptides-structural",
                 "CLUSTER", "CIFAR10", "MNIST",
-                "PCQM4Mv2-full", "PCQM4Mv2Contact-shuffle",
+                "PCQM4Mv2-full",
+                "PCQM4Mv2Contact-shuffle",
                 "edge_wt_region_boundary", "ogbg-molpcba"
         }:
             logging.info(
