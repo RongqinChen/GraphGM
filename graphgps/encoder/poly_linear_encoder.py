@@ -48,7 +48,7 @@ class LinearNodeEncoder(torch.nn.Module):
             self.ln = nn.LayerNorm(out_dim)
 
     def forward(self, batch):
-        node_h = batch[f"{self.name}"]
+        node_h = batch[f"{self.name}_loop"]
         node_h = self.fc(node_h)
         if self.batchnorm:
             node_h = self.bn(node_h)
@@ -90,7 +90,7 @@ class LinearEdgeEncoder(torch.nn.Module):
 
     def forward(self, batch: Data):
         poly_idx = batch[f"{self.name}_index"]
-        poly_val = batch[f"{self.name}_val"]
+        poly_val = batch[f"{self.name}_conn"]
         edge_index = batch.edge_index
         edge_attr = batch.edge_attr
         poly_val = self.fc(poly_val)

@@ -147,15 +147,15 @@ class GseModel(torch.nn.Module):
                 full_index = compute_full_index(batch.batch)
 
             if full_index.size(1) > poly_val.size(1):
-                full_pad = poly_h.new_zeros((full_index.size(1), cfg.gse_model.hidden_dim))
-                poly_idx, poly_val = torch_sparse.coalesce(
+                full_val = poly_h.new_zeros((full_index.size(1), cfg.gse_model.hidden_dim))
+                full_index, full_val = torch_sparse.coalesce(
                     torch.cat([full_index, batch[sparse_poly + "_index"]], dim=1),
-                    torch.cat([full_pad, batch[sparse_poly + "_conn"]], dim=0),
+                    torch.cat([full_val, batch[sparse_poly + "_conn"]], dim=0),
                     batch.num_nodes, batch.num_nodes, op="add",
                 )
 
-            batch[full_method + "_index"] = poly_idx
-            batch[full_method + "_conn"] = poly_val
+            batch[full_method + "_index"] = full_index
+            batch[full_method + "_conn"] = full_val
             batch = self.block_dict["full"](batch)
 
         batch = self.post_mp(batch)

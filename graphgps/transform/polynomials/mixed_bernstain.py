@@ -21,6 +21,11 @@ def compute_mixed_bernstain_polynomials(
     edge_index = data.edge_index
     edge_weight = torch.ones(edge_index.size(1), device=device)
 
+    adj = SparseTensor.from_edge_index(
+        edge_index, edge_weight, sparse_sizes=(num_nodes, num_nodes)
+    )
+    adj = adj.to_dense()
+
     row, col = edge_index[0], edge_index[1]
     deg = scatter(edge_weight, row, 0, dim_size=num_nodes, reduce="sum")
     deg_inv_sqrt = deg.pow_(-0.5)

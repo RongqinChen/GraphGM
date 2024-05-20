@@ -187,9 +187,12 @@ def load_dataset_master(format, name, dataset_dir):
         logging.info(f"  ...estimated to be undirected: {is_undirected}")
         print('name', name)
         if f"{format}_{name}" in {"PyG-ZINC_full"} or \
-                name in {"peptides-functional", "peptides-structural", "CLUSTER",
-                         "PCQM4Mv2-full", "CIFAR10", "MNIST", "PCQM4Mv2Contact-shuffle",
-                         "edge_wt_region_boundary", "ogbg-molpcba"}:
+            name in {
+                # "peptides-functional", "peptides-structural",
+                "CLUSTER", "CIFAR10", "MNIST",
+                "PCQM4Mv2-full", "PCQM4Mv2Contact-shuffle",
+                "edge_wt_region_boundary", "ogbg-molpcba"
+        }:
             logging.info(
                 f"Positional Encoding statistics: {pe_enabled_list} "
                 f"will be computed on the fly for all graphs..."

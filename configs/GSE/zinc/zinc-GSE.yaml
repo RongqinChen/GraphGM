@@ -52,19 +52,19 @@ gse_model:
   rezero: False
   deg_scaler: True
   clamp: 5.0
-  weight_fn: 'softmax'
-  agg: 'add'
-  act: 'relu'
+  weight_fn: softmax
+  agg: add
+  act: relu
   messaging:
-    layer_type: 'grit'
+    layer_type: grit
     num_blocks: 4
     repeats: 2
   full:
-    layer_type: 'grit'
+    layer_type: grit
     enable: True
     repeats: 2
     input_norm: False
-  head: 'san_graph'
+  head: san_graph
 optim:
   clip_grad_norm: True
   optimizer: adamW
