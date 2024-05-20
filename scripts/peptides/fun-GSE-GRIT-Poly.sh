@@ -7,7 +7,7 @@ python main.py --repeat 5 --cfg configs/GSE/peptides/peptides_func-GSE-Poly.yaml
 posenc_Poly.method mixed_bern posenc_Poly.order $((K)) posenc_Poly.emb_dim $(( (K+2) ))  \
 gse_model.messaging.num_blocks $((L)) \
 gse_model.full.repeats $((F)) \
-name_tag mixed_bern_K$((K))L$((L))L$((F)) &
+name_tag mixed_bern_K$((K))L$((L))F$((F)) &
 
 wait
 
@@ -20,7 +20,7 @@ python main.py --repeat 5 --cfg configs/GSE/peptides/peptides_func-GSE-Poly.yaml
 posenc_Poly.method mixed_bern posenc_Poly.order $((K)) posenc_Poly.emb_dim $(( (K+2) ))  \
 gse_model.messaging.num_blocks $((L)) \
 gse_model.full.repeats $((F)) \
-name_tag mixed_bern_K$((K))L$((L))L$((F)) &
+name_tag mixed_bern_K$((K))L$((L))F$((F)) &
 
 wait
 
@@ -33,7 +33,7 @@ python main.py --repeat 5 --cfg configs/GSE/peptides/peptides_func-GSE-Poly.yaml
 posenc_Poly.method mixed_bern posenc_Poly.order $((K)) posenc_Poly.emb_dim $(( (K+2) ))  \
 gse_model.messaging.num_blocks $((L)) \
 gse_model.full.repeats $((F)) \
-name_tag mixed_bern_K$((K))L$((L))L$((F)) &
+name_tag mixed_bern_K$((K))L$((L))F$((F)) &
 
 wait
 
@@ -46,6 +46,6 @@ python main.py --repeat 5 --cfg configs/GSE/peptides/peptides_func-GSE-Poly.yaml
 posenc_Poly.method mixed_bern posenc_Poly.order $((K)) posenc_Poly.emb_dim $(( (K+2) ))  \
 gse_model.messaging.num_blocks $((L)) \
 gse_model.full.repeats $((F)) \
-name_tag mixed_bern_K$((K))L$((L))L$((F)) &
+name_tag mixed_bern_K$((K))L$((L))F$((F)) &
 
 wait
