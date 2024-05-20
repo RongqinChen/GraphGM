@@ -1,0 +1,72 @@
+out_dir: results
+metric_best: mae
+metric_agg: argmin
+accelerator: cuda:0
+num_workers: 6
+tensorboard_each_run: False  # Log to Tensorboard each run
+wandb:
+  use: False
+  project: pcqm4m
+dataset:
+  format: OGB
+  name: PCQM4Mv2-full
+  task: graph
+  task_type: regression
+  transductive: False
+  node_encoder: True
+  node_encoder_name: Atom
+  node_encoder_bn: False
+  edge_encoder: True
+  edge_encoder_name: Bond
+  edge_encoder_bn: False
+posenc_Poly:
+  enable: True
+  add_full_edge_index: True
+  method: mixed_bern
+  order: 16
+  emb_dim: 18
+train:
+  mode: custom
+  batch_size: 256
+  eval_period: 1
+  ckpt_best: True
+  ckpt_clean: True
+  ckpt_period: 30
+model:
+  type: GseModel
+  loss_fun: l1
+  graph_pooling: mean
+gse_model:
+  enable: True
+  hidden_dim: 256
+  attn_heads: 8
+  drop_prob: 0.1
+  attn_drop_prob: 0.1
+  residual: True
+  layer_norm: False
+  batch_norm: True
+  bn_momentum: 0.1
+  bn_no_runner: False
+  rezero: False
+  deg_scaler: True
+  clamp: 5.0
+  weight_fn: softmax
+  agg: add
+  act: gelu
+  messaging:
+    layer_type: grit
+    num_blocks: 4
+    repeats: 2
+  full:
+    layer_type: grit
+    enable: True
+    repeats: 2
+    input_norm: False
+  head: san_graph
+optim:
+  optimizer: adamW
+  weight_decay: 1e-5
+  base_lr: 5e-4
+  max_epoch: 150
+  scheduler: cosine_with_warmup
+  num_warmup_epochs: 10

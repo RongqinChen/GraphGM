@@ -126,7 +126,7 @@ def agg_runs(dir, metric_best='auto'):
                     continue
                 stats_list = json_to_dict_list(fname_stats)
                 if metric_best == 'auto':
-                    for metric in ['accuracy-SBM', 'ap', 'mae', 'aucroc', 'f1', 'accuracy', 'auc']:
+                    for metric in ['accuracy-SBM', 'mrr', 'ap', 'mae', 'aucroc', 'f1', 'accuracy', 'auc']:
                         if metric in stats_list[0]:
                             break
                 else:
@@ -138,6 +138,8 @@ def agg_runs(dir, metric_best='auto'):
                 best_epoch = stats_list[eval("performance_np.{}()".format(metric_agg))]['epoch']
                 print(best_epoch)
 
+            if metric == 'mrr':
+                print()
             if metric is None:
                 continue
             for split in os.listdir(dir_seed):
@@ -188,6 +190,7 @@ def agg_runs(dir, metric_best='auto'):
         best_result = [
             f"{split:5s}\t{metric_mean}: {val_dict[metric_mean]:.5f}\t{metric_std}: {val_dict[metric_std]:.5f}"
             for split, val_dict in results_best.items()
+            if not (split == 'train' and metric_mean not in results_best['train'])
         ]
         best_result = "\n".join(best_result)
         print(best_result, file=wfile)
@@ -198,5 +201,6 @@ if __name__ == "__main__":
     for run in os.listdir("results"):
         try:
             agg_runs(os.path.join("results", run))
-        except Exception:
+        except Exception as e:
+            print(e)
             continue

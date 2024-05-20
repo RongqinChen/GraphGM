@@ -1,0 +1,68 @@
+out_dir: results
+metric_best: accuracy
+accelerator: "cuda:0"
+wandb:
+  use: False
+  project: ppa
+dataset:
+  format: OGB
+  name: ogbg-ppa
+  task: graph
+  task_type: classification
+  transductive: False
+  node_encoder: True
+  node_encoder_name: PPANode
+  node_encoder_bn: False
+  edge_encoder: True
+  edge_encoder_name: PPAEdge
+  edge_encoder_bn: False
+posenc_Poly:
+  enable: True
+  add_full_edge_index: True
+  method: mixed_bern
+  order: 8
+  emb_dim: 10
+train:
+  mode: custom
+  batch_size: 32
+  eval_period: 1
+  ckpt_period: 100
+model:
+  type: GseModel
+  loss_fun: cross_entropy
+  graph_pooling: mean
+gse_model:
+  enable: True
+  hidden_dim: 256
+  attn_heads: 8
+  drop_prob: 0.1
+  attn_drop_prob: 0.5
+  residual: True
+  layer_norm: False
+  batch_norm: True
+  bn_momentum: 0.1
+  bn_no_runner: False
+  rezero: False
+  deg_scaler: True
+  clamp: 5.0
+  weight_fn: softmax
+  agg: add
+  act: relu
+  messaging:
+    layer_type: grit
+    num_blocks: 3
+    repeats: 2
+  full:
+    layer_type: grit
+    enable: True
+    repeats: 1
+    input_norm: False
+  head: san_graph
+optim:
+  clip_grad_norm: True
+  optimizer: adamW
+  weight_decay: 1e-5
+  base_lr: 0.0003
+  max_epoch: 200
+  scheduler: cosine_with_warmup
+  num_warmup_epochs: 10

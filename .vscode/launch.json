@@ -11,13 +11,35 @@
             "module": "graphgps.agg_runs"
         },
         {
-            "name": "zinc",
+            "name": "pcba",
             "type": "debugpy",
             "request": "launch",
             "program": "main.py",
             "console": "integratedTerminal",
             "args": [
-                "--cfg", "configs/GSE/zinc/zinc-GSE.yaml",
+                "--cfg", "configs/GSE/ogbg_mol/molpcba-GSE_grit-Poly.yaml",
+            ],
+            "justMyCode": true
+        },
+        {
+            "name": "ppa",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "main.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--cfg", "configs/GSE/ogbg/ppa-GSE_grit-Poly.yaml",
+            ],
+            "justMyCode": true
+        },
+        {
+            "name": "pcqm4mv2",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "main.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--repeat", "5", "--cfg", "configs/GSE/pcqm4mv2/pcqm4mv2-GSE_grit-Poly.yaml",
             ],
             "justMyCode": true
         }
