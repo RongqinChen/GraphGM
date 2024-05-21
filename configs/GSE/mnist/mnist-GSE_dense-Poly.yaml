@@ -9,7 +9,7 @@ wandb:
 dataset:
   format: PyG-GNNBenchmarkDataset
   name: MNIST
-  on_the_fly: True
+  on_the_fly: False
   task: graph
   task_type: classification
   transductive: False
@@ -61,7 +61,15 @@ gse_model:
     enable: True
     repeats: 1
     input_norm: False
-  head: san_graph
+gnn:
+  head: default
+  layers_pre_mp: 0
+  layers_post_mp: 3
+  batchnorm: False
+  act: relu
+  dropout: 0.0
+  agg: mean
+  normalize_adj: False
 optim:
   clip_grad_norm: True
   optimizer: adamW

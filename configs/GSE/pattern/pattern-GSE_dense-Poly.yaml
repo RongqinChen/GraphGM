@@ -60,9 +60,16 @@ gse_model:
     enable: True
     repeats: 2
     input_norm: False
-  head: inductive_node
 gnn:
   head: inductive_node
+  layers_pre_mp: 0
+  layers_post_mp: 3
+  dim_inner: 64  # `hidden_hidden` must match `gnn.dim_inner`
+  batchnorm: True
+  act: relu
+  dropout: 0.0
+  agg: mean
+  normalize_adj: False
 optim:
   clip_grad_norm: True
   optimizer: adamW

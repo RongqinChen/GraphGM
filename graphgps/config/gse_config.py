@@ -38,5 +38,6 @@ def gse_gnn_cfg(cfg):
     cfg.gse_model.full.enable = True
     cfg.gse_model.full.repeats = 2
     cfg.gse_model.full.input_norm = False
-
+    
+    # TODO: remove
     cfg.gse_model.head = 'san_graph'

@@ -95,7 +95,7 @@ class GseModel(torch.nn.Module):
             full_block = GseFullBlock(poly_method, repeats, cfg.gse_model)
             self.block_dict["full"] = full_block
 
-        GNNHead = register.head_dict[cfg.gse_model.head]
+        GNNHead = register.head_dict[cfg.gnn.head]
         self.post_mp = GNNHead(dim_in=cfg.gse_model.hidden_dim, dim_out=dim_out)
 
         if cfg.posenc_Poly.method == "mixed_bern":

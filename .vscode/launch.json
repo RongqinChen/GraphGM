@@ -39,7 +39,18 @@
             "program": "main.py",
             "console": "integratedTerminal",
             "args": [
-                "--repeat", "5", "--cfg", "configs/GSE/pcqm4mv2/pcqm4mv2-GSE_grit-Poly.yaml",
+                "--cfg", "configs/GSE/pcqm4mv2/pcqm4mv2-GSE_grit-Poly.yaml",
+            ],
+            "justMyCode": true
+        },
+        {
+            "name": "GRIT-cifar10",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "main.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--cfg", "configs/GRIT/cifar10-GRIT-RRWP.yaml",
             ],
             "justMyCode": true
         }

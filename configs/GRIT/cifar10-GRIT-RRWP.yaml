@@ -7,7 +7,7 @@ wandb:
   use: False
   project: CIFAR10
 dataset:
-  # pe_transform_on_the_fly: True
+  on_the_fly: True
   format: PyG-GNNBenchmarkDataset
   name: CIFAR10
   task: graph
@@ -22,9 +22,9 @@ dataset:
 posenc_RRWP:
   enable: True
   ksteps: 18
-  add_identity: True
-  add_node_attr: False
-  add_inverse: False
+  # add_identity: True
+  # add_node_attr: False
+  # add_inverse: False
 train:
   mode: custom
   batch_size: 16
