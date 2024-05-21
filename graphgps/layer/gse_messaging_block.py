@@ -12,9 +12,9 @@ Layer_dict = {
 
 @register_layer("GseMessagingBlock")
 class GseMessagingBlock(nn.Module):
-    def __init__(self, poly_method, cfg: CfgNode) -> None:
+    def __init__(self, poly_method, repeats, cfg: CfgNode) -> None:
         super().__init__()
-        self.repeats = cfg.messaging.repeats
+        self.repeats = repeats
         Layer = Layer_dict[cfg.messaging.layer_type]
         self.layer_list = nn.ModuleList()
         if cfg.messaging.layer_type == 'grit':

@@ -80,14 +80,19 @@ class GseModel(torch.nn.Module):
         for lidx in range(cfg.gse_model.messaging.num_blocks):
             loop_encoder = LoopEncoder(poly_method, cfg.posenc_Poly.emb_dim, cfg.gse_model.hidden_dim)
             conn_encoder = ConnEncoder(poly_method, cfg.posenc_Poly.emb_dim, cfg.gse_model.hidden_dim)
-            messaging_block = GseMessagingBlock(poly_method, cfg.gse_model)
+            if lidx == 0:
+                repeats = max(2, cfg.gse_model.messaging.repeats)
+            else:
+                repeats = cfg.gse_model.messaging.repeats
+            messaging_block = GseMessagingBlock(poly_method, repeats, cfg.gse_model)
             self.block_dict[f"{lidx}_loop_enc"] = loop_encoder
             self.block_dict[f"{lidx}_conn_enc"] = conn_encoder
             self.block_dict[f"{lidx}_messaging"] = messaging_block
 
         if cfg.gse_model.full.enable:
+            repeats = cfg.gse_model.full.repeats
             poly_method = "full_" + cfg.posenc_Poly.method
-            full_block = GseFullBlock(poly_method, cfg.gse_model)
+            full_block = GseFullBlock(poly_method, repeats, cfg.gse_model)
             self.block_dict["full"] = full_block
 
         GNNHead = register.head_dict[cfg.gse_model.head]
