@@ -193,7 +193,7 @@ def load_dataset_master(format, name, dataset_dir):
                 "PCQM4Mv2-full",
                 "PCQM4Mv2Contact-shuffle",
                 "edge_wt_region_boundary", "ogbg-molpcba"
-        }:
+        } or cfg.num_workers > 1:
             logging.info(
                 f"Positional Encoding statistics: {pe_enabled_list} "
                 f"will be computed on the fly for all graphs..."

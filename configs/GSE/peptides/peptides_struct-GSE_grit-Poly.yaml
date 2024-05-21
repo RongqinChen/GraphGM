@@ -2,6 +2,7 @@ out_dir: results
 metric_best: mae
 metric_agg: argmin
 accelerator: "cuda:0"
+num_workers: 6
 wandb:
   use: False
   project: peptides-struct
@@ -21,8 +22,8 @@ posenc_Poly:
   enable: True
   add_full_edge_index: True
   method: mixed_bern
-  order: 8
-  emb_dim: 10
+  order: 16
+  emb_dim: 18
 train:
   mode: custom
   batch_size: 32
@@ -34,7 +35,7 @@ model:
   graph_pooling: mean
 gse_model:
   enable: True
-  hidden_dim: 64
+  hidden_dim: 80
   attn_heads: 8
   drop_prob: 0.0
   attn_drop_prob: 0.2
@@ -52,7 +53,7 @@ gse_model:
   messaging:
     layer_type: grit
     num_blocks: 4
-    repeats: 2
+    repeats: 1
   full:
     layer_type: grit
     enable: True
@@ -62,9 +63,9 @@ gse_model:
 optim:
   clip_grad_norm: True
   optimizer: adamW
-  weight_decay: 1e-5
-  base_lr: 1e-3
+  weight_decay: 0.0
+  base_lr: 3e-4
   max_epoch: 200
   scheduler: cosine_with_warmup
-  num_warmup_epochs: 10
+  num_warmup_epochs: 5
   min_lr: 1e-6
