@@ -64,15 +64,6 @@ class GPSModel(torch.nn.Module):
         self.encoder = FeatureEncoder(dim_in)
         dim_in = self.encoder.dim_in
 
-        if cfg.posenc_Bern.enable:
-            self.abs_encoder = register.node_encoder_dict["bern_linear"](
-                cfg.posenc_Bern.poly_order + 1, cfg.gnn.dim_inner
-            )
-            self.rel_encoder = register.edge_encoder_dict["bern_linear"](
-                cfg.posenc_Bern.poly_order + 1,
-                cfg.gnn.dim_edge, fill_value=0.0,
-            )
-
         if cfg.gnn.layers_pre_mp > 0:
             self.pre_mp = GNNPreMP(
                 dim_in, cfg.gnn.dim_inner, cfg.gnn.layers_pre_mp)

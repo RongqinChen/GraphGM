@@ -6,6 +6,7 @@ wandb:
 dataset:
   format: OGB
   name: ogbg-molpcba
+  on_the_fly: True
   task: graph
   task_type: classification_multilabel
   transductive: False
@@ -42,6 +43,7 @@ gt:
   layer_norm: False
   batch_norm: True
 gnn:
+  enable: True
   head: default  # san_graph
   layers_pre_mp: 0
   layers_post_mp: 1  # Not used when `gnn.head: san_graph`
