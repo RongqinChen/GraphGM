@@ -128,34 +128,41 @@ class GseModel(torch.nn.Module):
 
             loop_h = self.block_dict[f"{lidx}_loop_enc"](all_loop_val)
             poly_h = self.block_dict[f"{lidx}_conn_enc"](poly_val)
-            poly_idx, poly_h = torch_sparse.coalesce(
-                torch.cat([poly_idx, batch[sparse_poly + "_index"]], dim=1),
-                torch.cat([poly_h, batch[sparse_poly + "_conn"]], dim=0),
-                batch.num_nodes, batch.num_nodes, op="add",
-            )
 
             batch.x += loop_h
-            batch[sparse_poly + "_index"] = poly_idx
-            batch[sparse_poly + "_conn"] = poly_h
+            if poly_idx.size(1) > batch[sparse_poly + "_index"].size(1):
+                poly_idx, poly_h = torch_sparse.coalesce(
+                    torch.cat([poly_idx, batch[sparse_poly + "_index"]], dim=1),
+                    torch.cat([poly_h, batch[sparse_poly + "_conn"]], dim=0),
+                    batch.num_nodes, batch.num_nodes, op="add",
+                )
+                batch[sparse_poly + "_index"] = poly_idx
+                batch[sparse_poly + "_conn"] = poly_h
+            else:
+                batch[sparse_poly + "_conn"] = batch[sparse_poly + "_conn"] + poly_h
+
             batch = self.block_dict[f"{lidx}_messaging"](batch)
 
         if cfg.gse_model.full.enable:
-            full_method = "full_" + cfg.posenc_Poly.method
+            full_poly = "full_" + cfg.posenc_Poly.method
             if 'full_index' in batch:
                 full_index = batch['full_index']
             else:
                 full_index = compute_full_index(batch.batch)
 
-            if full_index.size(1) > poly_val.size(1):
+            if full_index.size(1) > poly_val.size(0):
                 full_val = poly_h.new_zeros((full_index.size(1), cfg.gse_model.hidden_dim))
                 full_index, full_val = torch_sparse.coalesce(
                     torch.cat([full_index, batch[sparse_poly + "_index"]], dim=1),
                     torch.cat([full_val, batch[sparse_poly + "_conn"]], dim=0),
                     batch.num_nodes, batch.num_nodes, op="add",
                 )
+                batch[full_poly + "_index"] = full_index
+                batch[full_poly + "_conn"] = full_val
+            else:
+                batch[full_poly + "_index"] = batch[sparse_poly + "_index"]
+                batch[full_poly + "_conn"] = batch[sparse_poly + "_conn"]
 
-            batch[full_method + "_index"] = full_index
-            batch[full_method + "_conn"] = full_val
             batch = self.block_dict["full"](batch)
 
         batch = self.post_mp(batch)

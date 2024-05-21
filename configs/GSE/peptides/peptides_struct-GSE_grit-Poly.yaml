@@ -20,7 +20,7 @@ dataset:
   edge_encoder_bn: False
 posenc_Poly:
   enable: True
-  add_full_edge_index: True
+  add_full_edge_index: False
   method: mixed_bern
   order: 16
   emb_dim: 18

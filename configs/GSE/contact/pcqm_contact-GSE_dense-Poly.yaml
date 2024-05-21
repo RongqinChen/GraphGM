@@ -24,6 +24,7 @@ posenc_Poly:
   enable: True
   method: mixed_bern
   order: 8
+  add_full_edge_index: False
   emb_dim: 10
 train:
   mode: custom
