@@ -30,7 +30,7 @@ train:
 model:
   type: GseModel
   loss_fun: cross_entropy
-  graph_pooling: add
+  graph_pooling: mean
 gse_model:
   enable: True
   hidden_dim: 64

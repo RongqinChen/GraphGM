@@ -192,7 +192,7 @@ def load_dataset_master(format, name, dataset_dir):
                 # "CLUSTER", "MNIST", "CIFAR10",
                 "PCQM4Mv2-full",
                 "PCQM4Mv2Contact-shuffle",
-                "edge_wt_region_boundary", 
+                "edge_wt_region_boundary",
                 # "ogbg-molpcba"
         } or cfg.dataset.on_the_fly:
             logging.info(

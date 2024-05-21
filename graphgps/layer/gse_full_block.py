@@ -14,13 +14,13 @@ Layer_dict = {
 
 @register_layer("GseFullBlock")
 class GseFullBlock(nn.Module):
-    def __init__(self, poly_method, cfg: CfgNode) -> None:
+    def __init__(self, poly_method, repeats, cfg: CfgNode) -> None:
         super().__init__()
-        self.repeats = cfg.full.repeats
+        self.repeats = repeats
         Layer = Layer_dict[cfg.full.layer_type]
         self.layer_list = nn.ModuleList()
         if cfg.full.layer_type == 'grit':
-            for _ in range(cfg.full.repeats):
+            for _ in range(repeats):
                 layer = Layer(
                     poly_method,
                     cfg.hidden_dim, cfg.attn_heads, cfg.drop_prob,
@@ -31,7 +31,7 @@ class GseFullBlock(nn.Module):
                 )
                 self.layer_list.append(layer)
         elif cfg.full.layer_type == 'dense':
-            for _ in range(cfg.full.repeats):
+            for _ in range(repeats):
                 layer = Layer(
                     poly_method,
                     cfg.hidden_dim, cfg.attn_heads, cfg.drop_prob, cfg.attn_drop_prob,
