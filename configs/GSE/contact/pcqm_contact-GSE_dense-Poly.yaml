@@ -3,7 +3,7 @@ metric_best: mrr
 metric_agg: argmax
 tensorboard_each_run: False  # Log to Tensorboard each run
 accelerator: "cuda:0"
-num_workers: 8
+num_workers: 2
 wandb:
   use: False
   project: pcqm4m-contact
@@ -25,7 +25,6 @@ posenc_Poly:
   enable: True
   method: mixed_bern
   order: 8
-  add_full_edge_index: False
   emb_dim: 10
 train:
   mode: custom
@@ -41,7 +40,7 @@ gse_model:
   hidden_dim: 64
   attn_heads: 8
   drop_prob: 0.0
-  attn_drop_prob: 0.2
+  attn_drop_prob: 0.25
   residual: True
   layer_norm: False
   batch_norm: True
