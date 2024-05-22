@@ -33,6 +33,7 @@ train:
   enable_ckpt: False  # Checkpointing can now be disabled to save I/O when e.g. just benchmarking.
   ckpt_best: False  # WARNING: Checkpoint every epoch a better model is found may increase I/O significantly.
   ckpt_clean: True # Delete old ckpt each time.
+  ckpt_period: 500
 model:
   type: GseModel
   loss_fun: l1
