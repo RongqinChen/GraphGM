@@ -10,7 +10,7 @@ gse_model.messaging.num_blocks $((L)) \
 gse_model.messaging.repeats $((R)) \
 gse_model.full.repeats $((F)) \
 gse_model.hidden_dim $((H)) \
-name_tag 0522_mixed_bern_K$((K))R$((R))L$((L))F$((F))
+name_tag mixed_bern_K$((K))R$((R))L$((L))F$((F))
 
 
 K=8
@@ -25,7 +25,7 @@ gse_model.messaging.num_blocks $((L)) \
 gse_model.messaging.repeats $((R)) \
 gse_model.full.repeats $((F)) \
 gse_model.hidden_dim $((H)) \
-name_tag 0522_mixed_bern_K$((K))R$((R))L$((L))F$((F)) 
+name_tag mixed_bern_K$((K))R$((R))L$((L))F$((F)) 
 
 
 K=16
@@ -40,4 +40,4 @@ gse_model.messaging.num_blocks $((L)) \
 gse_model.messaging.repeats $((R)) \
 gse_model.full.repeats $((F)) \
 gse_model.hidden_dim $((H)) \
-name_tag 0522_mixed_bern_K$((K))R$((R))L$((L))F$((F)) 
+name_tag mixed_bern_K$((K))R$((R))L$((L))F$((F)) 
