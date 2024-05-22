@@ -20,8 +20,8 @@ posenc_Poly:
   enable: True
   add_full_edge_index: True
   method: mixed_bern
-  order: 8
-  emb_dim: 10
+  order: 16
+  emb_dim: 18
 train:
   mode: custom
   batch_size: 32
@@ -33,10 +33,10 @@ model:
   graph_pooling: mean
 gse_model:
   enable: True
-  hidden_dim: 64
+  hidden_dim: 52
   attn_heads: 8
   drop_prob: 0.0
-  attn_drop_prob: 0.2
+  attn_drop_prob: 0.5
   residual: True
   layer_norm: False
   batch_norm: True
@@ -50,8 +50,8 @@ gse_model:
   act: relu
   messaging:
     layer_type: grit
-    num_blocks: 4
-    repeats: 2
+    num_blocks: 5
+    repeats: 1
   full:
     layer_type: grit
     enable: True

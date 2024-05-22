@@ -35,7 +35,7 @@ model:
   graph_pooling: mean
 gse_model:
   enable: True
-  hidden_dim: 80
+  hidden_dim: 52
   attn_heads: 8
   drop_prob: 0.0
   attn_drop_prob: 0.2
@@ -52,7 +52,7 @@ gse_model:
   act: relu
   messaging:
     layer_type: grit
-    num_blocks: 4
+    num_blocks: 5
     repeats: 1
   full:
     layer_type: grit
