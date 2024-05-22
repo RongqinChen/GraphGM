@@ -2,7 +2,7 @@ out_dir: results
 metric_best: mae
 metric_agg: argmin
 accelerator: "cuda:0"
-num_workers: 6
+num_workers: 2
 wandb:
   use: False
   project: peptides-struct
@@ -10,6 +10,7 @@ dataset:
   format: OGB
   name: peptides-structural
   task: graph
+  on_the_fly: True
   task_type: regression
   transductive: False
   node_encoder: True
@@ -26,7 +27,7 @@ posenc_Poly:
   emb_dim: 18
 train:
   mode: custom
-  batch_size: 32
+  batch_size: 16
   eval_period: 1
   ckpt_period: 100
 model:
@@ -35,9 +36,9 @@ model:
   graph_pooling: mean
 gse_model:
   enable: True
-  hidden_dim: 52
+  hidden_dim: 72
   attn_heads: 8
-  drop_prob: 0.0
+  drop_prob: 0.05
   attn_drop_prob: 0.2
   residual: True
   layer_norm: False
@@ -67,5 +68,5 @@ optim:
   base_lr: 3e-4
   max_epoch: 200
   scheduler: cosine_with_warmup
-  num_warmup_epochs: 5
+  num_warmup_epochs: 10
   min_lr: 1e-6

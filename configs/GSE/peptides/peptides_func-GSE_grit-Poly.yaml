@@ -1,6 +1,7 @@
 out_dir: results
 metric_best: ap
 accelerator: "cuda:0"
+num_workers: 2
 wandb:
   use: False
   project: peptides-func
@@ -24,7 +25,7 @@ posenc_Poly:
   emb_dim: 18
 train:
   mode: custom
-  batch_size: 32
+  batch_size: 16
   eval_period: 1
   ckpt_period: 100
 model:
@@ -33,7 +34,7 @@ model:
   graph_pooling: mean
 gse_model:
   enable: True
-  hidden_dim: 52
+  hidden_dim: 72
   attn_heads: 8
   drop_prob: 0.0
   attn_drop_prob: 0.5
@@ -61,8 +62,8 @@ gse_model:
 optim:
   clip_grad_norm: True
   optimizer: adamW
-  weight_decay: 1e-5
-  base_lr: 1e-3
+  weight_decay: 0.0
+  base_lr: 3e-4
   max_epoch: 200
   scheduler: cosine_with_warmup
   num_warmup_epochs: 10
