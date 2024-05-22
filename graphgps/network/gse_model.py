@@ -144,13 +144,13 @@ class GseModel(torch.nn.Module):
 
             batch.x += loop_h
             if poly_idx.size(1) > batch[sparse_poly + "_index"].size(1):
-                poly_idx, poly_h = torch_sparse.coalesce(
+                poly_idx_add, poly_h_add = torch_sparse.coalesce(
                     torch.cat([poly_idx, batch[sparse_poly + "_index"]], dim=1),
                     torch.cat([poly_h, batch[sparse_poly + "_conn"]], dim=0),
                     batch.num_nodes, batch.num_nodes, op="add",
                 )
-                batch[sparse_poly + "_index"] = poly_idx
-                batch[sparse_poly + "_conn"] = poly_h
+                batch[sparse_poly + "_index"] = poly_idx_add
+                batch[sparse_poly + "_conn"] = poly_h_add
             else:
                 batch[sparse_poly + "_conn"] = batch[sparse_poly + "_conn"] + poly_h
 
@@ -169,7 +169,7 @@ class GseModel(torch.nn.Module):
                     full_index = batch['full_index']
                 else:
                     full_index = compute_full_index(batch.batch)
-                if full_index.size(1) > poly_h.size(0):
+                if full_index.size(1) > batch[sparse_poly + "_index"].size(1):
                     full_val = poly_h.new_zeros((full_index.size(1), cfg.gse_model.hidden_dim))
                     full_index, full_h = torch_sparse.coalesce(
                         torch.cat([full_index, batch[sparse_poly + "_index"]], dim=1),
@@ -180,7 +180,7 @@ class GseModel(torch.nn.Module):
                     batch[full_poly + "_conn"] = full_h
                 else:
                     batch[full_poly + "_index"] = full_index
-                    batch[full_poly + "_conn"] = poly_h
+                    batch[full_poly + "_conn"] = batch[sparse_poly + "_conn"]
 
             batch = self.block_dict["full"](batch)
 
