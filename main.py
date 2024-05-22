@@ -117,7 +117,7 @@ if __name__ == '__main__':
     load_cfg(cfg, args)
     custom_set_out_dir(cfg, args.cfg_file, cfg.name_tag)
     dump_cfg(cfg)
-    # Set Pytorch environment    torch.set_num_threads(cfg.num_threads)
+    torch.set_num_threads(4)
     # Repeat for multiple experiment runs
     for run_id, seed, split_index in zip(*run_loop_settings()):
         # Set configurations for each run
