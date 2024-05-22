@@ -2,7 +2,7 @@ out_dir: results
 metric_best: accuracy-SBM
 tensorboard_each_run: False  # Log to Tensorboard each run
 accelerator: "cuda:0"
-num_workers: 6
+num_workers: 1
 wandb:
   use: False
   project: PATTERN
@@ -23,8 +23,9 @@ dataset:
 posenc_Poly:
   enable: True
   method: mixed_bern
-  order: 8
-  emb_dim: 10
+  order: 16
+  emb_dim: 18
+  add_full_edge_index: True
 train:
   mode: custom
   batch_size: 32
@@ -53,12 +54,12 @@ gse_model:
   act: relu
   messaging:
     layer_type: grit
-    num_blocks: 4
-    repeats: 2
+    num_blocks: 5
+    repeats: 1
   full:
     layer_type: grit
     enable: True
-    repeats: 2
+    repeats: 4
     input_norm: False
 gnn:
   head: inductive_node

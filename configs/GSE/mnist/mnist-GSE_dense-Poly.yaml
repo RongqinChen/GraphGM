@@ -2,14 +2,14 @@ out_dir: results
 metric_best: accuracy
 tensorboard_each_run: False  # Log to Tensorboard each run
 accelerator: "cuda:0"
-num_workers: 6
+num_workers: 2
 wandb:
   use: False
   project: MNIST
 dataset:
   format: PyG-GNNBenchmarkDataset
   name: MNIST
-  on_the_fly: False
+  on_the_fly: True
   task: graph
   task_type: classification
   transductive: False
@@ -22,12 +22,12 @@ dataset:
 posenc_Poly:
   enable: True
   method: mixed_bern
-  order: 4
-  emb_dim: 6
+  order: 16
+  emb_dim: 18
   add_full_edge_index: False
 train:
   mode: custom
-  batch_size: 32
+  batch_size: 16
   eval_period: 1
   ckpt_period: 100
 model:
@@ -37,10 +37,10 @@ model:
   graph_pooling: mean
 gse_model:
   enable: True
-  hidden_dim: 48
+  hidden_dim: 72
   attn_heads: 4
   drop_prob: 0.0
-  attn_drop_prob: 0.2
+  attn_drop_prob: 0.5
   residual: True
   layer_norm: False
   batch_norm: True
@@ -54,17 +54,17 @@ gse_model:
   act: relu
   messaging:
     layer_type: grit
-    num_blocks: 3
-    repeats: 1
+    num_blocks: 0
+    repeats: 0
   full:
     layer_type: dense
     enable: True
-    repeats: 1
+    repeats: 3
     input_norm: False
 gnn:
   head: default
   layers_pre_mp: 0
-  layers_post_mp: 3
+  layers_post_mp: 2
   batchnorm: False
   act: relu
   dropout: 0.0
