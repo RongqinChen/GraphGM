@@ -3,13 +3,14 @@ metric_best: mrr
 metric_agg: argmax
 tensorboard_each_run: False  # Log to Tensorboard each run
 accelerator: "cuda:0"
-num_workers: 8
+num_workers: 2
 wandb:
   use: False
   project: pcqm4m-contact
 dataset:
   format: OGB
   name: PCQM4Mv2Contact-shuffle
+  on_the_fly: True
   task: graph  # PCQM4Mv2Contact is edge-level task, but because it is inductive, set to 'graph'
   task_type: classification
   resample_negative: True
@@ -39,7 +40,7 @@ gse_model:
   hidden_dim: 64
   attn_heads: 8
   drop_prob: 0.0
-  attn_drop_prob: 0.2
+  attn_drop_prob: 0.25
   residual: True
   layer_norm: False
   batch_norm: True

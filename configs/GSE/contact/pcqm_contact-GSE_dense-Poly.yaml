@@ -10,6 +10,7 @@ wandb:
 dataset:
   format: OGB
   name: PCQM4Mv2Contact-shuffle
+  on_the_fly: True
   task: graph  # PCQM4Mv2Contact is edge-level task, but because it is inductive, set to 'graph'
   task_type: classification
   resample_negative: True
