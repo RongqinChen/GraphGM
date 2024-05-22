@@ -37,7 +37,7 @@ model:
   edge_decoding: dot
 gse_model:
   enable: True
-  hidden_dim: 48
+  hidden_dim: 56
   attn_heads: 8
   drop_prob: 0.01
   attn_drop_prob: 0.5
