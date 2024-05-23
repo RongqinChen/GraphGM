@@ -57,7 +57,7 @@ gse_model:
     num_blocks: 6
     repeats: 2
   full:
-    layer_type: grit
+    layer_type: dense
     enable: True
     repeats: 2
     input_norm: False
@@ -69,6 +69,6 @@ optim:
   optimizer: adamW
   weight_decay: 1e-5
   base_lr: 0.0005
-  max_epoch: 100
+  max_epoch: 200
   scheduler: cosine_with_warmup
   num_warmup_epochs: 5

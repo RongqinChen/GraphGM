@@ -67,7 +67,7 @@ class GseModel(torch.nn.Module):
 
     def __init__(self, dim_in, dim_out):
         super().__init__()
-        assert (cfg.posenc_Poly.emb_dim - 2) >= 2 ** (cfg.gse_model.messaging.num_blocks - 1)
+        assert (cfg.posenc_Poly.emb_dim - 2) > 2 ** (cfg.gse_model.messaging.num_blocks - 2)
         GseMessagingBlock = register.layer_dict["GseMessagingBlock"]
         GseFullBlock = register.layer_dict["GseFullBlock"]
 
