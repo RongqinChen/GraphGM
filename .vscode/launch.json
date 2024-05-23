@@ -22,6 +22,17 @@
             "justMyCode": true
         },
         {
+            "name": "struct",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "main.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--cfg", "configs/GSE/peptides/peptides_struct-GSE_grit-Poly.yaml",
+            ],
+            "justMyCode": true
+        },
+        {
             "name": "ppa",
             "type": "debugpy",
             "request": "launch",

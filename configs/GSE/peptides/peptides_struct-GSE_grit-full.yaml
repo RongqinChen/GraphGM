@@ -27,7 +27,7 @@ posenc_Poly:
   emb_dim: 18
 train:
   mode: custom
-  batch_size: 16
+  batch_size: 8
   eval_period: 1
   ckpt_period: 100
 model:
@@ -36,9 +36,9 @@ model:
   graph_pooling: mean
 gse_model:
   enable: True
-  hidden_dim: 72
-  attn_heads: 4
-  drop_prob: 0.0
+  hidden_dim: 96
+  attn_heads: 8
+  drop_prob: 0.05
   attn_drop_prob: 0.2
   residual: True
   layer_norm: False
@@ -53,12 +53,12 @@ gse_model:
   act: relu
   messaging:
     layer_type: grit
-    num_blocks: 5
-    repeats: 1
+    num_blocks: 0
+    repeats: 0
   full:
     layer_type: grit
     enable: True
-    repeats: 1
+    repeats: 4
     input_norm: False
 gnn:
   head: default
@@ -71,7 +71,7 @@ gnn:
 optim:
   clip_grad_norm: True
   optimizer: adamW
-  weight_decay: 0.0
+  weight_decay: 1e-5
   base_lr: 1e-3
   max_epoch: 200
   scheduler: cosine_with_warmup
