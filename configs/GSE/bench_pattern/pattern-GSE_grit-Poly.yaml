@@ -2,14 +2,14 @@ out_dir: results
 metric_best: accuracy-SBM
 tensorboard_each_run: False  # Log to Tensorboard each run
 accelerator: "cuda:0"
-num_workers: 1
+num_workers: 2
 wandb:
   use: False
   project: PATTERN
 dataset:
   format: PyG-GNNBenchmarkDataset
   name: PATTERN
-  on_the_fly: False
+  on_the_fly: True
   task: graph
   task_type: classification
   transductive: False
@@ -23,8 +23,8 @@ dataset:
 posenc_Poly:
   enable: True
   method: mixed_bern
-  order: 16
-  emb_dim: 18
+  order: 22
+  emb_dim: 24
   add_full_edge_index: True
 train:
   mode: custom
@@ -54,12 +54,12 @@ gse_model:
   act: relu
   messaging:
     layer_type: grit
-    num_blocks: 5
+    num_blocks: 6
     repeats: 1
   full:
     layer_type: grit
     enable: True
-    repeats: 4
+    repeats: 3
     input_norm: False
 gnn:
   head: inductive_node
