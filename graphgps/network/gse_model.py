@@ -80,10 +80,7 @@ class GseModel(torch.nn.Module):
         for lidx in range(cfg.gse_model.messaging.num_blocks):
             loop_encoder = LoopEncoder(poly_method, cfg.posenc_Poly.emb_dim, cfg.gse_model.hidden_dim)
             conn_encoder = ConnEncoder(poly_method, cfg.posenc_Poly.emb_dim, cfg.gse_model.hidden_dim)
-            if lidx == 0:
-                repeats = max(2, cfg.gse_model.messaging.repeats)
-            else:
-                repeats = cfg.gse_model.messaging.repeats
+            repeats = max(2, cfg.gse_model.messaging.repeats) if lidx == 0 else cfg.gse_model.messaging.repeats
             messaging_block = GseMessagingBlock(poly_method, repeats, cfg.gse_model)
             self.block_dict[f"{lidx}_loop_enc"] = loop_encoder
             self.block_dict[f"{lidx}_conn_enc"] = conn_encoder
@@ -91,6 +88,7 @@ class GseModel(torch.nn.Module):
 
         if cfg.gse_model.messaging.num_blocks == 0:
             assert cfg.gse_model.full.enable
+            assert cfg.gse_model.full.layer_type in {'grit'}
             loop_encoder = LoopEncoder(poly_method, cfg.posenc_Poly.emb_dim, cfg.gse_model.hidden_dim)
             conn_encoder = ConnEncoder(poly_method, cfg.posenc_Poly.emb_dim, cfg.gse_model.hidden_dim)
             self.block_dict["all_loop_enc"] = loop_encoder
@@ -140,7 +138,6 @@ class GseModel(torch.nn.Module):
 
             loop_h = self.block_dict[f"{lidx}_loop_enc"](all_loop_val)
             poly_h = self.block_dict[f"{lidx}_conn_enc"](poly_val)
-
             batch.x += loop_h
             if poly_idx.size(1) > batch[sparse_poly + "_index"].size(1):
                 poly_idx_add, poly_h_add = torch_sparse.coalesce(
@@ -159,9 +156,16 @@ class GseModel(torch.nn.Module):
             full_poly = "full_" + cfg.posenc_Poly.method
 
             if cfg.gse_model.messaging.num_blocks == 0:
-                loop_h = self.block_dict["all_loop_enc"](all_loop_val)
-                poly_h = self.block_dict["all_conn_enc"](all_poly_val)
-                batch.x += loop_h
+                all_loop_h = self.block_dict["all_loop_enc"](all_loop_val)
+                all_poly_h = self.block_dict["all_conn_enc"](all_poly_val)
+                batch.x += all_loop_h
+                poly_idx_add, poly_h_add = torch_sparse.coalesce(
+                    torch.cat([all_poly_idx, batch[sparse_poly + "_index"]], dim=1),
+                    torch.cat([all_poly_h, batch[sparse_poly + "_conn"]], dim=0),
+                    batch.num_nodes, batch.num_nodes, op="add",
+                )
+                batch[sparse_poly + "_index"] = poly_idx_add
+                batch[sparse_poly + "_conn"] = poly_h_add
 
             if cfg.gse_model.full.layer_type in {'grit'}:
                 if 'full_index' in batch:
