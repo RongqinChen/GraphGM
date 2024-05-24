@@ -48,8 +48,8 @@ class SparseLinearEdgeEncoder(torch.nn.Module):
             nn.GELU(),
             nn.Linear(self.emb_dim * 2, out_dim)
         )
-        torch.nn.init.xavier_uniform_(self.net._modules[0].weight)
-        torch.nn.init.xavier_uniform_(self.net._modules[2].weight)
+        torch.nn.init.xavier_uniform_(self.net._modules['0'].weight)
+        torch.nn.init.xavier_uniform_(self.net._modules['2'].weight)
         self.batchnorm = batchnorm
         self.layernorm = layernorm
         # note: batchnorm/layernorm might ruin some properties of pe on providing shortest-path distance info
