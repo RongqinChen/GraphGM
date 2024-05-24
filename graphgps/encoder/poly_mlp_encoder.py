@@ -1,17 +1,13 @@
-"""
-    The Generalized Metrics encoder
-"""
-
 import torch
 from torch import nn
 from torch_geometric.graphgym.register import register_node_encoder, register_edge_encoder
 import warnings
 
 
-@register_node_encoder("sparse_poly")
+@register_node_encoder("mlp_poly")
 class LinearNodeEncoder(torch.nn.Module):
     def __init__(
-        self, name, emb_dim, out_dim, use_bias=False, batchnorm=False, layernorm=False,
+        self, name, emb_dim, out_dim, batchnorm=False, layernorm=False,
     ):
         super().__init__()
         self.name = name
@@ -45,11 +41,14 @@ class LinearNodeEncoder(torch.nn.Module):
             node_h = self.ln(node_h)
         return node_h
 
+    def __repr__(self):
+        return (f"{self.__class__.__name__}("f"{self.net.__repr__()})")
 
-@register_edge_encoder("sparse_poly")
+
+@register_edge_encoder("mlp_poly")
 class SparseLinearEdgeEncoder(torch.nn.Module):
     def __init__(
-        self, name, emb_dim, out_dim, batchnorm=False, layernorm=False, use_bias=False,
+        self, name, emb_dim, out_dim, batchnorm=False, layernorm=False,
     ):
         super().__init__()
         self.name = name

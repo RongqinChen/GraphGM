@@ -44,13 +44,13 @@
             "justMyCode": true
         },
         {
-            "name": "zincfull",
+            "name": "zinc",
             "type": "debugpy",
             "request": "launch",
             "program": "main.py",
             "console": "integratedTerminal",
             "args": [
-                "--cfg", "configs/GSE/zinc/zincfull-GSE.yaml",
+                "--cfg", "configs/GSE/zinc/zinc-GSE.yaml",
             ],
             "justMyCode": true
         },
