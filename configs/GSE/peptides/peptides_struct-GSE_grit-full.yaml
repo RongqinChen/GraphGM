@@ -24,10 +24,10 @@ posenc_Poly:
   add_full_edge_index: False
   method: mixed_bern
   order: 16
-  emb_dim: 18
+  emb_dim: 16
 train:
   mode: custom
-  batch_size: 8
+  batch_size: 16
   eval_period: 1
   ckpt_period: 100
 model:
@@ -71,9 +71,8 @@ gnn:
 optim:
   clip_grad_norm: True
   optimizer: adamW
-  weight_decay: 1e-5
-  base_lr: 1e-3
+  weight_decay: 0.0
+  base_lr: 0.0003
   max_epoch: 200
   scheduler: cosine_with_warmup
   num_warmup_epochs: 10
-  min_lr: 1e-6
