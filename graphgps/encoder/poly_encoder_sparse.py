@@ -43,8 +43,13 @@ class SparseLinearEdgeEncoder(torch.nn.Module):
         self.name = name
         self.emb_dim = emb_dim
         self.out_dim = out_dim
-        self.fc = nn.Linear(self.emb_dim, out_dim, bias=use_bias)
-        torch.nn.init.xavier_uniform_(self.fc.weight)
+        self.net = nn.Sequential(
+            nn.Linear(self.emb_dim, self.emb_dim * 2),
+            nn.GELU(),
+            nn.Linear(self.emb_dim * 2, out_dim)
+        )
+        torch.nn.init.xavier_uniform_(self.net._modules[0].weight)
+        torch.nn.init.xavier_uniform_(self.net._modules[2].weight)
         self.batchnorm = batchnorm
         self.layernorm = layernorm
         # note: batchnorm/layernorm might ruin some properties of pe on providing shortest-path distance info
@@ -59,7 +64,7 @@ class SparseLinearEdgeEncoder(torch.nn.Module):
             self.ln = nn.LayerNorm(out_dim)
 
     def forward(self, poly_val):
-        poly_val = self.fc(poly_val)
+        poly_val = self.net(poly_val)
         if self.batchnorm:
             poly_val = self.bn(poly_val)
         if self.layernorm:
@@ -67,4 +72,4 @@ class SparseLinearEdgeEncoder(torch.nn.Module):
         return poly_val
 
     def __repr__(self):
-        return (f"{self.__class__.__name__}("f"{self.fc.__repr__()})")
+        return (f"{self.__class__.__name__}("f"{self.net.__repr__()})")

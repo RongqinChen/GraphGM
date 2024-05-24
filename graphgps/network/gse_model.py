@@ -135,7 +135,6 @@ class GseModel(torch.nn.Module):
                 poly_val = all_poly_val[poly_sgn, :]
             else:
                 # poly_sgn: all true
-                # assert order == all_poly_val.size(1)
                 poly_idx = all_poly_idx
                 poly_val = all_poly_val
 

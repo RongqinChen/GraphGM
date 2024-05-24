@@ -1,6 +1,7 @@
 
-K=4
-L=3
+
+K=8
+L=4
 R=1
 CUDA_VISIBLE_DEVICES=0 \
 python main.py --cfg configs/GSE/ogbg/molhiv-GSE_grit-Poly.yaml  \
@@ -13,8 +14,8 @@ name_tag mixed_bern_K$((K))L$((L))R$((R))
 wait
 
 
-K=8
-L=4
+K=16
+L=5
 R=1
 CUDA_VISIBLE_DEVICES=0 \
 python main.py --cfg configs/GSE/ogbg/molhiv-GSE_grit-Poly.yaml  \
