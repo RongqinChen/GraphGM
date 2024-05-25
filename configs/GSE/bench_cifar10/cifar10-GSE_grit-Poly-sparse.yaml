@@ -2,14 +2,14 @@ out_dir: results
 metric_best: accuracy
 tensorboard_each_run: False  # Log to Tensorboard each run
 accelerator: "cuda:0"
-num_workers: 2
+num_workers: 8
 wandb:
   use: False
-  project: MNIST
+  project: CIFAR10
 dataset:
   format: PyG-GNNBenchmarkDataset
-  name: MNIST
-  on_the_fly: False
+  name: CIFAR10
+  on_the_fly: True
   task: graph
   task_type: classification
   transductive: False
@@ -22,8 +22,8 @@ dataset:
 posenc_Poly:
   enable: True
   method: low_middle_pass
-  order: 16
-  emb_dim: 16
+  order: 18
+  emb_dim: 18
   add_full_edge_index: True
 train:
   mode: custom
