@@ -51,6 +51,10 @@
             "console": "integratedTerminal",
             "args": [
                 "--cfg", "configs/GSE/zinc/zinc-GSE.yaml",
+                "posenc_Poly.method", "low_middle_pass", "posenc_Poly.order", "4",
+                "posenc_Poly.emb_dim", "4", "gse_model.messaging.num_blocks", "3",
+                "gse_model.messaging.repeats", "2", "gse_model.full.repeats", "4",
+                "name_tag", "debug"
             ],
             "justMyCode": true
         },
