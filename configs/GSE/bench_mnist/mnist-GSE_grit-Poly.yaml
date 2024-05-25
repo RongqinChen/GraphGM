@@ -2,7 +2,7 @@ out_dir: results
 metric_best: accuracy
 tensorboard_each_run: False  # Log to Tensorboard each run
 accelerator: "cuda:0"
-num_workers: 2
+num_workers: 8
 wandb:
   use: False
   project: MNIST
@@ -21,8 +21,8 @@ dataset:
   edge_encoder_bn: False
 posenc_Poly:
   enable: True
-  method: mixed_bern
-  order: 16
+  method: low_middle_pass
+  order: 18
   emb_dim: 18
   add_full_edge_index: True
 train:

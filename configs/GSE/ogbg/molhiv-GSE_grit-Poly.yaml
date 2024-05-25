@@ -19,7 +19,7 @@ dataset:
 posenc_Poly:
   enable: True
   add_full_edge_index: True
-  method: mixed_bern
+  method: low_middle_pass
   order: 8
   emb_dim: 10
 train:

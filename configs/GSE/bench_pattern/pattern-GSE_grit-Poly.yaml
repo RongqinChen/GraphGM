@@ -2,7 +2,7 @@ out_dir: results
 metric_best: accuracy-SBM
 tensorboard_each_run: False  # Log to Tensorboard each run
 accelerator: "cuda:0"
-num_workers: 2
+num_workers: 8
 wandb:
   use: False
   project: PATTERN
@@ -22,8 +22,8 @@ dataset:
   edge_encoder_bn: False
 posenc_Poly:
   enable: True
-  method: mixed_bern
-  order: 22
+  method: low_middle_pass
+  order: 24
   emb_dim: 24
   add_full_edge_index: True
 train:
@@ -54,12 +54,12 @@ gse_model:
   act: relu
   messaging:
     layer_type: grit
-    num_blocks: 6
-    repeats: 1
+    num_blocks: 0
+    repeats: 0
   full:
     layer_type: grit
     enable: True
-    repeats: 3
+    repeats: 10
     input_norm: False
 gnn:
   head: inductive_node
@@ -76,6 +76,6 @@ optim:
   optimizer: adamW
   weight_decay: 1e-5
   base_lr: 0.0005
-  max_epoch: 200
+  max_epoch: 100
   scheduler: cosine_with_warmup
   num_warmup_epochs: 5
