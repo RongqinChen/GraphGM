@@ -1,15 +1,17 @@
 out_dir: results
-metric_best: ap
+metric_best: mae
+metric_agg: argmin
 accelerator: "cuda:0"
-num_workers: 2
+num_workers: 8
 wandb:
   use: False
-  project: peptides-func
+  project: peptides-struct
 dataset:
   format: OGB
-  name: peptides-functional
+  name: peptides-structural
   task: graph
-  task_type: classification_multilabel
+  on_the_fly: True
+  task_type: regression
   transductive: False
   node_encoder: True
   node_encoder_name: Atom
@@ -19,10 +21,10 @@ dataset:
   edge_encoder_bn: False
 posenc_Poly:
   enable: True
-  add_full_edge_index: True
+  add_full_edge_index: False
   method: low_middle_pass
   order: 16
-  emb_dim: 18
+  emb_dim: 16
 train:
   mode: custom
   batch_size: 16
@@ -30,14 +32,14 @@ train:
   ckpt_period: 100
 model:
   type: GseModel
-  loss_fun: cross_entropy
+  loss_fun: l1
   graph_pooling: mean
 gse_model:
   enable: True
-  hidden_dim: 72
+  hidden_dim: 56
   attn_heads: 8
   drop_prob: 0.0
-  attn_drop_prob: 0.5
+  attn_drop_prob: 0.2
   residual: True
   layer_norm: False
   batch_norm: True
@@ -52,17 +54,24 @@ gse_model:
   messaging:
     layer_type: grit
     num_blocks: 5
-    repeats: 1
+    repeats: 2
   full:
     layer_type: grit
     enable: True
-    repeats: 1
+    repeats: 2
     input_norm: False
-  head: san_graph
+gnn:
+  head: default
+  layers_pre_mp: 0
+  layers_post_mp: 2 # Not used when `gnn.head: san_graph`
+  dim_inner: 56  # `gt.dim_hidden` must match `gnn.dim_inner`
+  batchnorm: True
+  act: relu
+  dropout: 0.0
 optim:
   clip_grad_norm: True
   optimizer: adamW
-  weight_decay: 1e-5
+  weight_decay: 0.0
   base_lr: 1e-3
   max_epoch: 200
   scheduler: cosine_with_warmup
