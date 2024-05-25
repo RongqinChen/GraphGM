@@ -24,8 +24,8 @@ posenc_Poly:
   enable: True
   add_full_edge_index: True
   method: low_middle_pass
-  order: 8
-  emb_dim: 8
+  order: 32
+  emb_dim: 32
 train:
   mode: custom
   batch_size: 32

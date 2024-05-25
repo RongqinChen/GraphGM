@@ -2,7 +2,7 @@ import torch
 from torch_geometric.data import Data
 from torch_geometric.utils import add_self_loops, scatter
 from torch_sparse import SparseTensor
-from scipy.special import comb
+# from scipy.special import comb
 
 
 @torch.no_grad()
@@ -60,10 +60,10 @@ def compute_low_middle_pass_polynomials(
         if len(base_list) == order:
             break
 
-    base_list = [
-        base * ((2 ** -k) * comb(k, k // 2))
-        for k, base in zip(range(1, order + 1), base_list)
-    ]
+    # base_list = [
+    #     base * ((2 ** -k) * comb(k, k // 2))
+    #     for k, base in zip(range(1, order + 1), base_list)
+    # ]
 
     polys = torch.stack(base_list, dim=-1)  # n x n x (K)
     loop = polys.diagonal().transpose(0, 1)  # n x (K)
