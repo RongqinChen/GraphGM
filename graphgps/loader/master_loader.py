@@ -186,7 +186,7 @@ def load_dataset_master(format, name, dataset_dir):
         is_undirected = all(d.is_undirected() for d in dataset[:10])
         logging.info(f"  ...estimated to be undirected: {is_undirected}")
         print('name', name)
-        if  name in {
+        if name in {
             "PCQM4Mv2-full", "edge_wt_region_boundary",
         } or cfg.dataset.on_the_fly:
             logging.info(

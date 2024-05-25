@@ -61,9 +61,14 @@ gse_model:
     enable: True
     repeats: 4
     input_norm: False
-  head: inductive_edge
 gnn:
   head: inductive_edge
+  layers_pre_mp: 0
+  layers_post_mp: 1
+  dim_inner: 96  # `gt.dim_hidden` must match `gnn.dim_inner`
+  batchnorm: True
+  act: relu
+  dropout: 0.0
 optim:
   clip_grad_norm: True
   optimizer: adamW
@@ -72,4 +77,4 @@ optim:
   max_epoch: 200
   scheduler: cosine_with_warmup
   num_warmup_epochs: 10
- min_lr: 1e-5
+  min_lr: 1e-5
