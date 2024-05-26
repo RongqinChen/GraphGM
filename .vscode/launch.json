@@ -5,6 +5,13 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Current File",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal"
+        },
+        {
             "name": "agg_runs",
             "type": "debugpy",
             "request": "launch",
@@ -17,7 +24,8 @@
             "program": "main.py",
             "console": "integratedTerminal",
             "args": [
-                "--cfg", "configs/GSE/ogbg_mol/molpcba-GSE_grit-Poly.yaml",
+                "--cfg",
+                "configs/GSE/ogbg_mol/molpcba-GSE_grit-Poly.yaml",
             ],
             "justMyCode": true
         },
@@ -28,7 +36,8 @@
             "program": "main.py",
             "console": "integratedTerminal",
             "args": [
-                "--cfg", "configs/GSE/peptides/peptides_struct-GSE_grit-Poly.yaml",
+                "--cfg",
+                "configs/GSE/peptides/peptides_struct-GSE_grit-Poly.yaml",
             ],
             "justMyCode": true
         },
@@ -39,7 +48,8 @@
             "program": "main.py",
             "console": "integratedTerminal",
             "args": [
-                "--cfg", "configs/GSE/ogbg/ppa-GSE_grit-Poly.yaml",
+                "--cfg",
+                "configs/GSE/ogbg/ppa-GSE_grit-Poly.yaml",
             ],
             "justMyCode": true
         },
@@ -50,11 +60,42 @@
             "program": "main.py",
             "console": "integratedTerminal",
             "args": [
-                "--cfg", "configs/GSE/zinc/zinc-GSE.yaml",
-                "posenc_Poly.method", "low_middle_pass", "posenc_Poly.order", "4",
-                "posenc_Poly.emb_dim", "4", "gse_model.messaging.num_blocks", "3",
-                "gse_model.messaging.repeats", "2", "gse_model.full.repeats", "4",
-                "name_tag", "debug"
+                "--cfg",
+                "configs/GSE/zinc/zinc-GSE.yaml",
+                "posenc_Poly.method",
+                "low_middle_pass",
+                "posenc_Poly.order",
+                "16",
+                "posenc_Poly.emb_dim",
+                "16",
+                "gse_model.messaging.num_blocks",
+                "3",
+                "gse_model.messaging.repeats",
+                "2",
+                "gse_model.full.repeats",
+                "4",
+                "name_tag",
+                "debug"
+            ],
+            "justMyCode": true
+        },
+        {
+            "name": "zinc_gse",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "main.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--cfg",
+                "configs/GSE/zinc/zinc-GSE_gse.yaml",
+                "posenc_Poly.method",
+                "low_middle_pass",
+                "posenc_Poly.order",
+                "12",
+                "posenc_Poly.emb_dim",
+                "12",
+                "name_tag",
+                "debug-gse"
             ],
             "justMyCode": true
         },
@@ -65,7 +106,8 @@
             "program": "main.py",
             "console": "integratedTerminal",
             "args": [
-                "--cfg", "configs/GSE/pcqm4mv2/pcqm4mv2-GSE_grit-Poly.yaml",
+                "--cfg",
+                "configs/GSE/pcqm4mv2/pcqm4mv2-GSE_grit-Poly.yaml",
             ],
             "justMyCode": true
         },
@@ -76,7 +118,8 @@
             "program": "main.py",
             "console": "integratedTerminal",
             "args": [
-                "--cfg", "configs/GRIT/cifar10-GRIT-RRWP.yaml",
+                "--cfg",
+                "configs/GRIT/cifar10-GRIT-RRWP.yaml",
             ],
             "justMyCode": true
         }

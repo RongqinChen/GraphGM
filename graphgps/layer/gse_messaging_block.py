@@ -1,12 +1,14 @@
 from torch import nn
 from torch_geometric.data import Batch
 from .gse_grit_mp import GritMessagePassingLayer
+from .gse_mp import GseMessagePassingLayer
 from torch_geometric.graphgym.register import register_layer
 from yacs.config import CfgNode
 
 
 Layer_dict = {
-    'grit': GritMessagePassingLayer
+    'grit': GritMessagePassingLayer,
+    'gse': GseMessagePassingLayer
 }
 
 
@@ -17,7 +19,7 @@ class GseMessagingBlock(nn.Module):
         self.repeats = repeats
         Layer = Layer_dict[cfg.messaging.layer_type]
         self.layer_list = nn.ModuleList()
-        if cfg.messaging.layer_type == 'grit':
+        if cfg.full.layer_type in {'grit', 'gse'}:
             for _ in range(self.repeats):
                 layer = Layer(
                     poly_method,

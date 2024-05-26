@@ -75,8 +75,9 @@ class GseModel(torch.nn.Module):
         self.block_dict = nn.ModuleDict()
 
         poly_method = "sparse_" + cfg.posenc_Poly.method
-        LoopEncoder = register.node_encoder_dict["linear_poly"]
-        ConnEncoder = register.edge_encoder_dict["linear_poly"]
+        enc_method = "outmul_linear_poly" if cfg.gse_model.messaging.layer_type == 'gse' else "linear_poly"
+        LoopEncoder = register.node_encoder_dict[enc_method]
+        ConnEncoder = register.edge_encoder_dict[enc_method]
         for lidx in range(cfg.gse_model.messaging.num_blocks):
             loop_encoder = LoopEncoder(poly_method, cfg.posenc_Poly.emb_dim, cfg.gse_model.hidden_dim)
             conn_encoder = ConnEncoder(poly_method, cfg.posenc_Poly.emb_dim, cfg.gse_model.hidden_dim)
@@ -88,7 +89,10 @@ class GseModel(torch.nn.Module):
 
         if cfg.gse_model.messaging.num_blocks == 0:
             assert cfg.gse_model.full.enable
-            assert cfg.gse_model.full.layer_type in {'grit'}
+            assert cfg.gse_model.full.layer_type in {'grit', 'gse'}
+            enc_method = "outmul_linear_poly" if cfg.gse_model.full.layer_type == 'gse' else "linear_poly"
+            LoopEncoder = register.node_encoder_dict[enc_method]
+            ConnEncoder = register.edge_encoder_dict[enc_method]
             loop_encoder = LoopEncoder(poly_method, cfg.posenc_Poly.emb_dim, cfg.gse_model.hidden_dim)
             conn_encoder = ConnEncoder(poly_method, cfg.posenc_Poly.emb_dim, cfg.gse_model.hidden_dim)
             self.block_dict["all_loop_enc"] = loop_encoder
@@ -172,7 +176,7 @@ class GseModel(torch.nn.Module):
 
         if cfg.gse_model.full.enable:
             full_poly = "full_" + cfg.posenc_Poly.method
-            if cfg.gse_model.full.layer_type in {'grit'}:
+            if cfg.gse_model.full.layer_type in {'grit', 'gse'}:
                 if 'full_index' in batch:
                     full_index = batch['full_index']
                 else:
