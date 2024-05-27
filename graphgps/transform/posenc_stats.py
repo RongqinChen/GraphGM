@@ -21,9 +21,7 @@ from torch_scatter import scatter_add
 
 from .rrwp import add_full_rrwp
 from .polynomials import compute_polynomials
-# from .bernstain import add_bernstain_polynomials
-# from .general_metrics_1 import add_full_gm1
-# from .general_metrics_2 import add_full_gm2
+from .biconnectivity import compute_biconnectivity
 
 
 def compute_posenc_stats(data, pe_types, is_undirected, cfg):
@@ -67,6 +65,18 @@ def compute_posenc_stats(data, pe_types, is_undirected, cfg):
             method=param.method,
             order=param.order,
             add_full_edge_index=param.add_full_edge_index,
+        )
+        data = transform(data)
+
+    if 'BiConn' in pe_types:
+        param = cfg.posenc_BiConn
+        transform = partial(
+            compute_biconnectivity,
+            method=param.method,
+            truncated_len=param.truncated_len,
+            extension_len=param.extension_len,
+            add_full_edge_index=param.add_full_edge_index,
+            edge_weight=param.edge_weight,
         )
         data = transform(data)
 

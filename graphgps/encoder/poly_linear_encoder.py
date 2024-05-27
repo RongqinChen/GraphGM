@@ -1,36 +1,10 @@
-"""
-    The Generalized Metrics encoder
-"""
-
 import torch
 from torch import nn
-import torch_sparse
-from torch_geometric.graphgym.register import (
-    register_edge_encoder,
-    register_node_encoder,
-)
-from torch_geometric.data import Data
-from torch_scatter import scatter
+from torch_geometric.graphgym.register import register_node_encoder, register_edge_encoder
 import warnings
 
 
-def compute_full_index(batch: torch.Tensor):
-    batch_size = batch.max().item() + 1
-    one = batch.new_ones(batch.size(0))
-    num_nodes = scatter(one, batch, dim=0, dim_size=batch_size, reduce="add")
-    cum_nodes = torch.cat([batch.new_zeros(1), num_nodes.cumsum(dim=0)])
-    Ns = num_nodes.tolist()
-    full_index_list = [
-        torch.ones(
-            (Ns[idx], Ns[idx]), dtype=torch.short, device=batch.device
-        ).nonzero(as_tuple=False).t() + cum_nodes[idx]
-        for idx in range(batch_size)
-    ]
-    batch_index_full = torch.cat(full_index_list, dim=1).contiguous()
-    return batch_index_full
-
-
-@register_node_encoder("poly")
+@register_node_encoder("sparse_poly")
 class LinearNodeEncoder(torch.nn.Module):
     def __init__(
         self, name, emb_dim, out_dim, use_bias=False, batchnorm=False, layernorm=False,
@@ -47,35 +21,30 @@ class LinearNodeEncoder(torch.nn.Module):
         if self.layernorm:
             self.ln = nn.LayerNorm(out_dim)
 
-    def forward(self, batch):
-        node_h = batch[f"{self.name}_loop"]
+    def forward(self, node_h):
         node_h = self.fc(node_h)
         if self.batchnorm:
             node_h = self.bn(node_h)
         if self.layernorm:
             node_h = self.ln(node_h)
-        if "x" in batch:
-            batch.x = batch.x + node_h
-        else:
-            batch.x = node_h
-        return batch
+        return node_h
 
 
-@register_edge_encoder("poly")
-class LinearEdgeEncoder(torch.nn.Module):
+@register_edge_encoder("sparse_poly")
+class SparseLinearEdgeEncoder(torch.nn.Module):
     def __init__(
-        self, name, emb_dim, out_dim, batchnorm=False, layernorm=False, use_bias=False, fill_value=0.0,
+        self, name, emb_dim, out_dim, batchnorm=False, layernorm=False, use_bias=False,
     ):
         super().__init__()
         self.name = name
-        # note: batchnorm/layernorm might ruin some properties of pe on providing shortest-path distance info
-        # self.emb_dim = (2 + max_poly_order) * (max_poly_order + 1) // 2
         self.emb_dim = emb_dim
         self.out_dim = out_dim
         self.fc = nn.Linear(self.emb_dim, out_dim, bias=use_bias)
         torch.nn.init.xavier_uniform_(self.fc.weight)
         self.batchnorm = batchnorm
         self.layernorm = layernorm
+        # note: batchnorm/layernorm might ruin some properties of pe on providing shortest-path distance info
+        # self.emb_dim = (2 + max_poly_order) * (max_poly_order + 1) // 2
         if self.batchnorm or self.layernorm:
             warnings.warn(
                 "batchnorm/layernorm might ruin some properties of pe on providing shortest-path distance info "
@@ -84,50 +53,14 @@ class LinearEdgeEncoder(torch.nn.Module):
             self.bn = nn.BatchNorm1d(out_dim)
         if self.layernorm:
             self.ln = nn.LayerNorm(out_dim)
-        self.fill_value = fill_value
-        padding = torch.ones(1, out_dim, dtype=torch.float) * self.fill_value
-        self.register_buffer("padding", padding)
 
-    def forward(self, batch: Data):
-        poly_idx = batch[f"{self.name}_index"]
-        poly_val = batch[f"{self.name}_conn"]
-        edge_index = batch.edge_index
-        edge_attr = batch.edge_attr
+    def forward(self, poly_val):
         poly_val = self.fc(poly_val)
-
         if self.batchnorm:
             poly_val = self.bn(poly_val)
         if self.layernorm:
             poly_val = self.ln(poly_val)
-
-        if edge_attr is None:
-            edge_attr = edge_index.new_zeros(edge_index.size(1), poly_val.size(1))
-            # zero padding for non-existing edges
-
-        if 'full_index' in batch:
-            full_index = batch['full_index']
-        else:
-            full_index = compute_full_index(batch.batch)
-
-        if poly_idx.size(1) == full_index.size(1):
-            out_idx, out_val = torch_sparse.coalesce(
-                torch.cat([edge_index, poly_idx], dim=1),
-                torch.cat([edge_attr, poly_val], dim=0),
-                batch.num_nodes, batch.num_nodes, op="add",
-            )
-        else:
-            full_attr_pad = self.padding.repeat(full_index.size(1), 1)
-            out_idx, out_val = torch_sparse.coalesce(
-                torch.cat([edge_index, poly_idx, full_index], dim=1),
-                torch.cat([edge_attr, poly_val, full_attr_pad], dim=0),
-                batch.num_nodes, batch.num_nodes, op="add",
-            )
-        batch.edge_index, batch.edge_attr = out_idx, out_val
-        return batch
+        return poly_val
 
     def __repr__(self):
-        return (
-            f"{self.__class__.__name__}("
-            f"fill_value={self.fill_value},"
-            f"{self.fc.__repr__()})"
-        )
+        return (f"{self.__class__.__name__}("f"{self.fc.__repr__()})")
