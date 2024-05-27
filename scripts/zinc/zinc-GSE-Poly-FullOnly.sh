@@ -10,7 +10,7 @@ gse_model.messaging.num_blocks 0 \
 gse_model.full.repeats 10 \
 name_tag LowMiddleK$((K))Adp20 &
 
-# wait
+wait
 
 K=8
 CUDA_VISIBLE_DEVICES=1 \
@@ -21,7 +21,7 @@ gse_model.messaging.num_blocks 0 \
 gse_model.full.repeats 10 \
 name_tag LowMiddleK$((K))Adp20 &
 
-# wait
+wait
 
 K=12
 CUDA_VISIBLE_DEVICES=0 \
@@ -32,7 +32,7 @@ gse_model.messaging.num_blocks 0 \
 gse_model.full.repeats 10 \
 name_tag LowMiddleK$((K))Adp20 &
 
-# wait
+wait
 
 K=6
 CUDA_VISIBLE_DEVICES=1 \

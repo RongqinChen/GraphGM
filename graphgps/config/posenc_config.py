@@ -14,7 +14,22 @@ def set_cfg_posenc(cfg):
     cfg.posenc_ElstaticSE = CN({"enable": False})
     cfg.posenc_EquivStableLapPE = CN({"enable": False})
     cfg.posenc_RRWP = CN({"enable": False})
+
+    # ----------------- Note: Poly --------------
     cfg.posenc_Poly = CN({"enable": False})
+    cfg.posenc_Poly.enable = False
+    cfg.posenc_Poly.method = 'rrw_bern'
+    cfg.posenc_Poly.add_full_edge_index = False
+    cfg.posenc_Poly.order = 21
+    cfg.posenc_Poly.emb_dim = 21
+
+    # ----------------- Note: Biconnectivity --------------
+    cfg.posenc_BiConn = CN({"enable": False})
+    cfg.posenc_BiConn.method = "biconn"
+    cfg.posenc_BiConn.truncated_len = 6
+    cfg.posenc_BiConn.extension_len = 18
+    cfg.posenc_BiConn.add_full_edge_index = False
+    cfg.posenc_BiConn.edge_weight = 1.
 
     # Common arguments to all PE types.
     for name in [
@@ -98,9 +113,3 @@ def set_cfg_posenc(cfg):
     cfg.posenc_RRWP.add_identity = True
     cfg.posenc_RRWP.spd = False
 
-    # # ----------------- Note: Poly --------------
-    cfg.posenc_Poly.enable = False
-    cfg.posenc_Poly.method = 'rrw_bern'
-    cfg.posenc_Poly.add_full_edge_index = False
-    cfg.posenc_Poly.order = 21
-    cfg.posenc_Poly.emb_dim = 21

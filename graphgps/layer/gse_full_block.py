@@ -5,9 +5,11 @@ from yacs.config import CfgNode
 
 from .gse_dense_attn import GraphDenseAttn
 from .gse_grit_mp import GritMessagePassingLayer
+from .gse_mp import GseMessagePassingLayer
 
 Layer_dict = {
     'grit': GritMessagePassingLayer,
+    'gse': GseMessagePassingLayer,
     'dense': GraphDenseAttn,
 }
 
@@ -19,7 +21,7 @@ class GseFullBlock(nn.Module):
         self.repeats = repeats
         Layer = Layer_dict[cfg.full.layer_type]
         self.layer_list = nn.ModuleList()
-        if cfg.full.layer_type == 'grit':
+        if cfg.full.layer_type in {'grit', 'gse'}:
             for _ in range(repeats):
                 layer = Layer(
                     poly_method,

@@ -21,9 +21,9 @@ dataset:
   edge_encoder_bn: False
 posenc_Poly:
   enable: True
-  method: mixed_bern
+  method: low_middle_pass
   order: 16
-  emb_dim: 18
+  emb_dim: 16
   add_full_edge_index: True
 train:
   mode: custom

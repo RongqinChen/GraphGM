@@ -1,15 +1,19 @@
 out_dir: results
-metric_best: ap
+metric_best: mrr
+metric_agg: argmax
+tensorboard_each_run: False  # Log to Tensorboard each run
 accelerator: "cuda:0"
 num_workers: 2
 wandb:
   use: False
-  project: peptides-func
+  project: pcqm4m-contact
 dataset:
   format: OGB
-  name: peptides-functional
-  task: graph
-  task_type: classification_multilabel
+  name: PCQM4Mv2Contact-shuffle
+  # on_the_fly: True
+  task: graph  # PCQM4Mv2Contact is edge-level task, but because it is inductive, set to 'graph'
+  task_type: classification
+  resample_negative: True
   transductive: False
   node_encoder: True
   node_encoder_name: Atom
@@ -19,25 +23,24 @@ dataset:
   edge_encoder_bn: False
 posenc_Poly:
   enable: True
-  add_full_edge_index: True
-  method: mixed_bern
+  method: low_middle_pass
   order: 16
-  emb_dim: 18
+  emb_dim: 16
 train:
   mode: custom
-  batch_size: 16
+  batch_size: 256
   eval_period: 1
   ckpt_period: 100
 model:
   type: GseModel
   loss_fun: cross_entropy
-  graph_pooling: mean
+  edge_decoding: dot
 gse_model:
   enable: True
-  hidden_dim: 72
+  hidden_dim: 96
   attn_heads: 8
   drop_prob: 0.0
-  attn_drop_prob: 0.5
+  attn_drop_prob: 0.25
   residual: True
   layer_norm: False
   batch_norm: True
@@ -51,20 +54,27 @@ gse_model:
   act: relu
   messaging:
     layer_type: grit
-    num_blocks: 5
-    repeats: 1
+    num_blocks: 0
+    repeats: 0
   full:
     layer_type: grit
     enable: True
-    repeats: 1
+    repeats: 4
     input_norm: False
-  head: san_graph
+gnn:
+  head: inductive_edge
+  layers_pre_mp: 0
+  layers_post_mp: 1
+  dim_inner: 96  # `gt.dim_hidden` must match `gnn.dim_inner`
+  batchnorm: True
+  act: relu
+  dropout: 0.0
 optim:
   clip_grad_norm: True
   optimizer: adamW
-  weight_decay: 1e-5
-  base_lr: 1e-3
+  weight_decay: 0.0
+  base_lr: 0.0003
   max_epoch: 200
   scheduler: cosine_with_warmup
   num_warmup_epochs: 10
-  min_lr: 1e-6
+  min_lr: 1e-5

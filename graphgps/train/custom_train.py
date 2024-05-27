@@ -3,6 +3,9 @@ import time
 from tqdm import tqdm
 import numpy as np
 import torch
+import fcntl
+import json
+import os.path as osp
 from torch_geometric.graphgym.checkpoint import load_ckpt, save_ckpt, clean_ckpt
 from torch_geometric.graphgym.config import cfg
 from torch_geometric.graphgym.loss import compute_loss
@@ -209,7 +212,38 @@ def custom_train(loggers, loaders, model, optimizer, scheduler):
         run.finish()
         run = None
 
+    result_dict = {
+        "best_epoch": best_epoch,
+        "train_loss": perf[0][best_epoch]['loss'],
+        best_train.split('_')[0]: best_train.split('_')[1],
+        "val_loss": perf[1][best_epoch]['loss'],
+        best_val.split('_')[0]: best_val.split('_')[1],
+        "test_loss": perf[2][best_epoch]['loss'],
+        best_test.split('_')[0]: best_test.split('_')[1],
+        "Avg time per epoch": f"{np.mean(full_epoch_times):.2f}s",
+        "Total train loop time": f"{np.sum(full_epoch_times) / 3600:.2f}h"
+    }
+    out_dir, run_id = cfg.run_dir.rsplit(osp.sep, 1)
+    result_dict_path = osp.join(out_dir, 'result_summary.json')
+    save_finnal_result(result_dict, result_dict_path, run_id)
     logging.info('Task done, results saved in %s', cfg.run_dir)
+
+
+def save_finnal_result(result_dict, fpath, run_id):
+    with open(fpath, "r+") as file:
+        while True:
+            try:
+                fcntl.flock(file, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                break
+            except Exception:
+                time.sleep(0.1)
+        whole_dict = json.load(file)
+        file.seek(0)
+        file.truncate()
+        whole_dict[run_id] = result_dict
+        with open(fpath, "w") as wfile:
+            json.dump(whole_dict, wfile, indent=2, sort_keys=True)
+        fcntl.flock(file, fcntl.LOCK_UN)
 
 
 @register_train('inference-only')

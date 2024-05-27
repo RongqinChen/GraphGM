@@ -23,7 +23,7 @@ dataset:
   edge_encoder_bn: False
 posenc_Poly:
   enable: True
-  method: mixed_bern
+  method: low_middle_pass
   order: 8
   emb_dim: 10
 train:
@@ -61,14 +61,20 @@ gse_model:
     enable: True
     repeats: 2
     input_norm: False
-  head: inductive_edge
 gnn:
   head: inductive_edge
+  layers_pre_mp: 0
+  layers_post_mp: 1
+  dim_inner: 96  # `gt.dim_hidden` must match `gnn.dim_inner`
+  batchnorm: True
+  act: relu
+  dropout: 0.0
 optim:
   clip_grad_norm: True
   optimizer: adamW
   weight_decay: 0.0
-  base_lr: 0.001
+  base_lr: 0.0003
   max_epoch: 200
   scheduler: cosine_with_warmup
   num_warmup_epochs: 10
+  min_lr: 1e-5
