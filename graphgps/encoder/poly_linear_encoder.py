@@ -7,7 +7,7 @@ import warnings
 @register_node_encoder("sparse_poly")
 class LinearNodeEncoder(torch.nn.Module):
     def __init__(
-        self, name, emb_dim, out_dim, use_bias=False, batchnorm=False, layernorm=False,
+        self, name, emb_dim, out_dim, batchnorm=False, layernorm=False, use_bias=False,
     ):
         super().__init__()
         self.name = name
@@ -39,8 +39,8 @@ class SparseLinearEdgeEncoder(torch.nn.Module):
         self.name = name
         self.emb_dim = emb_dim
         self.out_dim = out_dim
-        self.fc = nn.Linear(self.emb_dim, out_dim, bias=use_bias)
-        torch.nn.init.xavier_uniform_(self.fc.weight)
+        self.lin = nn.Linear(self.emb_dim, out_dim, bias=use_bias)
+        torch.nn.init.xavier_uniform_(self.lin.weight)
         self.batchnorm = batchnorm
         self.layernorm = layernorm
         # note: batchnorm/layernorm might ruin some properties of pe on providing shortest-path distance info

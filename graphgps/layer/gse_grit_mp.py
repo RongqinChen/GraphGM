@@ -1,10 +1,7 @@
-import warnings
-
 import numpy as np
 import opt_einsum as oe
 import torch
 import torch.nn.functional as F
-import torch_geometric as pyg
 from torch import nn
 from torch_geometric.graphgym.register import act_dict
 from torch_geometric.utils.num_nodes import maybe_num_nodes
@@ -57,20 +54,16 @@ class GritMessagePassing(nn.Module):
         self.agg = agg
         self.attn_dropout = nn.Dropout(attn_drop_prob)
         self.clamp = np.abs(clamp) if clamp is not None else None
-        self.Q = nn.Linear(hidden_dim, attn_dim * attn_heads, bias=False)
-        self.K = nn.Linear(hidden_dim, attn_dim * attn_heads, bias=False)
-        self.V = nn.Linear(hidden_dim, attn_dim * attn_heads, bias=False)
-        self.Ew = nn.Linear(hidden_dim, attn_dim * attn_heads, bias=False)
-        self.Eb = nn.Linear(hidden_dim, attn_dim * attn_heads, bias=True)
-        self.Eo = nn.Linear(attn_dim * attn_heads, attn_dim * attn_heads, bias=True)
+        self.Q = nn.Linear(hidden_dim, attn_dim * attn_heads, bias=True)
+        self.K = nn.Linear(hidden_dim, attn_dim * attn_heads, bias=True)
+        self.V = nn.Linear(hidden_dim, attn_dim * attn_heads, bias=True)
+        self.E = nn.Linear(hidden_dim, 2 * attn_dim * attn_heads, bias=True)
         self.Aw = nn.Parameter(torch.zeros(self.attn_dim, self.attn_heads, 1))
         self.BW = nn.Parameter(torch.zeros(self.attn_dim, self.attn_heads, self.attn_dim))
         nn.init.xavier_normal_(self.Q.weight)
         nn.init.xavier_normal_(self.K.weight)
         nn.init.xavier_normal_(self.V.weight)
-        nn.init.xavier_normal_(self.Ew.weight)
-        nn.init.xavier_normal_(self.Eb.weight)
-        nn.init.xavier_normal_(self.Eo.weight)
+        nn.init.xavier_normal_(self.E.weight)
         nn.init.xavier_normal_(self.Aw)
         nn.init.xavier_normal_(self.BW)
         self.act = act_dict[act]()
@@ -88,7 +81,6 @@ class GritMessagePassing(nn.Module):
         conn2 = torch.sqrt(torch.relu(conn1)) - torch.sqrt(torch.relu(-conn1))
         conn3 = conn2 + Eb
         conn = self.act(conn3)
-        conn = self.Eo(conn)
         # output edge
         batch.Oe = conn
 
@@ -111,7 +103,6 @@ class GritMessagePassing(nn.Module):
         score = self.attn_dropout(score)
         # Aggregate with Attn-Score
         Vsrc = Vsrc.view(-1, self.attn_heads, self.attn_dim)
-        conn = conn.view(-1, self.attn_heads, self.attn_dim)
         agg = scatter(Vsrc * score, dst, dim=0, reduce=self.agg)
         rowV = scatter(conn * score, dst, dim=0, reduce=self.agg)
         rowV = oe.contract("nhd, dhc -> nhc", rowV, self.BW, backend="torch")
@@ -122,8 +113,11 @@ class GritMessagePassing(nn.Module):
         batch.Qh = self.Q(batch.x)
         batch.Kh = self.K(batch.x)
         batch.Vh = self.V(batch.x)
-        batch.Ew = self.Ew(batch[self.poly_method + "_conn"])
-        batch.Eb = self.Eb(batch[self.poly_method + "_conn"])
+        E = self.E(batch[self.poly_method + "_conn"])
+        batch.Ew = E[:, :self.attn_dim * self.attn_heads] 
+        batch.Eb = E[:, self.attn_dim * self.attn_heads:]
+        # batch.Ew = self.Ew(batch[self.poly_method + "_conn"])
+        # batch.Eb = self.Eb(batch[self.poly_method + "_conn"])
         self.propagate_attention(batch)
         h_out = batch.On
         e_out = batch.Oe
@@ -206,7 +200,7 @@ class GritMessagePassingLayer(nn.Module):
             h = (h * self.deg_coef).sum(dim=-1)
 
         h = self.O_h(h)
-        # e = e_attn_out.flatten(1)
+
         e = F.dropout(e_attn_out, self.drop_prob, training=self.training)
         e = self.O_e(e)
 
@@ -253,12 +247,12 @@ class GritMessagePassingLayer(nn.Module):
 def get_log_deg(batch):
     if "log_deg" in batch:
         log_deg = batch.log_deg
-    elif "deg" in batch:
-        deg = batch.deg
-        log_deg = torch.log(deg + 1).unsqueeze(-1)
-    else:
-        warnings.warn("Compute the degree on the fly; Might be problematric if have applied edge-padding to complete graphs")
-        deg = pyg.utils.degree(batch.poly_idx[1], num_nodes=batch.num_nodes, dtype=torch.float)
-        log_deg = torch.log(deg + 1)
-    log_deg = log_deg.view(batch.num_nodes, 1)
+    # elif "deg" in batch:
+    #     deg = batch.deg
+    #     log_deg = torch.log(deg + 1).unsqueeze(-1)
+    # else:
+    #     warnings.warn("Compute the degree on the fly; Might be problematric if have applied edge-padding to complete graphs")
+    #     deg = pyg.utils.degree(batch.poly_idx[1], num_nodes=batch.num_nodes, dtype=torch.float)
+    #     log_deg = torch.log(deg + 1)
+    # log_deg = log_deg.view(batch.num_nodes, 1)
     return log_deg

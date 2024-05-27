@@ -1,12 +1,5 @@
 
 CUDA_VISIBLE_DEVICES=2 \
-python main.py --repeat 5 --cfg configs/GSE/cluster/cluster-GSE_dense-Poly.yaml \
-optim.base_lr 0.001 gse_model.attn_drop_prob 0.25 dataset.on_the_fly False &
-
-wait
-
-CUDA_VISIBLE_DEVICES=2 \
-python main.py --repeat 5 --cfg configs/GSE/cluster/cluster-GSE_grit-Poly.yaml \
-optim.base_lr 0.001 gse_model.attn_drop_prob 0.25 dataset.on_the_fly False &
+python main.py --repeat 5 --cfg configs/GSE/bench_cluster/cluster-GSE_grit-Poly.yaml  &
 
 wait
