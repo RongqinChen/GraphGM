@@ -78,7 +78,7 @@ class MbpModel(torch.nn.Module):
         self.block_dict = nn.ModuleDict()
 
         poly_method = "sparse_" + cfg.posenc_Poly.method
-        lin_method = "outerprod_linear" if cfg.mbp_model.messaging.layer_type == "gine" else "simple_linear"
+        lin_method = "outerprod_linear" if cfg.mbp_model.messaging.layer_type in {"gine"} else "simple_linear"
         PELayer = register.layer_dict[lin_method]
         for lidx in range(cfg.mbp_model.messaging.num_blocks):
             loop_layer = PELayer(emb_dim, cfg.mbp_model.hidden_dim)
@@ -91,8 +91,8 @@ class MbpModel(torch.nn.Module):
 
         if cfg.mbp_model.messaging.num_blocks == 0:
             assert cfg.mbp_model.full.enable
-            assert cfg.mbp_model.full.layer_type in {"grit", "gine"}
-            lin_method = "outerprod_linear" if cfg.mbp_model.full.layer_type == "gine" else "simple_linear"
+            assert cfg.mbp_model.full.layer_type in {"grit", "gine", "gat"}
+            lin_method = "outerprod_linear" if cfg.mbp_model.full.layer_type in {"gine"} else "simple_linear"
             PELayer = register.layer_dict[lin_method]
             loop_layer = PELayer(emb_dim, cfg.mbp_model.hidden_dim)
             conn_layer = PELayer(emb_dim, cfg.mbp_model.hidden_dim)
@@ -168,7 +168,7 @@ class MbpModel(torch.nn.Module):
 
         if cfg.mbp_model.full.enable:
             full_poly = "full_" + cfg.posenc_Poly.method
-            if cfg.mbp_model.full.layer_type in {"grit", "gine"}:
+            if cfg.mbp_model.full.layer_type in {"grit", "gine", "gat"}:
                 if "full_index" in batch:
                     full_index = batch["full_index"]
                 else:

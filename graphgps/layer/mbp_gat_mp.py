@@ -53,31 +53,40 @@ class MbpGAT(nn.Module):
         self.weight_fn = weight_fn
         self.agg = agg
         self.clamp = np.abs(clamp) if clamp is not None else None
-        self.dropout = nn.Dropout(attn_drop_prob)
+        self.attn_dropout = nn.Dropout(attn_drop_prob)
         self.Q = nn.Linear(hidden_dim, attn_dim * attn_heads, bias=True)
         self.K = nn.Linear(hidden_dim, attn_dim * attn_heads, bias=True)
-        self.E = nn.Linear(hidden_dim, attn_dim * attn_heads, bias=True)
+        self.E = nn.Linear(hidden_dim, attn_dim * attn_heads * 2, bias=True)
         self.conn_lin = nn.Linear(attn_dim * attn_heads, hidden_dim, bias=True)
         self.Aw = nn.Parameter(torch.zeros(self.attn_dim, self.attn_heads, 1))
         nn.init.xavier_normal_(self.Q.weight)
         nn.init.xavier_normal_(self.K.weight)
         nn.init.xavier_normal_(self.E.weight)
         nn.init.xavier_normal_(self.conn_lin.weight)
+        nn.init.xavier_normal_(self.Aw)
         self.act = act_dict[act]()
 
     def forward(self, batch):
         Eh = self.E(batch[self.poly_method + "_conn"])
+        Ew = Eh[:, :self.attn_dim * self.attn_heads]
+        Eb = Eh[:, self.attn_dim * self.attn_heads:]
         dst, src = batch[self.poly_method + "_index"]
         Qdst = self.Q(batch.x)[dst]
         Ksrc = self.K(batch.x)[src]
-        conn1 = Qdst + Ksrc + Eh
-        conn2 = self.act(conn1)
+        msg1 = Qdst + Ksrc
+        conn1 = msg1 * Ew
+        conn2 = torch.sqrt(torch.relu(conn1)) - torch.sqrt(torch.relu(-conn1))
+        conn3 = conn2 + Eb
+        conn4 = self.act(conn3)
+        conn5 = conn4.view(-1, self.attn_heads, self.attn_dim)
+        score = oe.contract("ehd, dhc->ehc", conn5, self.Aw, backend="torch")
+        score = pyg_softmax(score, dst)
+        score = self.attn_dropout(score)
 
-        score = conn2.view(-1, self.attn_heads, self.attn_dim)
-        score = oe.contract("ehd, dhc->ehc", score, self.Aw, backend="torch")
-
-        conn = self.conn_lin(conn2)
-        agg = scatter(conn * score, dst, dim=0, reduce=self.agg)
+        conn = self.conn_lin(conn4)
+        w_conn = conn.view(-1, self.attn_heads, self.attn_dim) * score
+        w_conn = w_conn.view(-1, self.attn_heads * self.attn_dim)
+        agg = scatter(w_conn, dst, dim=0, reduce=self.agg)
         return agg, conn
 
 

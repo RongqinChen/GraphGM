@@ -230,6 +230,10 @@ def custom_train(loggers, loaders, model, optimizer, scheduler):
 
 
 def save_finnal_result(result_dict, fpath, run_id):
+    if not osp.isfile(fpath):
+        with open(fpath, "w") as wfile:
+            json.dump({}, wfile, indent=4)
+
     with open(fpath, "r+") as file:
         while True:
             try:
