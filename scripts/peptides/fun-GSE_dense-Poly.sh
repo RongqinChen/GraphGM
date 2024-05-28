@@ -11,7 +11,7 @@ gse_model.messaging.num_blocks $((L)) \
 gse_model.messaging.repeats $((R)) \
 gse_model.full.repeats $((F)) \
 gse_model.hidden_dim $((H)) \
-dataset.on_the_fly True \
+dataset.precompute_on_the_fly True \
 name_tag mixed_bern_K$((K))R$((R))L$((L))F$((F)) 
 
 
@@ -28,7 +28,7 @@ gse_model.messaging.num_blocks $((L)) \
 gse_model.messaging.repeats $((R)) \
 gse_model.full.repeats $((F)) \
 gse_model.hidden_dim $((H)) \
-dataset.on_the_fly True \
+dataset.precompute_on_the_fly True \
 name_tag mixed_bern_K$((K))R$((R))L$((L))F$((F)) 
 
 
@@ -44,5 +44,5 @@ gse_model.messaging.num_blocks $((L)) \
 gse_model.messaging.repeats $((R)) \
 gse_model.full.repeats $((F)) \
 gse_model.hidden_dim $((H)) \
-dataset.on_the_fly False \
+dataset.precompute_on_the_fly False \
 name_tag mixed_bern_K$((K))R$((R))L$((L))F$((F))

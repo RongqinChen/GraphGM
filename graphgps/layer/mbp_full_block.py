@@ -1,26 +1,28 @@
 from torch import nn
 from torch_geometric.data import Batch
-from .gse_grit_mp import GritMessagePassingLayer
-from .gse_mp import GseMessagePassingLayer
 from torch_geometric.graphgym.register import register_layer
 from yacs.config import CfgNode
 
+from .mbp_dense_attn import GraphDenseAttn
+from .mbp_grit_mp import GritMessagePassingLayer
+from .mbp_gine_mp import MbpGINELayer
 
 Layer_dict = {
     'grit': GritMessagePassingLayer,
-    'gse': GseMessagePassingLayer
+    'gine': MbpGINELayer,
+    'dense': GraphDenseAttn,
 }
 
 
-@register_layer("GseMessagingBlock")
-class GseMessagingBlock(nn.Module):
+@register_layer("MbpFullBlock")
+class MbpFullBlock(nn.Module):
     def __init__(self, poly_method, repeats, cfg: CfgNode) -> None:
         super().__init__()
         self.repeats = repeats
-        Layer = Layer_dict[cfg.messaging.layer_type]
+        Layer = Layer_dict[cfg.full.layer_type]
         self.layer_list = nn.ModuleList()
-        if cfg.full.layer_type in {'grit', 'gse'}:
-            for _ in range(self.repeats):
+        if cfg.full.layer_type in {'grit', 'gine'}:
+            for _ in range(repeats):
                 layer = Layer(
                     poly_method,
                     cfg.hidden_dim, cfg.attn_heads, cfg.drop_prob,
@@ -28,6 +30,14 @@ class GseMessagingBlock(nn.Module):
                     cfg.batch_norm, cfg.bn_momentum, cfg.bn_no_runner,
                     cfg.rezero, cfg.deg_scaler, cfg.clamp,
                     cfg.weight_fn, cfg.agg, cfg.act,
+                )
+                self.layer_list.append(layer)
+        elif cfg.full.layer_type == 'dense':
+            for _ in range(repeats):
+                layer = Layer(
+                    poly_method,
+                    cfg.hidden_dim, cfg.attn_heads, cfg.drop_prob, cfg.attn_drop_prob,
+                    cfg.drop_prob, cfg.full.input_norm
                 )
                 self.layer_list.append(layer)
         else:

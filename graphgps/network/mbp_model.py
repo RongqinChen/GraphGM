@@ -38,19 +38,19 @@ class FeatureEncoder(torch.nn.Module):
         if cfg.dataset.node_encoder:
             # Encode integer node features via nn.Embeddings
             NodeEncoder = register.node_encoder_dict[cfg.dataset.node_encoder_name]
-            self.node_encoder = NodeEncoder(cfg.gse_model.hidden_dim)
+            self.node_encoder = NodeEncoder(cfg.mbp_model.hidden_dim)
             if cfg.dataset.node_encoder_bn:
                 self.node_encoder_bn = BatchNorm1dNode(new_layer_config(
-                    cfg.gse_model.hidden_dim, -1, -1, has_act=False, has_bias=False, cfg=cfg,
+                    cfg.mbp_model.hidden_dim, -1, -1, has_act=False, has_bias=False, cfg=cfg,
                 ))
             # Update dim_in to reflect the new dimension fo the node features
         if cfg.dataset.edge_encoder:
             # Encode integer edge features via nn.Embeddings
             EdgeEncoder = register.edge_encoder_dict[cfg.dataset.edge_encoder_name]
-            self.edge_encoder = EdgeEncoder(cfg.gse_model.hidden_dim)
+            self.edge_encoder = EdgeEncoder(cfg.mbp_model.hidden_dim)
             if cfg.dataset.edge_encoder_bn:
                 self.edge_encoder_bn = BatchNorm1dNode(new_layer_config(
-                    cfg.gse_model.hidden_dim, -1, -1, has_act=False, has_bias=False, cfg=cfg
+                    cfg.mbp_model.hidden_dim, -1, -1, has_act=False, has_bias=False, cfg=cfg
                 ))
 
     def forward(self, batch):
@@ -59,68 +59,60 @@ class FeatureEncoder(torch.nn.Module):
         return batch
 
 
-@register_network("GseModel")
-class GseModel(torch.nn.Module):
+@register_network("MbpModel")
+class MbpModel(torch.nn.Module):
     """
-    The proposed GseModel
+    The proposed MbpModel
     """
 
     def __init__(self, dim_in, dim_out):
         super().__init__()
-        assert (cfg.posenc_Poly.emb_dim) > 2 ** (cfg.gse_model.messaging.num_blocks - 2)
-        GseMessagingBlock = register.layer_dict["GseMessagingBlock"]
-        GseFullBlock = register.layer_dict["GseFullBlock"]
+        assert (cfg.posenc_Poly.power) > 2 ** (cfg.mbp_model.messaging.num_blocks - 2)
+        if cfg.posenc_Poly.method in {"mixed_bern"}:
+            emb_dim = cfg.posenc_Poly.power + 2
 
-        self.feat_encoder = FeatureEncoder(cfg.gse_model.hidden_dim)
+        MbpMessagingBlock = register.layer_dict["MbpMessagingBlock"]
+        MbpFullBlock = register.layer_dict["MbpFullBlock"]
+
+        self.feat_encoder = FeatureEncoder(cfg.mbp_model.hidden_dim)
         self.block_dict = nn.ModuleDict()
 
         poly_method = "sparse_" + cfg.posenc_Poly.method
-        enc_method = "outmul_linear_poly" if cfg.gse_model.messaging.layer_type == 'gse' else "linear_poly"
-        LoopEncoder = register.node_encoder_dict[enc_method]
-        ConnEncoder = register.edge_encoder_dict[enc_method]
-        for lidx in range(cfg.gse_model.messaging.num_blocks):
-            loop_encoder = LoopEncoder(poly_method, cfg.posenc_Poly.emb_dim, cfg.gse_model.hidden_dim)
-            conn_encoder = ConnEncoder(poly_method, cfg.posenc_Poly.emb_dim, cfg.gse_model.hidden_dim)
-            repeats = max(2, cfg.gse_model.messaging.repeats) if lidx == 0 else cfg.gse_model.messaging.repeats
-            messaging_block = GseMessagingBlock(poly_method, repeats, cfg.gse_model)
-            self.block_dict[f"{lidx}_loop_enc"] = loop_encoder
-            self.block_dict[f"{lidx}_conn_enc"] = conn_encoder
+        lin_method = "outerprod_linear" if cfg.mbp_model.messaging.layer_type == "gine" else "simple_linear"
+        PELayer = register.layer_dict[lin_method]
+        for lidx in range(cfg.mbp_model.messaging.num_blocks):
+            loop_layer = PELayer(emb_dim, cfg.mbp_model.hidden_dim)
+            conn_layer = PELayer(emb_dim, cfg.mbp_model.hidden_dim)
+            repeats = max(2, cfg.mbp_model.messaging.repeats) if lidx == 0 else cfg.mbp_model.messaging.repeats
+            messaging_block = MbpMessagingBlock(poly_method, repeats, cfg.mbp_model)
+            self.block_dict[f"{lidx}_loop_enc"] = loop_layer
+            self.block_dict[f"{lidx}_conn_enc"] = conn_layer
             self.block_dict[f"{lidx}_messaging"] = messaging_block
 
-        if cfg.gse_model.messaging.num_blocks == 0:
-            assert cfg.gse_model.full.enable
-            assert cfg.gse_model.full.layer_type in {'grit', 'gse'}
-            enc_method = "outmul_linear_poly" if cfg.gse_model.full.layer_type == 'gse' else "linear_poly"
-            LoopEncoder = register.node_encoder_dict[enc_method]
-            ConnEncoder = register.edge_encoder_dict[enc_method]
-            loop_encoder = LoopEncoder(poly_method, cfg.posenc_Poly.emb_dim, cfg.gse_model.hidden_dim)
-            conn_encoder = ConnEncoder(poly_method, cfg.posenc_Poly.emb_dim, cfg.gse_model.hidden_dim)
-            self.block_dict["all_loop_enc"] = loop_encoder
-            self.block_dict["all_conn_enc"] = conn_encoder
+        if cfg.mbp_model.messaging.num_blocks == 0:
+            assert cfg.mbp_model.full.enable
+            assert cfg.mbp_model.full.layer_type in {"grit", "gine"}
+            lin_method = "outerprod_linear" if cfg.mbp_model.full.layer_type == "gine" else "simple_linear"
+            PELayer = register.layer_dict[lin_method]
+            loop_layer = PELayer(emb_dim, cfg.mbp_model.hidden_dim)
+            conn_layer = PELayer(emb_dim, cfg.mbp_model.hidden_dim)
+            self.block_dict["all_loop_enc"] = loop_layer
+            self.block_dict["all_conn_enc"] = conn_layer
 
-        if cfg.gse_model.full.enable:
-            repeats = cfg.gse_model.full.repeats
+        if cfg.mbp_model.full.enable:
+            repeats = cfg.mbp_model.full.repeats
             poly_method = "full_" + cfg.posenc_Poly.method
-            full_block = GseFullBlock(poly_method, repeats, cfg.gse_model)
+            full_block = MbpFullBlock(poly_method, repeats, cfg.mbp_model)
             self.block_dict["full"] = full_block
 
         GNNHead = register.head_dict[cfg.gnn.head]
-        self.post_mp = GNNHead(dim_in=cfg.gse_model.hidden_dim, dim_out=dim_out)
+        self.post_mp = GNNHead(dim_in=cfg.mbp_model.hidden_dim, dim_out=dim_out)
 
         if cfg.posenc_Poly.method == "mixed_bern":
-            # orders = [0] + [
-            #     (idx + 1) // 2**2 for idx in range(2, cfg.posenc_Poly.order + 1)
-            # ] + [cfg.posenc_Poly.order]
             # orders: [1, 2, 2, 4, 4, ..., 2**(K-1), 2**(K-1), 2**K, 2**K, 2**K]
             self._poly_order_map = {
                 lidx: 2 ** lidx
-                for lidx in range(cfg.gse_model.messaging.num_blocks)
-            }
-        elif cfg.posenc_Poly.method == "low_middle_pass":
-            # orders: [1, 2, 3, 4, ...]
-            self._poly_order_map = {
-                lidx: 2 ** lidx
-                for lidx in range(cfg.gse_model.messaging.num_blocks)
+                for lidx in range(cfg.mbp_model.messaging.num_blocks)
             }
         else:
             raise NotImplementedError
@@ -135,9 +127,9 @@ class GseModel(torch.nn.Module):
         batch[sparse_poly + "_index"] = batch.edge_index
         batch[sparse_poly + "_conn"] = batch.edge_attr
 
-        for lidx in range(cfg.gse_model.messaging.num_blocks):
+        for lidx in range(cfg.mbp_model.messaging.num_blocks):
             order = self._poly_order_map[lidx]
-            if lidx < cfg.gse_model.messaging.num_blocks - 1:
+            if lidx < cfg.mbp_model.messaging.num_blocks - 1:
                 poly_sgn = all_poly_val[:, order - 1] != 0
                 poly_idx = all_poly_idx[:, poly_sgn]
                 poly_val = all_poly_val[poly_sgn, :]
@@ -162,7 +154,7 @@ class GseModel(torch.nn.Module):
 
             batch = self.block_dict[f"{lidx}_messaging"](batch)
 
-        if cfg.gse_model.messaging.num_blocks == 0:
+        if cfg.mbp_model.messaging.num_blocks == 0:
             all_loop_h = self.block_dict["all_loop_enc"](all_loop_val)
             all_poly_h = self.block_dict["all_conn_enc"](all_poly_val)
             poly_idx_add, poly_h_add = torch_sparse.coalesce(
@@ -174,15 +166,15 @@ class GseModel(torch.nn.Module):
             batch[sparse_poly + "_index"] = poly_idx_add
             batch[sparse_poly + "_conn"] = poly_h_add
 
-        if cfg.gse_model.full.enable:
+        if cfg.mbp_model.full.enable:
             full_poly = "full_" + cfg.posenc_Poly.method
-            if cfg.gse_model.full.layer_type in {'grit', 'gse'}:
-                if 'full_index' in batch:
-                    full_index = batch['full_index']
+            if cfg.mbp_model.full.layer_type in {"grit", "gine"}:
+                if "full_index" in batch:
+                    full_index = batch["full_index"]
                 else:
                     full_index = compute_full_index(batch.batch)
                 if full_index.size(1) > batch[sparse_poly + "_index"].size(1):
-                    full_val = all_poly_val.new_zeros((full_index.size(1), cfg.gse_model.hidden_dim))
+                    full_val = all_poly_val.new_zeros((full_index.size(1), cfg.mbp_model.hidden_dim))
                     full_index, full_h = torch_sparse.coalesce(
                         torch.cat([full_index, batch[sparse_poly + "_index"]], dim=1),
                         torch.cat([full_val, batch[sparse_poly + "_conn"]], dim=0),

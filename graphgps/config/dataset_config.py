@@ -18,4 +18,4 @@ def dataset_cfg(cfg):
     # infer-link parameters (e.g., edge prediction task)
     cfg.dataset.infer_link_label = "None"
 
-    cfg.dataset.on_the_fly = False
+    cfg.dataset.precompute_on_the_fly = False

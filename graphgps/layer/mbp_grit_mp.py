@@ -43,7 +43,7 @@ def sigmoid(x: torch.Tensor):
     return out
 
 
-class GseMessagePassing(nn.Module):
+class GritMessagePassing(nn.Module):
 
     def __init__(self, poly_method, hidden_dim, attn_dim, attn_heads, clamp, attn_drop_prob, weight_fn, agg, act):
         super().__init__()
@@ -56,31 +56,37 @@ class GseMessagePassing(nn.Module):
         self.clamp = np.abs(clamp) if clamp is not None else None
         self.Q = nn.Linear(hidden_dim, attn_dim * attn_heads, bias=True)
         self.K = nn.Linear(hidden_dim, attn_dim * attn_heads, bias=True)
-        self.E = nn.Linear(hidden_dim, attn_dim * attn_heads, bias=True)
+        self.V = nn.Linear(hidden_dim, attn_dim * attn_heads, bias=True)
+        self.E = nn.Linear(hidden_dim, 2 * attn_dim * attn_heads, bias=True)
         self.Aw = nn.Parameter(torch.zeros(self.attn_dim, self.attn_heads, 1))
-        self.Bw = nn.Parameter(torch.zeros(self.attn_dim, self.attn_heads, self.attn_dim))
+        self.BW = nn.Parameter(torch.zeros(self.attn_dim, self.attn_heads, self.attn_dim))
         nn.init.xavier_normal_(self.Q.weight)
         nn.init.xavier_normal_(self.K.weight)
+        nn.init.xavier_normal_(self.V.weight)
         nn.init.xavier_normal_(self.E.weight)
         nn.init.xavier_normal_(self.Aw)
-        nn.init.xavier_normal_(self.Bw)
+        nn.init.xavier_normal_(self.BW)
         self.act = act_dict[act]()
 
     def propagate_attention(self, batch):
         dst, src = batch[self.poly_method + "_index"]
         Qdst = batch.Qh[dst]
         Ksrc = batch.Kh[src]
-        Eh = batch.Eh
+        Vsrc = batch.Vh[src]
+        Ew = batch.Ew
+        Eb = batch.Eb
 
-        conn1 = Qdst + Ksrc + Eh
-        conn2 = self.act(conn1)
+        msg1 = Qdst + Ksrc
+        conn1 = msg1 * Ew
+        conn2 = torch.sqrt(torch.relu(conn1)) - torch.sqrt(torch.relu(-conn1))
+        conn3 = conn2 + Eb
+        conn = self.act(conn3)
         # output edge
-        batch.Oe = conn2
+        batch.Eo = conn
 
         # final attn
-        conn2 = conn2.view(-1, self.attn_heads, self.attn_dim)
-        score = oe.contract("ehd, dhc -> ehc", conn2, self.Aw, backend="torch")
-        conn = oe.contract("ehd, dhc -> ehc", conn2, self.Bw, backend="torch")
+        conn = conn.view(-1, self.attn_heads, self.attn_dim)
+        score = oe.contract("ehd, dhc->ehc", conn, self.Aw, backend="torch")
         if self.clamp is not None:
             score = torch.clamp(score, min=-self.clamp, max=self.clamp)
 
@@ -96,20 +102,27 @@ class GseMessagePassing(nn.Module):
 
         score = self.attn_dropout(score)
         # Aggregate with Attn-Score
-        On = scatter(conn * score, dst, dim=0, reduce=self.agg)
-        batch.On = On.flatten(1)
+        Vsrc = Vsrc.view(-1, self.attn_heads, self.attn_dim)
+        agg = scatter(Vsrc * score, dst, dim=0, reduce=self.agg)
+        rowV = scatter(conn * score, dst, dim=0, reduce=self.agg)
+        rowV = oe.contract("nhd, dhc -> nhc", rowV, self.BW, backend="torch")
+        No = agg + rowV
+        batch.No = No.flatten(1)
 
     def forward(self, batch):
         batch.Qh = self.Q(batch.x)
         batch.Kh = self.K(batch.x)
-        batch.Eh = self.E(batch[self.poly_method + "_conn"])
+        batch.Vh = self.V(batch.x)
+        E = self.E(batch[self.poly_method + "_conn"])
+        batch.Ew = E[:, :self.attn_dim * self.attn_heads]
+        batch.Eb = E[:, self.attn_dim * self.attn_heads:]
         self.propagate_attention(batch)
-        h_out = batch.On
-        e_out = batch.Oe
+        h_out = batch.No
+        e_out = batch.Eo
         return h_out, e_out
 
 
-class GseMessagePassingLayer(nn.Module):
+class GritMessagePassingLayer(nn.Module):
     def __init__(
         self, poly_method, hidden_dim, attn_heads, drop_prob, attn_drop_prob,
         residual, layer_norm, batch_norm, bn_momentum, bn_no_runner,
@@ -133,13 +146,13 @@ class GseMessagePassingLayer(nn.Module):
         self.act = act_dict[act]()
         self.deg_scaler = deg_scaler
 
-        self.message_pass = GseMessagePassing(
+        self.message_pass = GritMessagePassing(
             poly_method, hidden_dim, attn_dim, attn_heads,
             clamp, attn_drop_prob, weight_fn, agg, act
         )
 
-        self.O_h = nn.Linear(hidden_dim, hidden_dim)
-        self.O_e = nn.Linear(hidden_dim, hidden_dim)
+        self.Ho = nn.Linear(hidden_dim, hidden_dim)
+        self.Eo = nn.Linear(hidden_dim, hidden_dim)
 
         # -------- Deg Scaler Option ------
         if self.deg_scaler:
@@ -180,23 +193,21 @@ class GseMessagePassingLayer(nn.Module):
         h = F.dropout(h_attn_out, self.drop_prob, training=self.training)
         # degree scaler
         if self.deg_scaler:
-            log_deg = get_log_deg(batch)
+            log_deg = batch["log_deg"]
             h = torch.stack([h, h * log_deg], dim=-1)
             h = (h * self.deg_coef).sum(dim=-1)
 
-        h = self.O_h(h)
+        h = self.Ho(h)
 
         e = F.dropout(e_attn_out, self.drop_prob, training=self.training)
-        e = self.O_e(e)
+        e = self.Eo(e)
 
         if self.residual:
             if self.rezero:
                 h = h * self.alpha1_h
+                e = e * self.alpha1_e
             h = h_in1 + h  # residual connection
-            if e is not None:
-                if self.rezero:
-                    e = e * self.alpha1_e
-                e = e + e_in1
+            e = e_in1 + e
 
         if self.layer_norm:
             h = self.layer_norm1_h(h)
@@ -226,18 +237,3 @@ class GseMessagePassingLayer(nn.Module):
         batch.x = h
         batch[self.poly_method + "_conn"] = e
         return batch
-
-
-@torch.no_grad()
-def get_log_deg(batch):
-    if "log_deg" in batch:
-        log_deg = batch.log_deg
-    # elif "deg" in batch:
-    #     deg = batch.deg
-    #     log_deg = torch.log(deg + 1).unsqueeze(-1)
-    # else:
-    #     warnings.warn("Compute the degree on the fly; Might be problematric if have applied edge-padding to complete graphs")
-    #     deg = pyg.utils.degree(batch.poly_idx[1], num_nodes=batch.num_nodes, dtype=torch.float)
-    #     log_deg = torch.log(deg + 1)
-    # log_deg = log_deg.view(batch.num_nodes, 1)
-    return log_deg

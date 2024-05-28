@@ -146,7 +146,7 @@ if __name__ == '__main__':
         scheduler = create_scheduler(optimizer, new_scheduler_config(cfg))
         # Print model info
         logging.info(model)
-        logging.info(cfg)
+        # logging.info(cfg)
         cfg.params = params_count(model)
         logging.info('Num parameters: %s', cfg.params)
         # Start training

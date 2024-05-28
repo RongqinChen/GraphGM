@@ -188,7 +188,7 @@ def load_dataset_master(format, name, dataset_dir):
         print('name', name)
         if name in {
             "PCQM4Mv2-full", "edge_wt_region_boundary",
-        } or cfg.dataset.on_the_fly:
+        } or cfg.dataset.precompute_on_the_fly:
             logging.info(
                 f"Positional Encoding statistics: {pe_enabled_list} "
                 f"will be computed on the fly for all graphs..."

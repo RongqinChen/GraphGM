@@ -7,12 +7,10 @@ from torch_sparse import SparseTensor
 
 @torch.no_grad()
 def compute_low_middle_pass_polynomials(
-    data: Data,
-    order=8,
-    method_name='low_middle_pass',
+    data: Data, method='low_middle_pass', power=8,
     add_full_edge_index: bool = False
 ):
-    assert order > 2
+    assert power > 2
     device = data.edge_index.device
     num_nodes = data.num_nodes
     edge_index = data.edge_index
@@ -52,17 +50,17 @@ def compute_low_middle_pass_polynomials(
     while True:
         D = len(base_list)
         for d in range(D):
-            if len(base_list) == order:
+            if len(base_list) == power:
                 break
             base = base_list[d] @ base_list[D - 1]
             base_list.append(base)
 
-        if len(base_list) == order:
+        if len(base_list) == power:
             break
 
     # base_list = [
     #     base * ((2 ** -k) * comb(k, k // 2))
-    #     for k, base in zip(range(1, order + 1), base_list)
+    #     for k, base in zip(range(1, power + 1), base_list)
     # ]
 
     polys = torch.stack(base_list, dim=-1)  # n x n x (K)
@@ -70,11 +68,11 @@ def compute_low_middle_pass_polynomials(
     poly_adj = SparseTensor.from_dense(polys, has_value=True)
     poly_row, poly_col, poly_val = poly_adj.coo()
     poly_idx = torch.stack([poly_row, poly_col], dim=0)
-    data[f"{method_name}_loop"] = loop
-    data[f"{method_name}_index"] = poly_idx
-    data[f"{method_name}_conn"] = poly_val
+    data[f"{method}_loop"] = loop
+    data[f"{method}_index"] = poly_idx
+    data[f"{method}_conn"] = poly_val
 
-    data.log_deg = torch.log(deg + 1).unsqueeze_(1)
+    data["log_deg"] = torch.log(deg + 1).unsqueeze_(1)
 
     if add_full_edge_index:
         if num_nodes ** 2 == poly_row.size(0):

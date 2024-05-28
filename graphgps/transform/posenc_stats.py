@@ -63,7 +63,7 @@ def compute_posenc_stats(data, pe_types, is_undirected, cfg):
         transform = partial(
             compute_polynomials,
             method=param.method,
-            order=param.order,
+            power=param.power,
             add_full_edge_index=param.add_full_edge_index,
         )
         data = transform(data)
@@ -189,7 +189,7 @@ def compute_posenc_stats(data, pe_types, is_undirected, cfg):
 
     # if "Bern" in pe_types:
     #     param = cfg.posenc_Bern
-    #     transform = partial(add_bernstain_polynomials, poly_order=param.poly_order)
+    #     transform = partial(add_bernstein_polynomials, poly_order=param.poly_order)
     #     data = transform(data)
 
     # if "GM1" in pe_types:

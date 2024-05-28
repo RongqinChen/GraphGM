@@ -18,10 +18,9 @@ def set_cfg_posenc(cfg):
     # ----------------- Note: Poly --------------
     cfg.posenc_Poly = CN({"enable": False})
     cfg.posenc_Poly.enable = False
-    cfg.posenc_Poly.method = 'rrw_bern'
+    cfg.posenc_Poly.method = 'mixed_bern'
     cfg.posenc_Poly.add_full_edge_index = False
-    cfg.posenc_Poly.order = 21
-    cfg.posenc_Poly.emb_dim = 21
+    cfg.posenc_Poly.power = 21
 
     # ----------------- Note: Biconnectivity --------------
     cfg.posenc_BiConn = CN({"enable": False})
