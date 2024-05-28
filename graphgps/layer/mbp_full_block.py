@@ -6,10 +6,13 @@ from yacs.config import CfgNode
 from .mbp_dense_attn import GraphDenseAttn
 from .mbp_grit_mp import GritMessagePassingLayer
 from .mbp_gine_mp import MbpGINELayer
+from .mbp_gat_mp import MbpGATLayer
+
 
 Layer_dict = {
     'grit': GritMessagePassingLayer,
     'gine': MbpGINELayer,
+    'gat': MbpGATLayer,
     'dense': GraphDenseAttn,
 }
 
@@ -21,7 +24,7 @@ class MbpFullBlock(nn.Module):
         self.repeats = repeats
         Layer = Layer_dict[cfg.full.layer_type]
         self.layer_list = nn.ModuleList()
-        if cfg.full.layer_type in {'grit', 'gine'}:
+        if cfg.full.layer_type in {'grit', 'gine', 'gat'}:
             for _ in range(repeats):
                 layer = Layer(
                     poly_method,
