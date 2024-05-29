@@ -213,7 +213,7 @@ def custom_train(loggers, loaders, model, optimizer, scheduler):
         run = None
 
     result_dict = {
-        "best_epoch": best_epoch,
+        "best_epoch": int(best_epoch),
         "train_loss": perf[0][best_epoch]['loss'],
         best_train.split('_')[0]: best_train.split('_')[1],
         "val_loss": perf[1][best_epoch]['loss'],
