@@ -13,7 +13,7 @@ class OuterProdAndLinear(nn.Module):
         super().__init__()
         self.emb_dim = emb_dim
         self.out_dim = out_dim
-        self.lin = nn.Linear((emb_dim**2 - emb_dim) // 2 + emb_dim, out_dim)
+        self.lin = nn.Linear((emb_dim**2 - emb_dim) // 2 + emb_dim, out_dim, False)
         torch.nn.init.xavier_uniform_(self.lin.weight)
         self.batchnorm = batchnorm
         self.layernorm = layernorm
