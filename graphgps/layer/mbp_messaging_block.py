@@ -4,12 +4,14 @@ from torch_geometric.graphgym.register import register_layer
 from yacs.config import CfgNode
 
 from .mbp_grit_mp import GritMessagePassingLayer
+from .mbp_ppgn_mp import MbpPPGN
 from .mbp_gine_mp import MbpGINELayer
 from .mbp_gat_mp import MbpGATLayer
 
 
 Layer_dict = {
     'grit': GritMessagePassingLayer,
+    'ppgn': MbpPPGN,
     'gine': MbpGINELayer,
     'gat': MbpGATLayer,
 }
@@ -22,7 +24,7 @@ class MbpMessagingBlock(nn.Module):
         self.repeats = repeats
         Layer = Layer_dict[cfg.messaging.layer_type]
         self.layer_list = nn.ModuleList()
-        if cfg.full.layer_type in {'grit', 'gine', 'gat'}:
+        if cfg.full.layer_type in Layer_dict:
             for _ in range(self.repeats):
                 layer = Layer(
                     poly_method,
