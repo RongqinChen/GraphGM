@@ -54,18 +54,18 @@ class GritMessagePassing(nn.Module):
         self.agg = agg
         self.attn_dropout = nn.Dropout(attn_drop_prob)
         self.clamp = np.abs(clamp) if clamp is not None else None
-        self.Q = nn.Linear(hidden_dim, attn_dim * attn_heads, bias=True)
-        self.K = nn.Linear(hidden_dim, attn_dim * attn_heads, bias=True)
-        self.V = nn.Linear(hidden_dim, attn_dim * attn_heads, bias=True)
-        self.E = nn.Linear(hidden_dim, 2 * attn_dim * attn_heads, bias=True)
+        self.Q = nn.Linear(hidden_dim, attn_dim * attn_heads, bias=False)
+        self.K = nn.Linear(hidden_dim, attn_dim * attn_heads, bias=False)
+        self.V = nn.Linear(hidden_dim, attn_dim * attn_heads, bias=False)
+        self.E = nn.Linear(hidden_dim, 2 * attn_dim * attn_heads, bias=False)
         self.Aw = nn.Parameter(torch.zeros(self.attn_dim, self.attn_heads, 1))
-        self.BW = nn.Parameter(torch.zeros(self.attn_dim, self.attn_heads, self.attn_dim))
+        self.Bw = nn.Parameter(torch.zeros(self.attn_dim, self.attn_heads, self.attn_dim))
         nn.init.xavier_normal_(self.Q.weight)
         nn.init.xavier_normal_(self.K.weight)
         nn.init.xavier_normal_(self.V.weight)
         nn.init.xavier_normal_(self.E.weight)
         nn.init.xavier_normal_(self.Aw)
-        nn.init.xavier_normal_(self.BW)
+        nn.init.xavier_normal_(self.Bw)
         self.act = act_dict[act]()
 
     def propagate_attention(self, batch):
@@ -105,17 +105,17 @@ class GritMessagePassing(nn.Module):
         Vsrc = Vsrc.view(-1, self.attn_heads, self.attn_dim)
         agg = scatter(Vsrc * score, dst, dim=0, reduce=self.agg)
         rowV = scatter(conn * score, dst, dim=0, reduce=self.agg)
-        rowV = oe.contract("nhd, dhc -> nhc", rowV, self.BW, backend="torch")
-        No = agg + rowV
-        batch.No = No.flatten(1)
+        rowV = oe.contract("nhd, dhc -> nhc", rowV, self.Bw, backend="torch")
+        No = (agg + rowV).flatten(1)
+        batch.No = batch.Qh + No
 
     def forward(self, batch):
         batch.Qh = self.Q(batch.x)
         batch.Kh = self.K(batch.x)
         batch.Vh = self.V(batch.x)
-        E = self.E(batch[self.poly_method + "_conn"])
-        batch.Ew = E[:, :self.attn_dim * self.attn_heads]
-        batch.Eb = E[:, self.attn_dim * self.attn_heads:]
+        Eh = self.E(batch[self.poly_method + "_conn"])
+        batch.Ew = Eh[:, :self.attn_dim * self.attn_heads]
+        batch.Eb = Eh[:, self.attn_dim * self.attn_heads:]
         self.propagate_attention(batch)
         h_out = batch.No
         e_out = batch.Eo
