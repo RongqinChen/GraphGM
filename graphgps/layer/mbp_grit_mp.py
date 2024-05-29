@@ -54,10 +54,10 @@ class GritMessagePassing(nn.Module):
         self.agg = agg
         self.attn_dropout = nn.Dropout(attn_drop_prob)
         self.clamp = np.abs(clamp) if clamp is not None else None
-        self.Q = nn.Linear(hidden_dim, attn_dim * attn_heads, bias=True)
-        self.K = nn.Linear(hidden_dim, attn_dim * attn_heads, bias=True)
-        self.V = nn.Linear(hidden_dim, attn_dim * attn_heads, bias=True)
-        self.E = nn.Linear(hidden_dim, 2 * attn_dim * attn_heads, bias=True)
+        self.Q = nn.Linear(hidden_dim, attn_dim * attn_heads, bias=False)
+        self.K = nn.Linear(hidden_dim, attn_dim * attn_heads, bias=False)
+        self.V = nn.Linear(hidden_dim, attn_dim * attn_heads, bias=False)
+        self.E = nn.Linear(hidden_dim, 2 * attn_dim * attn_heads, bias=False)
         self.Aw = nn.Parameter(torch.zeros(self.attn_dim, self.attn_heads, 1))
         self.BW = nn.Parameter(torch.zeros(self.attn_dim, self.attn_heads, self.attn_dim))
         nn.init.xavier_normal_(self.Q.weight)
@@ -113,9 +113,9 @@ class GritMessagePassing(nn.Module):
         batch.Qh = self.Q(batch.x)
         batch.Kh = self.K(batch.x)
         batch.Vh = self.V(batch.x)
-        E = self.E(batch[self.poly_method + "_conn"])
-        batch.Ew = E[:, :self.attn_dim * self.attn_heads]
-        batch.Eb = E[:, self.attn_dim * self.attn_heads:]
+        Eh = self.E(batch[self.poly_method + "_conn"])
+        batch.Ew = Eh[:, :self.attn_dim * self.attn_heads]
+        batch.Eb = Eh[:, self.attn_dim * self.attn_heads:]
         self.propagate_attention(batch)
         h_out = batch.No
         e_out = batch.Eo
