@@ -59,13 +59,13 @@ class GritMessagePassing(nn.Module):
         self.V = nn.Linear(hidden_dim, attn_dim * attn_heads, bias=False)
         self.E = nn.Linear(hidden_dim, 2 * attn_dim * attn_heads, bias=False)
         self.Aw = nn.Parameter(torch.zeros(self.attn_dim, self.attn_heads, 1))
-        self.BW = nn.Parameter(torch.zeros(self.attn_dim, self.attn_heads, self.attn_dim))
+        self.Bw = nn.Parameter(torch.zeros(self.attn_dim, self.attn_heads, self.attn_dim))
         nn.init.xavier_normal_(self.Q.weight)
         nn.init.xavier_normal_(self.K.weight)
         nn.init.xavier_normal_(self.V.weight)
         nn.init.xavier_normal_(self.E.weight)
         nn.init.xavier_normal_(self.Aw)
-        nn.init.xavier_normal_(self.BW)
+        nn.init.xavier_normal_(self.Bw)
         self.act = act_dict[act]()
 
     def propagate_attention(self, batch):
@@ -105,9 +105,9 @@ class GritMessagePassing(nn.Module):
         Vsrc = Vsrc.view(-1, self.attn_heads, self.attn_dim)
         agg = scatter(Vsrc * score, dst, dim=0, reduce=self.agg)
         rowV = scatter(conn * score, dst, dim=0, reduce=self.agg)
-        rowV = oe.contract("nhd, dhc -> nhc", rowV, self.BW, backend="torch")
-        No = agg + rowV
-        batch.No = No.flatten(1)
+        rowV = oe.contract("nhd, dhc -> nhc", rowV, self.Bw, backend="torch")
+        No = (agg + rowV).flatten(1)
+        batch.No = batch.Qh + No
 
     def forward(self, batch):
         batch.Qh = self.Q(batch.x)
