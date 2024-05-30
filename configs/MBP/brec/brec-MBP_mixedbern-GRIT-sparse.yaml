@@ -45,12 +45,12 @@ mbp_model:
   act: relu
   messaging:
     layer_type: grit
-    num_blocks: 0
-    repeats: 0
+    num_blocks: 7
+    repeats: 1
   full:
     layer_type: grit
     enable: True
-    repeats: 10
+    repeats: 2
     input_norm: False
 gnn:
   head: san_graph

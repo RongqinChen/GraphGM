@@ -23,7 +23,7 @@ def args_setup():
     parser.add_argument(
         "--save_dir",
         type=str,
-        default="./save",
+        default="./results/brec",
         help="Base directory for saving information.",
     )
     parser.add_argument(
@@ -127,24 +127,7 @@ def get_exp_name(args: argparse.ArgumentParser, add_task=True) -> str:
         args (ArgumentParser): Arguments dict from argparser.
     """
 
-    arg_list = []
-    # if "task" in args and add_task:
-    #     arg_list = [str(args.task)]
-    # arg_list.extend(
-    #     [
-    #         args.dataset_name,
-    #         str(args.num_doubling_layer),
-    #         str(args.num_full_layer),
-    #         str(args.h_dim),
-    #     ]
-    # )
-
-    # if args.residual:
-    #     arg_list.append("residual")
-    # if args.conn_mul:
-    #     arg_list.append("conn_mul")
-
-    exp_name = "_".join(arg_list)
+    exp_name = args.config_file.rsplit('/')[-1]
     return exp_name + f"-{time.strftime('%Y%m%d%H%M%S')}"
 
 

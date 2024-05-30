@@ -15,7 +15,7 @@ from graphgps.network.mbp_model import MbpModel
 from graphgps.transform.polynomials import compute_polynomials
 
 part_name_list = ["Basic", "Extension", "CFI", "Regular", "4-Vertex_Condition", "Distance_Regular"]
-# part_name_list = ["Basic", "Extension", "CFI", "Regular", "4-Vertex_Condition", "Distance_Regular"]
+part_name_list = ["CFI", "Regular", "4-Vertex_Condition", "Distance_Regular"]
 
 
 class ComputePolynomialBases(BaseTransform):
@@ -33,12 +33,13 @@ class ComputePolynomialBases(BaseTransform):
 
 def get_dataset(args):
     time_start = time.process_time()
-    transforms = ComputePolynomialBases(args)
-    if args.on_the_fly:
-        dataset = BRECDataset(transform=transforms)
-    else:
-        dataset = BRECDataset(pre_transform=transforms)
+    # transforms = ComputePolynomialBases(args)
+    # if args.on_the_fly:
+    #     dataset = BRECDataset(transform=transforms)
+    # else:
+    #     dataset = BRECDataset(pre_transform=transforms)
 
+    dataset = BRECDataset()
     time_end = time.process_time()
     time_cost = round(time_end - time_start, 2)
     logger.info(f"dataset construction time cost: {time_cost}")
@@ -115,6 +116,9 @@ def evaluation(run, dataset, args, device):
                 (id + args.SAMPLE_NUM) * args.NUM_RELABEL * 2:
                 (id + args.SAMPLE_NUM + 1) * args.NUM_RELABEL * 2
             ]
+            transform = ComputePolynomialBases(args)
+            dataset_traintest = list(map(transform, dataset_traintest))
+            dataset_reliability = list(map(transform, dataset_reliability))
 
             model.train()
             for _ in range(args.num_epochs):
@@ -199,7 +203,8 @@ def main():
     parser.add_argument(
         "--config_file",
         type=str,
-        default="configs/MBP/brec/brec-MBP_mixedbern-GRIT-full.yaml",
+        # default="configs/MBP/brec/brec-MBP_mixedbern-GRIT-full.yaml",
+        default="configs/MBP/brec/brec-MBP_mixedbern-GRIT-sparse.yaml",
         help="Additional configuration file for different dataset and models.",
     )
     parser.add_argument("--P_NORM", type=int, default=2)
@@ -229,6 +234,8 @@ def main():
         format="{message}",
         encoding="utf-8",
     )
+    model = get_model(args)
+    logger.info(model)
     for run in range(args.runs):
         seed = train_utils.get_seed(args.seed)
         torch_geometric.seed_everything(seed)
