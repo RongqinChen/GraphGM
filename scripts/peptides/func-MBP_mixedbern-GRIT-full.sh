@@ -10,25 +10,25 @@ do
 
 K=8
 CUDA_VISIBLE_DEVICES=0 \
-python main.py --cfg configs/MBP/peptides/peptides_func-MBP_mixedbern-GRIT-full.yamlconfigs/MBP/peptides/peptides_func-MBP_mixedbern-GRIT-full.yaml seed $((seed)) &
+python main.py --cfg configs/MBP/peptides/peptides_func-MBP_mixedbern-GRIT-full.yaml seed $((seed)) name_tag K$((K)) &
 
 wait
 
 K=16
 CUDA_VISIBLE_DEVICES=0 \
-python main.py --cfg configs/MBP/peptides/peptides_func-MBP_mixedbern-GRIT-full.yamlconfigs/MBP/peptides/peptides_func-MBP_mixedbern-GRIT-full.yaml seed $((seed)) &
+python main.py --cfg configs/MBP/peptides/peptides_func-MBP_mixedbern-GRIT-full.yaml seed $((seed)) name_tag K$((K)) &
 
 wait
 
 K=10
 CUDA_VISIBLE_DEVICES=0 \
-python main.py --cfg configs/MBP/peptides/peptides_func-MBP_mixedbern-GRIT-full.yamlconfigs/MBP/peptides/peptides_func-MBP_mixedbern-GRIT-full.yaml seed $((seed)) &
+python main.py --cfg configs/MBP/peptides/peptides_func-MBP_mixedbern-GRIT-full.yaml seed $((seed)) name_tag K$((K)) &
 
 wait
 
 K=12
 CUDA_VISIBLE_DEVICES=0 \
-python main.py --cfg configs/MBP/peptides/peptides_func-MBP_mixedbern-GRIT-full.yamlconfigs/MBP/peptides/peptides_func-MBP_mixedbern-GRIT-full.yaml seed $((seed)) &
+python main.py --cfg configs/MBP/peptides/peptides_func-MBP_mixedbern-GRIT-full.yaml seed $((seed)) name_tag K$((K)) &
 
 wait
 
