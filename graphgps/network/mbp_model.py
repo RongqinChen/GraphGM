@@ -190,3 +190,6 @@ class MbpModel(torch.nn.Module):
 
         batch = self.post_mp(batch)
         return batch
+
+    def reset_parameters(self):
+        self.apply(lambda m: m.reset_parameters() if hasattr(m, 'reset_parameters') else m)
