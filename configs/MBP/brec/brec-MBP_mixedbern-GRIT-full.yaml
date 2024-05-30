@@ -34,7 +34,7 @@ mbp_model:
   attn_drop_prob: 0.2
   residual: True
   layer_norm: False
-  batch_norm: False
+  batch_norm: True
   bn_momentum: 0.1
   bn_no_runner: False
   rezero: False
