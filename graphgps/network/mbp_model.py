@@ -106,7 +106,7 @@ class MbpModel(torch.nn.Module):
             self.block_dict["full"] = full_block
 
         GNNHead = register.head_dict[cfg.gnn.head]
-        self.post_mp = GNNHead(dim_in=cfg.mbp_model.hidden_dim, dim_out=dim_out)
+        self.post_mp = GNNHead(cfg.mbp_model.hidden_dim, dim_out, cfg.gnn.layers)
 
         if cfg.posenc_Poly.method == "mixed_bern":
             # orders: [1, 2, 2, 4, 4, ..., 2**(K-1), 2**(K-1), 2**K, 2**K, 2**K]
