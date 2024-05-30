@@ -70,6 +70,8 @@ class MbpModel(torch.nn.Module):
         assert (cfg.posenc_Poly.power) > 2 ** (cfg.mbp_model.messaging.num_blocks - 2)
         if cfg.posenc_Poly.method in {"mixed_bern"}:
             emb_dim = cfg.posenc_Poly.power + 2
+        elif cfg.posenc_Poly.method in {"adj_powers"}:
+            emb_dim = cfg.posenc_Poly.power + 1
 
         MbpMessagingBlock = register.layer_dict["MbpMessagingBlock"]
         MbpFullBlock = register.layer_dict["MbpFullBlock"]
@@ -112,6 +114,12 @@ class MbpModel(torch.nn.Module):
             # orders: [1, 2, 2, 4, 4, ..., 2**(K-1), 2**(K-1), 2**K, 2**K, 2**K]
             self._poly_order_map = {
                 lidx: 2 ** lidx
+                for lidx in range(cfg.mbp_model.messaging.num_blocks)
+            }
+        elif cfg.posenc_Poly.method == "adj_powers":
+            # orders: [0, 1, 2, 2, 4, 4, ..., 2**(K-1), 2**(K-1), 2**K, 2**K, 2**K]
+            self._poly_order_map = {
+                lidx: 2 ** lidx - 1
                 for lidx in range(cfg.mbp_model.messaging.num_blocks)
             }
         else:

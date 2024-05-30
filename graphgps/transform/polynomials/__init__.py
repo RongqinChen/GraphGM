@@ -1,7 +1,9 @@
 from .mixed_bernstein import compute_mixed_bernstein_polynomials
+from .adjacency_power_series import compute_adjacency_power_series
 
 method_dict = {
     'mixed_bern': compute_mixed_bernstein_polynomials,
+    'adj_powers': compute_adjacency_power_series,
 }
 
 
