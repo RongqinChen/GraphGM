@@ -113,13 +113,13 @@ class MbpModel(torch.nn.Module):
         if cfg.posenc_Poly.method == "mixed_bern":
             # orders: [1, 2, 2, 4, 4, ..., 2**(K-1), 2**(K-1), 2**K, 2**K, 2**K]
             self._poly_order_map = {
-                lidx: 2 ** lidx
+                lidx: 2 ** lidx - 1
                 for lidx in range(cfg.mbp_model.messaging.num_blocks)
             }
         elif cfg.posenc_Poly.method == "adj_powers":
-            # orders: [0, 1, 2, 2, 4, 4, ..., 2**(K-1), 2**(K-1), 2**K, 2**K, 2**K]
+            # orders: [0, 1, 2, 3, 4,]
             self._poly_order_map = {
-                lidx: 2 ** lidx - 1
+                lidx: 2 ** lidx
                 for lidx in range(cfg.mbp_model.messaging.num_blocks)
             }
         else:
@@ -138,7 +138,7 @@ class MbpModel(torch.nn.Module):
         for lidx in range(cfg.mbp_model.messaging.num_blocks):
             order = self._poly_order_map[lidx]
             if lidx < cfg.mbp_model.messaging.num_blocks - 1:
-                poly_sgn = all_poly_val[:, order - 1] != 0
+                poly_sgn = all_poly_val[:, order] != 0
                 poly_idx = all_poly_idx[:, poly_sgn]
                 poly_val = all_poly_val[poly_sgn, :]
             else:
@@ -149,7 +149,7 @@ class MbpModel(torch.nn.Module):
             loop_h = self.block_dict[f"{lidx}_loop_enc"](all_loop_val)
             poly_h = self.block_dict[f"{lidx}_conn_enc"](poly_val)
             batch.x += loop_h
-            if poly_idx.size(1) > batch[sparse_poly + "_index"].size(1):
+            if poly_idx.size(1) != batch[sparse_poly + "_index"].size(1):
                 poly_idx_add, poly_h_add = torch_sparse.coalesce(
                     torch.cat([poly_idx, batch[sparse_poly + "_index"]], dim=1),
                     torch.cat([poly_h, batch[sparse_poly + "_conn"]], dim=0),

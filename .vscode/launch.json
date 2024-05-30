@@ -20,6 +20,14 @@
             "console": "integratedTerminal"
         },
         {
+            "name": "train_BREC",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "train_BREC.py",
+            "console": "integratedTerminal",
+            "args": ["--config_file", "configs/MBP/brec/brec-MBP_adj_powers-GRIT-sparse.yaml"]
+        },
+        {
             "name": "agg_runs",
             "type": "debugpy",
             "request": "launch",
