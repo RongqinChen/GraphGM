@@ -50,7 +50,7 @@ mbp_model:
   full:
     layer_type: grit
     enable: True
-    repeats: 10
+    repeats: 9
     input_norm: False
 gnn:
   head: inductive_node
