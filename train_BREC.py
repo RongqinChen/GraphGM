@@ -200,13 +200,6 @@ def evaluation(run, dataset, args, device):
 def main():
     parser = train_utils.args_setup()
     parser.add_argument("--NUM_RELABEL", type=int, default=32)
-    parser.add_argument(
-        "--config_file",
-        type=str,
-        # default="configs/MBP/brec/brec-MBP_mixedbern-GRIT-full.yaml",
-        default="configs/MBP/brec/brec-MBP_mixedbern-GRIT-sparse.yaml",
-        help="Additional configuration file for different dataset and models.",
-    )
     parser.add_argument("--P_NORM", type=int, default=2)
     parser.add_argument("--VERBOSE", action="store_true")
     parser.add_argument("--THRESHOLD", type=float, default=72.34)
@@ -215,12 +208,6 @@ def main():
     parser.add_argument("--EPSILON_MATRIX", type=float, default=1e-7)
     parser.add_argument("--EPSILON_CMP", type=float, default=1e-6)
     parser.add_argument("--runs", type=int, default=10, help="Number of repeat run.")
-    parser.add_argument(
-        "--on_the_fly",
-        action="store_true",
-        help="If true, process the data on the fly to save memory.",
-    )
-
     args = parser.parse_args()
     args = train_utils.update_args(args)
     # torch.backends.cudnn.deterministic = True

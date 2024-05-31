@@ -15,7 +15,6 @@ from lightning.pytorch.callbacks import ModelCheckpoint, LearningRateMonitor, Ti
 from lightning.pytorch.callbacks.progress import TQDMProgressBar
 import wandb
 from torchmetrics import MeanAbsoluteError
-# import torch_geometric.transforms as T
 from torch_geometric.data import Data
 from graphgps.transform.polynomials import compute_polynomials
 from torch_geometric.transforms import BaseTransform
@@ -38,6 +37,18 @@ class ComputePolynomialBases(BaseTransform):
         return f"{paras.method}.{paras.power}.{paras.add_full_edge_index}"
 
 
+class SetTarget(BaseTransform):
+    r"""Polynomial Bases"""
+
+    def __init__(self, target):
+        super().__init__()
+        self.target = target
+
+    def forward(self, data: Data) -> Data:
+        data.y = data.y[:, self.target]
+        return data
+
+
 def main():
     parser = train_utils.args_setup()
     parser.add_argument(
@@ -50,23 +61,16 @@ def main():
     parser.add_argument(
         "--task", type=int, default=0, choices=(0, 1, 2, 3, 4), help="Train task index."
     )
-    parser.add_argument(
-        "--config_file",
-        type=str,
-        default="configs/MBP/count/count-MBP_mixedbern-GRIT-full.yaml",
-        help="Additional configuration file for different dataset and models.",
-    )
     parser.add_argument("--runs", type=int, default=3, help="Number of repeat run.")
     args = parser.parse_args()
     args = train_utils.update_args(args)
-
-    # path = train_utils.data_setup(args)
 
     train_dataset = GraphCountDatasetI2(
         root='datasets',
         dataname=args.dataset_name,
         split="train",
         pre_transform=ComputePolynomialBases(args),
+        transform=SetTarget(args.task)
     )
 
     val_dataset = GraphCountDatasetI2(
@@ -74,6 +78,7 @@ def main():
         dataname=args.dataset_name,
         split="val",
         pre_transform=ComputePolynomialBases(args),
+        transform=SetTarget(args.task)
     )
 
     test_dataset = GraphCountDatasetI2(
@@ -81,6 +86,7 @@ def main():
         dataname=args.dataset_name,
         split="test",
         pre_transform=ComputePolynomialBases(args),
+        transform=SetTarget(args.task)
     )
 
     y_train_val = torch.cat([train_dataset.data.y, val_dataset.data.y], dim=0)

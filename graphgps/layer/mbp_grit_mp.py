@@ -107,7 +107,7 @@ class GritMessagePassing(nn.Module):
         rowV = scatter(conn * score, dst, dim=0, dim_size=batch.num_nodes, reduce=self.agg)
         rowV = oe.contract("nhd, dhc -> nhc", rowV, self.Bw, backend="torch")
         No = (agg + rowV).flatten(1)
-        batch.No = batch.Qh + No
+        batch.No = No
 
     def forward(self, batch):
         batch.Qh = self.Q(batch.x)

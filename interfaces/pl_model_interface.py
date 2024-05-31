@@ -33,7 +33,7 @@ class PlGNNModule(LightningModule):
                  edge_encoder: Optional[nn.Module] = None,
                  ):
         super(PlGNNModule, self).__init__()
-        self.model = MbpModel(None, 4)
+        self.model = MbpModel(None, 1)
         self.loss_criterion = loss_criterion
         self.train_evaluator = c(evaluator)
         self.val_evaluator = c(evaluator)
@@ -142,7 +142,7 @@ class PlGNNTestonValModule(PlGNNModule):
 
         if dataloader_idx == 0:
             y = batch.y.squeeze()
-            out = self.forward(batch)
+            out = self.forward(batch).squeeze()
             loss = self.loss_criterion(out, y)
             self.log("val/loss",
                      loss,
@@ -156,7 +156,7 @@ class PlGNNTestonValModule(PlGNNModule):
             # only do validation on test set when reaching the predefined epoch.
             else:
                 y = batch.y.squeeze()
-                out = self.forward(batch)
+                out = self.forward(batch).squeeze()
                 loss = self.loss_criterion(out, y)
                 self.log("test/loss",
                          loss,

@@ -20,7 +20,7 @@ posenc_Poly:
   enable: True
   add_full_edge_index: True
   method: mixed_bern
-  power: 32
+  power: 22
 model:
   type: MbpModel
   loss_fun: l1
@@ -50,7 +50,7 @@ mbp_model:
   full:
     layer_type: grit
     enable: True
-    repeats: 8
+    repeats: 10
     input_norm: False
 gnn:
   head: inductive_node

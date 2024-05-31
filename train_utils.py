@@ -23,12 +23,19 @@ def args_setup():
     parser.add_argument(
         "--save_dir",
         type=str,
-        default="./results/brec",
+        default="./results/",
         help="Base directory for saving information.",
+    )
+    parser.add_argument(
+        "--config_file",
+        type=str,
+        default="configs/MBP/count/count-MBP_mixedbern-GRIT-full.yaml",
+        help="Additional configuration file for different dataset and models.",
     )
     parser.add_argument(
         "--seed", type=int, default=234, help="Random seed for reproducibility."
     )
+    parser.add_argument("--name_tag", type=str, default='', help="L2 weight decay.")
 
     # training args
     parser.add_argument(
@@ -71,53 +78,6 @@ def args_setup():
     )
     parser.add_argument("--conn_mul", action="store_true")
 
-    # model args
-    parser.add_argument(
-        "--h_dim", type=int, default=96, help="Hidden size of the model."
-    )
-    parser.add_argument("--num_doubling_layer", type=int, default=5)
-    parser.add_argument("--num_full_layer", type=int, default=2)
-    parser.add_argument(
-        "--JK",
-        type=str,
-        default="last",
-        choices=("sum", "max", "mean", "attention", "last", "concat"),
-        help="Jumping knowledge method.",
-    )
-    parser.add_argument(
-        "--residual",
-        action="store_true",
-        help="If ture, use residual connection between each layer.",
-    )
-    parser.add_argument(
-        "--initial_eps", type=float, default=0.0, help="Initial epsilon in GIN."
-    )
-    parser.add_argument(
-        "--train_eps", action="store_true", help="If true, the epsilon is trainable."
-    )
-    parser.add_argument(
-        "--drop_prob",
-        type=float,
-        default=1 / 8,
-        help="Probability of zeroing an activation in dropout models.",
-    )
-    parser.add_argument("--conn_drop_prob", type=float, default=1 / 8)
-    parser.add_argument("--node_drop_prob", type=float, default=1 / 8)
-    parser.add_argument(
-        "--norm_type",
-        type=str,
-        default="Batch",
-        choices=("Batch", "Layer", "Instance", "GraphSize", "Pair", "None"),
-        help="Normalization method in model.",
-    )
-    parser.add_argument(
-        "--act_type",
-        type=str,
-        default="ReLU",
-        choices=("identity", "relu", "gelu", "sigmoid", "tanh"),
-        help="Activation function in model.",
-    )
-
     return parser
 
 
@@ -128,7 +88,9 @@ def get_exp_name(args: argparse.ArgumentParser, add_task=True) -> str:
     """
 
     exp_name = args.config_file.rsplit('/')[-1].split('.')[0]
-    return exp_name + f"-{time.strftime('%Y%m%d%H%M%S')}"
+    if not args.name_tag:
+        args.name_tag = time.strftime('%Y%m%d%H%M%S')
+    return exp_name, args.name_tag
 
 
 class CfgWrapper():
@@ -164,7 +126,8 @@ def update_args(
                     getattr(args, key, []).append(v)
             else:
                 setattr(args, key, CfgWrapper(value) if isinstance(value, dict) else value)
-    args.exp_name = get_exp_name(args, add_task)
+    exp_dir, args.exp_name = get_exp_name(args, add_task)
+    args.save_dir = f"{args.save_dir}/{exp_dir}"
     cfg.update(args.__dict__)
     if not os.path.exists(args.save_dir):
         os.makedirs(args.save_dir)
