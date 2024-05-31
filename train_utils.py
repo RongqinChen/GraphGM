@@ -23,7 +23,7 @@ def args_setup():
     parser.add_argument(
         "--save_dir",
         type=str,
-        default="./results/",
+        default="./results",
         help="Base directory for saving information.",
     )
     parser.add_argument(
