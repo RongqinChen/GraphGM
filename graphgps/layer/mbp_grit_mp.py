@@ -103,8 +103,8 @@ class GritMessagePassing(nn.Module):
         score = self.attn_dropout(score)
         # Aggregate with Attn-Score
         Vsrc = Vsrc.view(-1, self.attn_heads, self.attn_dim)
-        agg = scatter(Vsrc * score, dst, dim=0, reduce=self.agg)
-        rowV = scatter(conn * score, dst, dim=0, reduce=self.agg)
+        agg = scatter(Vsrc * score, dst, dim=0, dim_size=batch.num_nodes, reduce=self.agg)
+        rowV = scatter(conn * score, dst, dim=0, dim_size=batch.num_nodes, reduce=self.agg)
         rowV = oe.contract("nhd, dhc -> nhc", rowV, self.Bw, backend="torch")
         No = (agg + rowV).flatten(1)
         batch.No = batch.Qh + No

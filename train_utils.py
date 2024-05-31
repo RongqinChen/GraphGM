@@ -127,7 +127,7 @@ def get_exp_name(args: argparse.ArgumentParser, add_task=True) -> str:
         args (ArgumentParser): Arguments dict from argparser.
     """
 
-    exp_name = args.config_file.rsplit('/')[-1]
+    exp_name = args.config_file.rsplit('/')[-1].split('.')[0]
     return exp_name + f"-{time.strftime('%Y%m%d%H%M%S')}"
 
 
@@ -161,9 +161,9 @@ def update_args(
         for key, value in cfg_dict.items():
             if isinstance(value, list):
                 for v in value:
-                    getattr(args, key, []).append(CfgWrapper(v))
+                    getattr(args, key, []).append(v)
             else:
-                setattr(args, key, CfgWrapper(value))
+                setattr(args, key, CfgWrapper(value) if isinstance(value, dict) else value)
     args.exp_name = get_exp_name(args, add_task)
     cfg.update(args.__dict__)
     if not os.path.exists(args.save_dir):
@@ -177,7 +177,7 @@ def data_setup(args: argparse.ArgumentParser) -> Tuple[str, Callable, list]:
     Args:
         args (ArgumentParser): Arguments dict from argparser.
     """
-    path_arg_list = [f"data/{args.dataset_name}"]
+    path_arg_list = [f"datasets/{args.dataset_name}"]
     path = "_".join(path_arg_list)
     if os.path.exists(path + "/processed") and args.reprocess:
         shutil.rmtree(path + "/processed")

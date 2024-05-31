@@ -1,0 +1,58 @@
+out_dir: results
+num_workers: 4
+tensorboard_each_run: False  # Log to Tensorboard each run
+accelerator: "cuda:0"
+dataset:
+  format: null
+  name: null
+  task: null
+  task_type: null
+  transductive: False
+  node_encoder: True
+  node_encoder_name: DummyNode
+  node_encoder_num_types: 1
+  node_encoder_bn: False
+  edge_encoder: True
+  edge_encoder_name: DummyEdge
+  edge_encoder_num_types: 1
+  edge_encoder_bn: False
+posenc_Poly:
+  enable: True
+  add_full_edge_index: True
+  method: adj_powers
+  power: 32
+model:
+  type: MbpModel
+  loss_fun: l1
+  edge_decoding: dot
+  graph_pooling: add
+mbp_model:
+  enable: True
+den_dim: 64
+  attn_heads: 8
+  drop_prob: 0.0
+  attn_drop_prob: 0.2
+  residual: True
+  layer_norm: False
+  batch_norm: True
+  bn_momentum: 0.1
+  bn_no_runner: False
+  rezero: False
+  deg_scaler: True
+  clamp: 5.0
+  weight_fn: softmax
+  agg: add
+  act: relu
+  messaging:
+    layer_type: grit
+    num_blocks: 6
+    repeats: 1
+  full:
+    layer_type: grit
+    enable: True
+    repeats: 1
+    input_norm: False
+gnn:
+  head: inductive_node
+  act: relu
+  layers: 1

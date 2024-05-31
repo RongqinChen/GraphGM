@@ -14,10 +14,10 @@ class GNNInductiveNodeHead(nn.Module):
         dim_out (int): Output dimension. For binary prediction, dim_out=1.
     """
 
-    def __init__(self, dim_in, dim_out):
+    def __init__(self, dim_in, dim_out, layers):
         super(GNNInductiveNodeHead, self).__init__()
         self.layer_post_mp = MLP(
-            new_layer_config(dim_in, dim_out, cfg.gnn.layers_post_mp,
+            new_layer_config(dim_in, dim_out, layers,
                              has_act=False, has_bias=True, cfg=cfg))
 
     def _apply_index(self, batch):
