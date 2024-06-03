@@ -27,6 +27,7 @@ def mbp_model_cfg(cfg):
     cfg.mbp_model.weight_fn = 'softmax'
     cfg.mbp_model.agg = 'add'
     cfg.mbp_model.act = 'relu'
+    cfg.mbp_model.pe_layer = 'simple_linear'
 
     cfg.mbp_model.messaging = CN()
     cfg.mbp_model.messaging.layer_type = 'grit'
