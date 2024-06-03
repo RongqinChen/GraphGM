@@ -31,7 +31,7 @@ model:
   graph_pooling: add
 gnn:
   head: san_graph
-  layers_post_mp: 3  # Not used when `gnn.head: san_graph`
+  layers_post_mp: 3 
   batchnorm: True
   act: relu
   dropout: 0.0
