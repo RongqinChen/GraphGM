@@ -80,8 +80,6 @@ class MbpModel(torch.nn.Module):
         self.block_dict = nn.ModuleDict()
 
         poly_method = "sparse_" + cfg.posenc_Poly.method
-        # "outerprod_linear" if cfg.mbp_model.messaging.layer_type in {"gine", "cat"} else "simple_linear"
-        # pe_layer = "simple_linear"
         pe_layer = cfg.mbp_model.pe_layer
         PELayer = register.layer_dict[pe_layer]
         for lidx in range(cfg.mbp_model.messaging.num_blocks):
@@ -108,7 +106,7 @@ class MbpModel(torch.nn.Module):
             self.block_dict["full"] = full_block
 
         GNNHead = register.head_dict[cfg.gnn.head]
-        self.post_mp = GNNHead(cfg.mbp_model.hidden_dim, dim_out)
+        self.post_mp = GNNHead(cfg.mbp_model.hidden_dim, dim_out, cfg.gnn.layers_post_mp)
 
         if cfg.posenc_Poly.method == "mixed_bern":
             # orders: [1, 2, 2, 4, 4, ..., 2**(K-1), 2**(K-1), 2**K, 2**K, 2**K]
