@@ -17,16 +17,18 @@ dataset:
   edge_encoder: True
   edge_encoder_name: Bond
   edge_encoder_bn: False
+  precompute_on_the_fly: True
 posenc_Poly:
   enable: True
   add_full_edge_index: True
   method: mixed_bern
-  power: 8
+  power: 4
 train:
   mode: custom
   batch_size: 16
   eval_period: 1
-  ckpt_period: 100
+  enable_ckpt: False  # Checkpointing can now be disabled to save I/O when e.g. just benchmarking.
+  ckpt_best: False  # WARNING: Checkpoint every epoch a better model is found may increase I/O significantly.
 model:
   type: MbpModel
   loss_fun: cross_entropy
@@ -40,7 +42,7 @@ mbp_model:
   residual: True
   layer_norm: False
   batch_norm: True
-  bn_momentum: 0.1
+  bn_momentum: 0.01
   bn_no_runner: False
   rezero: False
   deg_scaler: True
