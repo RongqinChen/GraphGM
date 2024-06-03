@@ -5,11 +5,27 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Current File (not just my code)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": false
+        },
+        {
             "name": "Current File",
             "type": "debugpy",
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal"
+        },
+        {
+            "name": "train_BREC",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "train_BREC.py",
+            "console": "integratedTerminal",
+            "args": ["--config_file", "configs/MBP/brec/brec-MBP_adj_powers-GRIT-sparse.yaml"]
         },
         {
             "name": "agg_runs",

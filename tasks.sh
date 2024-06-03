@@ -1,1 +1,8 @@
-python main.py --cfg configs/GSE/ogbg/molpcba-GSE_grit-Poly.yaml gse_model.hidden_dim 352
+python train_count.py --config_file configs/MBP/count/count-MBP_mixedbern-GRIT-full.yaml &
+python train_count.py --config_file configs/MBP/count/count-MBP_mixedbern-GRIT-sparse.yaml &
+# wait
+
+python train_count.py --config_file configs/MBP/count/count-MBP_adj_powers-GRIT-full.yaml &
+python train_count.py --config_file configs/MBP/count/count-MBP_adj_powers-GRIT-sparse.yaml &
+
+wait

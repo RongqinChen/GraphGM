@@ -71,8 +71,8 @@ def compute_mixed_bernstein_polynomials(
         )
     polys.append(base_dict[K][1] * ((2 ** -K) * comb(K, K // 2)))
 
-    polys = torch.stack(polys, dim=-1)  # n x n x (K+1)
-    loop = polys.diagonal().transpose(0, 1)  # n x (K+1)
+    polys = torch.stack(polys, dim=-1)  # n x n x (K+2)
+    loop = polys.diagonal().transpose(0, 1)  # n x (K+2)
     poly_adj = SparseTensor.from_dense(polys, has_value=True)
     poly_row, poly_col, poly_val = poly_adj.coo()
     poly_idx = torch.stack([poly_row, poly_col], dim=0)
