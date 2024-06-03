@@ -15,7 +15,7 @@ from graphgps.network.mbp_model import MbpModel
 from graphgps.transform.polynomials import compute_polynomials
 
 part_name_list = ["Basic", "Extension", "CFI", "Regular", "4-Vertex_Condition", "Distance_Regular"]
-part_name_list = ["CFI", "Regular", "4-Vertex_Condition", "Distance_Regular"]
+# part_name_list = ["CFI", "Regular", "4-Vertex_Condition", "Distance_Regular"]
 
 
 class ComputePolynomialBases(BaseTransform):

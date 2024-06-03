@@ -1,4 +1,4 @@
-for((task=3;task>=0;task--));  
+for((task=2;task>=0;task--));  
 do
 
 python train_count.py --config_file configs/MBP/count/count-MBP_adj_powers-GRIT-full.yaml --task $((task)) --name_tag T$((task))K24L10Dp20  &

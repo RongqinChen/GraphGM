@@ -130,11 +130,11 @@ def main():
             accelerator="auto",
             devices="auto",
             max_epochs=args.num_epochs,
-            enable_checkpointing=False,
+            enable_checkpointing=True,
             enable_progress_bar=False,
             logger=logger,
             callbacks=[
-                TQDMProgressBar(refresh_rate=20),
+                # TQDMProgressBar(refresh_rate=20),
                 ModelCheckpoint(monitor="val/metric", mode=args.mode),
                 LearningRateMonitor(logging_interval="epoch"),
                 timer,
