@@ -80,8 +80,6 @@ class MbpModel(torch.nn.Module):
         self.block_dict = nn.ModuleDict()
 
         poly_method = "sparse_" + cfg.posenc_Poly.method
-        # "outerprod_linear" if cfg.mbp_model.messaging.layer_type in {"gine", "cat"} else "simple_linear"
-        # pe_layer = "simple_linear"
         pe_layer = cfg.mbp_model.pe_layer
         PELayer = register.layer_dict[pe_layer]
         for lidx in range(cfg.mbp_model.messaging.num_blocks):
