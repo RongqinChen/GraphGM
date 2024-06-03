@@ -6,15 +6,11 @@ from yacs.config import CfgNode
 from .mbp_dense_attn import GraphDenseAttn
 from .mbp_grit_mp import GritMessagePassingLayer
 from .mbp_gine_mp import MbpGINELayer
-from .mbp_ppgn_mp import MbpPPGN
-from .mbp_gat_mp import MbpGATLayer
 
 
 Layer_dict = {
     'grit': GritMessagePassingLayer,
-    'ppgn': MbpPPGN,
     'gine': MbpGINELayer,
-    'gat': MbpGATLayer,
     'dense': GraphDenseAttn,
 }
 

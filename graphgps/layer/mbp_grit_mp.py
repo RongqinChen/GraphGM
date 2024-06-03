@@ -54,16 +54,16 @@ class GritMessagePassing(nn.Module):
         self.agg = agg
         self.attn_dropout = nn.Dropout(attn_drop_prob)
         self.clamp = np.abs(clamp) if clamp is not None else None
-        self.Q = nn.Linear(hidden_dim, attn_dim * attn_heads, bias=False)
-        self.K = nn.Linear(hidden_dim, attn_dim * attn_heads, bias=False)
-        self.V = nn.Linear(hidden_dim, attn_dim * attn_heads, bias=False)
-        self.E = nn.Linear(hidden_dim, 2 * attn_dim * attn_heads, bias=False)
+        self.qkv_weight = nn.Parameter(torch.empty((3 * attn_dim * attn_heads, hidden_dim)))
+        self.qkv_bias = nn.Parameter(torch.empty(3 * attn_dim * attn_heads))
+        self.E = nn.Linear(hidden_dim, 2 * attn_dim * attn_heads)
         self.Aw = nn.Parameter(torch.zeros(self.attn_dim, self.attn_heads, 1))
         self.Bw = nn.Parameter(torch.zeros(self.attn_dim, self.attn_heads, self.attn_dim))
-        nn.init.xavier_normal_(self.Q.weight)
-        nn.init.xavier_normal_(self.K.weight)
-        nn.init.xavier_normal_(self.V.weight)
-        nn.init.xavier_normal_(self.E.weight)
+
+        nn.init.xavier_uniform_(self.qkv_weight)
+        nn.init.constant_(self.qkv_bias, 0.)
+        nn.init.xavier_uniform_(self.E.weight)
+        nn.init.constant_(self.E.bias, 0.)
         nn.init.xavier_normal_(self.Aw)
         nn.init.xavier_normal_(self.Bw)
         self.act = act_dict[act]()
@@ -85,7 +85,7 @@ class GritMessagePassing(nn.Module):
         batch.Eo = conn
 
         # final attn
-        conn = conn.view(-1, self.attn_heads, self.attn_dim)
+        conn = conn.view(-1, self.attn_heads, self.attn_dim).contiguous()
         score = oe.contract("ehd, dhc->ehc", conn, self.Aw, backend="torch")
         if self.clamp is not None:
             score = torch.clamp(score, min=-self.clamp, max=self.clamp)
@@ -110,12 +110,14 @@ class GritMessagePassing(nn.Module):
         batch.No = No
 
     def forward(self, batch):
-        batch.Qh = self.Q(batch.x)
-        batch.Kh = self.K(batch.x)
-        batch.Vh = self.V(batch.x)
+        x = batch.x
+        batch.Qh, batch.Kh, batch.Vh = F._in_projection_packed(x, x, x, self.qkv_weight, self.qkv_bias)
+
         Eh = self.E(batch[self.poly_method + "_conn"])
-        batch.Ew = Eh[:, :self.attn_dim * self.attn_heads]
-        batch.Eb = Eh[:, self.attn_dim * self.attn_heads:]
+        Eh = Eh.unflatten(-1, (2, self.attn_heads * self.attn_dim))
+        Eh = Eh.unsqueeze(0).transpose(0, -2).squeeze(-2).contiguous()
+        batch.Ew, batch.Eb = Eh[0], Eh[1]
+
         self.propagate_attention(batch)
         h_out = batch.No
         e_out = batch.Eo
@@ -151,88 +153,60 @@ class GritMessagePassingLayer(nn.Module):
             clamp, attn_drop_prob, weight_fn, agg, act
         )
 
-        self.Ho = nn.Linear(hidden_dim, hidden_dim)
-        self.Eo = nn.Linear(hidden_dim, hidden_dim)
-
         # -------- Deg Scaler Option ------
         if self.deg_scaler:
             self.deg_coef = nn.Parameter(torch.zeros(1, hidden_dim, 2))
             nn.init.xavier_normal_(self.deg_coef)
 
         if self.layer_norm:
-            self.layer_norm1_h = nn.LayerNorm(hidden_dim)
-            self.layer_norm1_e = nn.LayerNorm(hidden_dim)
+            self.norm1_h = nn.LayerNorm(hidden_dim)
+            self.norm2_h = nn.LayerNorm(hidden_dim)
+            self.norm1_e = nn.LayerNorm(hidden_dim)
+            self.norm2_e = nn.LayerNorm(hidden_dim)
 
         if self.batch_norm:
             # when the batch_size is really small, use smaller momentum to avoid bad mini-batch leading to extremely bad val/test loss (NaN)
-            self.batch_norm1_h = nn.BatchNorm1d(hidden_dim, track_running_stats=not self.bn_no_runner, eps=1e-5, momentum=self.bn_momentum)
-            self.batch_norm1_e = nn.BatchNorm1d(hidden_dim, track_running_stats=not self.bn_no_runner, eps=1e-5, momentum=self.bn_momentum)
+            self.norm1_h = nn.BatchNorm1d(hidden_dim, track_running_stats=not self.bn_no_runner, eps=1e-5, momentum=self.bn_momentum)
+            self.norm2_h = nn.BatchNorm1d(hidden_dim, track_running_stats=not self.bn_no_runner, eps=1e-5, momentum=self.bn_momentum)
+            self.norm1_e = nn.BatchNorm1d(hidden_dim, track_running_stats=not self.bn_no_runner, eps=1e-5, momentum=self.bn_momentum)
+            self.norm2_e = nn.BatchNorm1d(hidden_dim, track_running_stats=not self.bn_no_runner, eps=1e-5, momentum=self.bn_momentum)
 
-        # FFN for h
-        self.FFN_h_layer1 = nn.Linear(hidden_dim, hidden_dim * 2)
-        self.FFN_h_layer2 = nn.Linear(hidden_dim * 2, hidden_dim)
-
-        if self.layer_norm:
-            self.layer_norm2_h = nn.LayerNorm(hidden_dim)
-
-        if self.batch_norm:
-            self.batch_norm2_h = nn.BatchNorm1d(hidden_dim, track_running_stats=not self.bn_no_runner, eps=1e-5, momentum=self.bn_momentum)
-
-        if self.rezero:
-            self.alpha1_h = nn.Parameter(torch.zeros(1, 1))
-            self.alpha2_h = nn.Parameter(torch.zeros(1, 1))
-            self.alpha1_e = nn.Parameter(torch.zeros(1, 1))
+        self.FFN_h_layer1 = nn.Linear(hidden_dim, int(hidden_dim * 1.5))
+        self.FFN_h_layer2 = nn.Linear(int(hidden_dim * 1.5), hidden_dim)
+        self.FFN_e_layer1 = nn.Linear(hidden_dim, int(hidden_dim * 1.5))
+        self.FFN_e_layer2 = nn.Linear(int(hidden_dim * 1.5), hidden_dim)
 
     def forward(self, batch):
-        h_in1 = batch.x  # for first residual connection
-        e_in1 = batch[self.poly_method + "_conn"]
-        # multi-head attention out
+        h_res = batch.x
+        e_res = batch[self.poly_method + "_conn"]
+
         h_attn_out, e_attn_out = self.message_pass(batch)
 
-        # h = h_attn_out.view(num_nodes, -1)
-        h = F.dropout(h_attn_out, self.drop_prob, training=self.training)
-        # degree scaler
+        h = h_attn_out
         if self.deg_scaler:
             log_deg = batch["log_deg"]
             h = torch.stack([h, h * log_deg], dim=-1)
             h = (h * self.deg_coef).sum(dim=-1)
 
-        h = self.Ho(h)
-
-        e = F.dropout(e_attn_out, self.drop_prob, training=self.training)
-        e = self.Eo(e)
-
-        if self.residual:
-            if self.rezero:
-                h = h * self.alpha1_h
-                e = e * self.alpha1_e
-            h = h_in1 + h  # residual connection
-            e = e_in1 + e
-
-        if self.layer_norm:
-            h = self.layer_norm1_h(h)
-            e = self.layer_norm1_e(e)
-
-        if self.batch_norm:
-            h = self.batch_norm1_h(h)
-            e = self.batch_norm1_e(e)
-
-        # FFN for h
-        h_in2 = h  # for second residual connection
+        h = h_res = h + h_res
+        h = self.norm1_h(h)
+        h = F.dropout(h, self.drop_prob, training=self.training)
         h = self.FFN_h_layer1(h)
         h = self.act(h)
         h = F.dropout(h, self.drop_prob, training=self.training)
         h = self.FFN_h_layer2(h)
+        h = h + h_res
+        h = self.norm2_h(h)
 
-        if self.residual:
-            if self.rezero:
-                h = h * self.alpha2_h
-            h = h_in2 + h  # residual connection
-
-        if self.layer_norm:
-            h = self.layer_norm2_h(h)
-        if self.batch_norm:
-            h = self.batch_norm2_h(h)
+        e = e_res = e_attn_out + e_res
+        e = self.norm1_e(e)
+        e = F.dropout(e, self.drop_prob, training=self.training)
+        e = self.FFN_e_layer1(e)
+        e = self.act(e)
+        e = F.dropout(e, self.drop_prob, training=self.training)
+        e = self.FFN_e_layer2(e)
+        e = e + e_res
+        e = self.norm2_e(e)
 
         batch.x = h
         batch[self.poly_method + "_conn"] = e

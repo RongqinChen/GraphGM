@@ -12,7 +12,7 @@ from lightning.pytorch import seed_everything
 from lightning.pytorch import Trainer
 from lightning.pytorch.loggers import WandbLogger
 from lightning.pytorch.callbacks import ModelCheckpoint, LearningRateMonitor, Timer
-from lightning.pytorch.callbacks.progress import TQDMProgressBar
+# from lightning.pytorch.callbacks.progress import TQDMProgressBar
 import wandb
 from torchmetrics import MeanAbsoluteError
 from torch_geometric.data import Data
