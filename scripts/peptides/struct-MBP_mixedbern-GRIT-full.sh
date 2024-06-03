@@ -1,32 +1,19 @@
-
-which python
-
-source /home/yc07917/mambaforge/bin/activate gnn210
-which python
-
-
 for((seed=4;seed>=0;seed--));  
-do   
+do
+
+K=4
+CUDA_VISIBLE_DEVICES=0 \
+python main.py --cfg configs/MBP/peptides/peptides_struct-MBP_mixedbern-GRIT-full.yaml seed $((seed)) name_tag K$((K)) &
+
+wait
+
+K=6
+CUDA_VISIBLE_DEVICES=0 \
+python main.py --cfg configs/MBP/peptides/peptides_struct-MBP_mixedbern-GRIT-full.yaml seed $((seed)) name_tag K$((K)) &
+
+wait
 
 K=8
-CUDA_VISIBLE_DEVICES=0 \
-python main.py --cfg configs/MBP/peptides/peptides_struct-MBP_mixedbern-GRIT-full.yaml seed $((seed)) name_tag K$((K)) &
-
-wait
-
-K=16
-CUDA_VISIBLE_DEVICES=0 \
-python main.py --cfg configs/MBP/peptides/peptides_struct-MBP_mixedbern-GRIT-full.yaml seed $((seed)) name_tag K$((K)) &
-
-wait
-
-K=10
-CUDA_VISIBLE_DEVICES=0 \
-python main.py --cfg configs/MBP/peptides/peptides_struct-MBP_mixedbern-GRIT-full.yaml seed $((seed)) name_tag K$((K)) &
-
-wait
-
-K=12
 CUDA_VISIBLE_DEVICES=0 \
 python main.py --cfg configs/MBP/peptides/peptides_struct-MBP_mixedbern-GRIT-full.yaml seed $((seed)) name_tag K$((K)) &
 

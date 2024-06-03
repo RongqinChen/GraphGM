@@ -19,4 +19,4 @@ python main.py --cfg configs/MBP/peptides/peptides_func-MBP_mixedbern-GRIT-full.
 
 wait
 
-done  
+done
