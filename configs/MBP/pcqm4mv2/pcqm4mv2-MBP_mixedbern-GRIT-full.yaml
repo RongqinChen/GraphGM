@@ -2,7 +2,7 @@ out_dir: results
 metric_best: mae
 metric_agg: argmin
 accelerator: cuda:0
-num_workers: 4
+num_workers: 8
 tensorboard_each_run: False  # Log to Tensorboard each run
 wandb:
   use: False
@@ -66,6 +66,7 @@ mbp_model:
     input_norm: False
 gnn:
   head: san_graph
+  layers_post_mp: 2
 optim:
   clip_grad_norm: True
   optimizer: adamW
