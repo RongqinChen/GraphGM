@@ -26,7 +26,7 @@ posenc_Poly:
   add_full_edge_index: True
 train:
   mode: custom
-  batch_size: 32
+  batch_size: 16
   eval_period: 1
   ckpt_period: 100
 model:

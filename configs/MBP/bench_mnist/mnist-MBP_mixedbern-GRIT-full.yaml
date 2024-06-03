@@ -20,8 +20,8 @@ dataset:
   edge_encoder_bn: False
 posenc_Poly:
   enable: True
-  method: low_middle_pass
-  order: 4
+  method: mixed_bern
+  power: 4
   add_full_edge_index: True
 train:
   mode: custom
@@ -33,7 +33,7 @@ model:
   loss_fun: cross_entropy
   edge_decoding: dot
   graph_pooling: mean
-gse_model:
+mbp_model:
   enable: True
   hidden_dim: 52
   attn_heads: 4
@@ -62,7 +62,7 @@ gse_model:
     repeats: 3
     input_norm: False
 gnn:
-  head: default
+  head: san_graph
   layers_pre_mp: 0
   layers_post_mp: 2
   batchnorm: False

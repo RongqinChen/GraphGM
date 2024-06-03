@@ -62,7 +62,7 @@ mbp_model:
     repeats: 3
     input_norm: False
 gnn:
-  head: default
+  head: san_graph
   layers_pre_mp: 0
   layers_post_mp: 2
   batchnorm: False
