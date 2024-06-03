@@ -2,14 +2,13 @@ out_dir: results
 metric_best: accuracy
 tensorboard_each_run: False  # Log to Tensorboard each run
 accelerator: "cuda:0"
-num_workers: 8
+num_workers: 4
 wandb:
   use: False
   project: MNIST
 dataset:
   format: PyG-GNNBenchmarkDataset
   name: MNIST
-  on_the_fly: True
   task: graph
   task_type: classification
   transductive: False
@@ -22,8 +21,7 @@ dataset:
 posenc_Poly:
   enable: True
   method: low_middle_pass
-  order: 18
-  emb_dim: 18
+  order: 4
   add_full_edge_index: True
 train:
   mode: custom
@@ -31,7 +29,7 @@ train:
   eval_period: 1
   ckpt_period: 100
 model:
-  type: GseModel
+  type: MbpModel
   loss_fun: cross_entropy
   edge_decoding: dot
   graph_pooling: mean
@@ -52,6 +50,8 @@ gse_model:
   weight_fn: softmax
   agg: add
   act: relu
+  pe_layer: simple_linear
+  # pe_layer: outerprod_linear
   messaging:
     layer_type: grit
     num_blocks: 0

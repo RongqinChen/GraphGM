@@ -2,14 +2,13 @@ out_dir: results
 metric_best: accuracy-SBM
 tensorboard_each_run: False  # Log to Tensorboard each run
 accelerator: "cuda:0"
-num_workers: 8
+num_workers: 4
 wandb:
   use: False
   project: CLUSTER
 dataset:
   format: PyG-GNNBenchmarkDataset
   name: CLUSTER
-  on_the_fly: True
   task: graph
   task_type: classification
   transductive: False
@@ -22,22 +21,21 @@ dataset:
   edge_encoder_bn: False
 posenc_Poly:
   enable: True
-  method: low_middle_pass
-  order: 32
-  emb_dim: 32
-  add_full_edge_index: False
+  method: mixed_bern
+  power: 4
+  add_full_edge_index: True
 train:
   mode: custom
   batch_size: 16
   eval_period: 1
   ckpt_period: 100
 model:
-  type: GseModel
+  type: MbpModel
   loss_fun: weighted_cross_entropy
   edge_decoding: dot
-gse_model:
+mbp_model:
   enable: True
-  hidden_dim: 48
+  hidden_dim: 64
   attn_heads: 8
   drop_prob: 0.01
   attn_drop_prob: 0.5
@@ -59,16 +57,23 @@ gse_model:
   full:
     layer_type: grit
     enable: True
-    repeats: 16
+    repeats: 10
     input_norm: False
-  head: inductive_node
 gnn:
   head: inductive_node
+  layers_pre_mp: 0
+  layers_post_mp: 3
+  dim_inner: 64  # `gt.dim_hidden` must match `gnn.dim_inner`
+  batchnorm: True
+  act: relu
+  dropout: 0.0
+  agg: mean
+  normalize_adj: False
 optim:
   clip_grad_norm: True
   optimizer: adamW
   weight_decay: 1e-5
-  base_lr: 0.0005
+  base_lr: 0.001
   max_epoch: 100
   scheduler: cosine_with_warmup
   num_warmup_epochs: 5

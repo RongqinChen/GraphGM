@@ -17,12 +17,12 @@ class GNNInductiveEdgeHead(nn.Module):
         dim_out (int): Output dimension. For binary prediction, dim_out=1.
     """
 
-    def __init__(self, dim_in, dim_out):
+    def __init__(self, dim_in, dim_out, layers_post_mp):
         super().__init__()
         # module to decode edges from node embeddings
         if cfg.model.edge_decoding == 'concat':
             self.layer_post_mp = MLP(
-                new_layer_config(dim_in * 2, dim_out, cfg.gnn.layers_post_mp,
+                new_layer_config(dim_in * 2, dim_out, layers_post_mp,
                                  has_act=False, has_bias=True, cfg=cfg))
             # requires parameter
             self.decode_module = lambda v1, v2: \
