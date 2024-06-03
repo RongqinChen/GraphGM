@@ -20,7 +20,6 @@ dataset:
   edge_encoder: True
   edge_encoder_name: Bond
   edge_encoder_bn: False
-  precompute_on_the_fly: True
 posenc_Poly:
   enable: True
   add_full_edge_index: True
