@@ -6,10 +6,10 @@ from scipy.special import comb
 
 
 @torch.no_grad()
-def compute_mixed_bernstein_polynomials(
-    data: Data, method, power=8,
-    add_full_edge_index: bool = False
+def compute_bernstein_polynomials(
+    data: Data, method, power=8, add_full_edge_index: bool = False
 ):
+
     assert power > 2
     assert power % 2 == 0, "Parameter `power` should be an even number."
     K = power
@@ -46,22 +46,13 @@ def compute_mixed_bernstein_polynomials(
         base1_list[k] = base1_list[lidx] @ base1_list[ridx]
         base2_list[k] = base2_list[lidx] @ base2_list[ridx]
 
-    basis1 = []
-    for k in range(2, K, 2):
-        a_idx = k // 2 - 1
-        b_idx = k - a_idx
-        coef = ((2 ** -k) * comb(k, k // 2 - 1))
-        base1 = base1_list[a_idx] @ base2_list[b_idx] * coef
-        base2 = base1_list[b_idx] @ base2_list[a_idx] * coef
-        basis1.extend([base1 - base2, base1])
-
     bp_base_list = [base1_list[K - k] * base2_list[k] for k in range(K + 1)]
     bp_coef_list = [2 ** (-K) * comb(K, k) for k in range(K + 1)]
-    basis2 = [bp_base_list[k] * bp_coef_list[k] for k in range(K + 1)]
+    basis = [bp_base_list[k] * bp_coef_list[k] for k in range(K + 1)]
 
-    polys = torch.stack(basis1 + basis2, dim=-1)  # n x n x (K+2)
-    loop = polys.diagonal().transpose(0, 1)  # n x (K+2)
-    poly_adj = SparseTensor.from_dense(polys, has_value=True)
+    basis = torch.stack(basis, dim=-1)  # n x n x (K+2)
+    loop = basis.diagonal().transpose(0, 1)  # n x (K+2)
+    poly_adj = SparseTensor.from_dense(basis, has_value=True)
     poly_row, poly_col, poly_val = poly_adj.coo()
     poly_idx = torch.stack([poly_row, poly_col], dim=0)
     data[f"{method}_loop"] = loop
@@ -70,7 +61,7 @@ def compute_mixed_bernstein_polynomials(
     data["sqrt_deg"] = deg.pow(0.5).unsqueeze_(1)
 
     if add_full_edge_index:
-        if num_nodes ** 2 == poly_row.size(0):
+        if num_nodes**2 == poly_row.size(0):
             full_index = poly_idx
         else:
             full_mat = torch.ones((num_nodes, num_nodes), dtype=torch.short)

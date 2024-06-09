@@ -4,12 +4,14 @@ from torch_geometric.graphgym.register import register_layer
 from yacs.config import CfgNode
 
 from .mbp_dense_attn import GraphDenseAttn
-from .mbp_grit_mp import GritMessagePassingLayer
+# from .mbp_grit_mp import GritMessagePassingLayer
+from .mbp_conditional_attn import ConditionalAttention
 from .mbp_gine_mp import MbpGINELayer
 
 
 Layer_dict = {
-    'grit': GritMessagePassingLayer,
+    # 'grit': GritMessagePassingLayer,
+    'cattn': ConditionalAttention,
     'gine': MbpGINELayer,
     'dense': GraphDenseAttn,
 }

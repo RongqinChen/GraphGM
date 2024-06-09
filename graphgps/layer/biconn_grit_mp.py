@@ -201,8 +201,8 @@ class GritMessagePassingLayer(nn.Module):
         h = F.dropout(h_attn_out, self.drop_prob, training=self.training)
         # degree scaler
         if self.deg_scaler:
-            log_deg = get_log_deg(batch)
-            h = torch.stack([h, h * log_deg], dim=-1)
+            sqrt_deg = get_sqrt_deg(batch)
+            h = torch.stack([h, h * sqrt_deg], dim=-1)
             h = (h * self.deg_coef).sum(dim=-1)
 
         h = self.O_h(h)
@@ -250,15 +250,15 @@ class GritMessagePassingLayer(nn.Module):
 
 
 @torch.no_grad()
-def get_log_deg(batch):
-    if "log_deg" in batch:
-        log_deg = batch.log_deg
+def get_sqrt_deg(batch):
+    if "sqrt_deg" in batch:
+        sqrt_deg = batch.sqrt_deg
     elif "deg" in batch:
         deg = batch.deg
-        log_deg = torch.log(deg + 1).unsqueeze(-1)
+        sqrt_deg = torch.log(deg + 1).unsqueeze(-1)
     else:
         warnings.warn("Compute the degree on the fly; Might be problematric if have applied edge-padding to complete graphs")
         deg = pyg.utils.degree(batch.poly_idx[1], num_nodes=batch.num_nodes, dtype=torch.float)
-        log_deg = torch.log(deg + 1)
-    log_deg = log_deg.view(batch.num_nodes, 1)
-    return log_deg
+        sqrt_deg = torch.log(deg + 1)
+    sqrt_deg = sqrt_deg.view(batch.num_nodes, 1)
+    return sqrt_deg

@@ -39,7 +39,7 @@ def compute_adjacency_power_series(
     data[f"{method}_loop"] = loop
     data[f"{method}_index"] = poly_idx
     data[f"{method}_conn"] = poly_val
-    data["log_deg"] = torch.log(deg + 1).unsqueeze_(1)
+    data["sqrt_deg"] = deg.pow(0.5).unsqueeze_(1)
 
     if add_full_edge_index:
         if num_nodes ** 2 == poly_row.size(0):

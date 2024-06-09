@@ -70,7 +70,7 @@ class MbpModel(torch.nn.Module):
         assert (cfg.posenc_Poly.power) > 2 ** (cfg.mbp_model.messaging.num_blocks - 2)
         if cfg.posenc_Poly.method in {"mixed_bern"}:
             emb_dim = cfg.posenc_Poly.power + 2
-        elif cfg.posenc_Poly.method in {"adj_powers"}:
+        elif cfg.posenc_Poly.method in {"adj_powers", "bern"}:
             emb_dim = cfg.posenc_Poly.power + 1
 
         MbpMessagingBlock = register.layer_dict["MbpMessagingBlock"]
@@ -121,7 +121,8 @@ class MbpModel(torch.nn.Module):
                 for lidx in range(cfg.mbp_model.messaging.num_blocks)
             }
         else:
-            raise NotImplementedError
+            self._poly_order_map = "Not Support!"
+            # raise NotImplementedError
 
     def forward(self, batch: Batch):
         all_loop_val = batch[cfg.posenc_Poly.method + "_loop"]
@@ -174,7 +175,7 @@ class MbpModel(torch.nn.Module):
 
         if cfg.mbp_model.full.enable:
             full_poly = "full_" + cfg.posenc_Poly.method
-            if cfg.mbp_model.full.layer_type in {"grit", "ppgn", "gine", "gat"}:
+            if cfg.mbp_model.full.layer_type in {"grit", "cattn"}:
                 if "full_index" in batch:
                     full_index = batch["full_index"]
                 else:

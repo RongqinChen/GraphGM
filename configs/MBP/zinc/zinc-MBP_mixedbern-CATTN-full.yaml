@@ -9,13 +9,13 @@ wandb:
   project: ZINC
 dataset:
   format: PyG-ZINC
-  name: full
+  name: subset
   task: graph
   task_type: regression
   transductive: False
   node_encoder: True
   node_encoder_name: TypeDictNode
-  node_encoder_num_types: 28 # actually 21 in Zinc-12k, 28 in Zinc-full
+  node_encoder_num_types: 21  # actually 21 in Zinc-12k, 28 in Zinc-full
   node_encoder_bn: False
   edge_encoder: True
   edge_encoder_name: TypeDictEdge
@@ -28,7 +28,7 @@ posenc_Poly:
   power: 6
 train:
   mode: custom
-  batch_size: 256
+  batch_size: 32
   eval_period: 1
   enable_ckpt: False  # Checkpointing can now be disabled to save I/O when e.g. just benchmarking.
   ckpt_best: False  # WARNING: Checkpoint every epoch a better model is found may increase I/O significantly.

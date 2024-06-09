@@ -59,11 +59,11 @@ mbp_model:
   pe_layer: simple_linear
   # pe_layer: outerprod_linear
   messaging:
-    layer_type: grit
+    layer_type: cattn
     num_blocks: 4
     repeats: 2
   full:
-    layer_type: grit
+    layer_type: cattn
     enable: True
     repeats: 2
     input_norm: False

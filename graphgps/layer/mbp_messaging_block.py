@@ -3,12 +3,12 @@ from torch_geometric.data import Batch
 from torch_geometric.graphgym.register import register_layer
 from yacs.config import CfgNode
 
-from .mbp_grit_mp import GritMessagePassingLayer
+from .mbp_conditional_attn import ConditionalAttention
 from .mbp_gine_mp import MbpGINELayer
 
 
 Layer_dict = {
-    'grit': GritMessagePassingLayer,
+    'cattn': ConditionalAttention,
     'gine': MbpGINELayer,
 }
 

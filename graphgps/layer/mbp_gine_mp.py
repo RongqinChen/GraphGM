@@ -133,8 +133,8 @@ class MbpGINELayer(nn.Module):
         h = F.dropout(h_out, self.drop_prob, training=self.training)
         # degree scaler
         if self.deg_scaler:
-            log_deg = batch["log_deg"]
-            h = torch.stack([h, h * log_deg], dim=-1)
+            sqrt_deg = batch["sqrt_deg"]
+            h = torch.stack([h, h * sqrt_deg], dim=-1)
             h = (h * self.deg_coef).sum(dim=-1)
 
         h = self.nodelin(h)
