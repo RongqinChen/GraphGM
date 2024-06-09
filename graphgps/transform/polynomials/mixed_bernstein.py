@@ -46,16 +46,9 @@ def compute_mixed_bernstein_polynomials(
         base1_list[k] = base1_list[lidx] @ base1_list[ridx]
         base2_list[k] = base2_list[lidx] @ base2_list[ridx]
 
-    basis1 = []
-    for k in range(2, K, 2):
-        a_idx = k // 2 - 1
-        b_idx = k - a_idx
-        coef = ((2 ** -k) * comb(k, k // 2 - 1))
-        base1 = base1_list[a_idx] @ base2_list[b_idx] * coef
-        base2 = base1_list[b_idx] @ base2_list[a_idx] * coef
-        basis1.extend([base1 - base2, base1])
+    basis1 = [base / (2 ** k) for k, base in enumerate(base1_list[:-1])]
 
-    bp_base_list = [base1_list[K - k] * base2_list[k] for k in range(K + 1)]
+    bp_base_list = [base1_list[K - k] @ base2_list[k] for k in range(K + 1)]
     bp_coef_list = [2 ** (-K) * comb(K, k) for k in range(K + 1)]
     basis2 = [bp_base_list[k] * bp_coef_list[k] for k in range(K + 1)]
 

@@ -69,7 +69,7 @@ class MbpModel(torch.nn.Module):
         super().__init__()
         assert (cfg.posenc_Poly.power) > 2 ** (cfg.mbp_model.messaging.num_blocks - 2)
         if cfg.posenc_Poly.method in {"mixed_bern"}:
-            emb_dim = cfg.posenc_Poly.power + 2
+            emb_dim = cfg.posenc_Poly.power * 2 + 1
         elif cfg.posenc_Poly.method in {"adj_powers", "bern"}:
             emb_dim = cfg.posenc_Poly.power + 1
 
