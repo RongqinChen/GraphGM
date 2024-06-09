@@ -57,4 +57,4 @@ mbp_model:
 gnn:
   head: san_graph
   act: relu
-  layers: 1
+  layers_post_mp: 1

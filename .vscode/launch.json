@@ -77,7 +77,7 @@
             "console": "integratedTerminal",
             "args": [
                 "--cfg",
-                "configs/MBP/zinc/zinc-MBP_bern-GRIT-full.yaml",
+                "configs/MBP/zinc/zinc-MBP_mixedbern-CATTN-full.yaml",
                 "name_tag",
                 "debug"
             ],
