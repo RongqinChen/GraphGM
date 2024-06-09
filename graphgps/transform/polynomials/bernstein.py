@@ -46,7 +46,7 @@ def compute_bernstein_polynomials(
         base1_list[k] = base1_list[lidx] @ base1_list[ridx]
         base2_list[k] = base2_list[lidx] @ base2_list[ridx]
 
-    bp_base_list = [base1_list[K - k] * base2_list[k] for k in range(K + 1)]
+    bp_base_list = [base1_list[K - k] @ base2_list[k] for k in range(K + 1)]
     bp_coef_list = [2 ** (-K) * comb(K, k) for k in range(K + 1)]
     basis = [bp_base_list[k] * bp_coef_list[k] for k in range(K + 1)]
 
