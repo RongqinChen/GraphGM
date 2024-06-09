@@ -1,15 +1,14 @@
 out_dir: results
 metric_best: ap
 accelerator: "cuda:0"
-num_workers: 8
+num_workers: 4
 wandb:
   use: False
-  project: peptides-func
+  project: peptides-struct
 dataset:
   format: OGB
   name: peptides-functional
   task: graph
-  on_the_fly: True
   task_type: classification_multilabel
   transductive: False
   node_encoder: True
@@ -21,24 +20,24 @@ dataset:
 posenc_Poly:
   enable: True
   add_full_edge_index: True
-  method: low_middle_pass
-  order: 16
-  emb_dim: 16
+  method: mixed_bern
+  power: 8
 train:
   mode: custom
-  batch_size: 16
+  batch_size: 32
   eval_period: 1
-  ckpt_period: 100
+  enable_ckpt: False  # Checkpointing can now be disabled to save I/O when e.g. just benchmarking.
+  ckpt_best: False  # WARNING: Checkpoint every epoch a better model is found may increase I/O significantly.
 model:
-  type: GseModel
+  type: MbpModel
   loss_fun: cross_entropy
   graph_pooling: mean
-gse_model:
+mbp_model:
   enable: True
-  hidden_dim: 56
-  attn_heads: 8
+  hidden_dim: 80
+  attn_heads: 4
   drop_prob: 0.0
-  attn_drop_prob: 0.2
+  attn_drop_prob: 0.5
   residual: True
   layer_norm: False
   batch_norm: True
@@ -50,20 +49,22 @@ gse_model:
   weight_fn: softmax
   agg: add
   act: relu
+  pe_layer: simple_linear
+  # pe_layer: outerprod_linear
   messaging:
     layer_type: grit
-    num_blocks: 5
-    repeats: 2
+    num_blocks: 4
+    repeats: 1
   full:
     layer_type: grit
     enable: True
-    repeats: 2
+    repeats: 1
     input_norm: False
 gnn:
-  head: default
+  head: san_graph
   layers_pre_mp: 0
   layers_post_mp: 2
-  dim_inner: 56  # `gt.dim_hidden` must match `gnn.dim_inner`
+  dim_inner: 80  # `gt.dim_hidden` must match `gnn.dim_inner`
   batchnorm: True
   act: relu
   dropout: 0.0
@@ -71,8 +72,7 @@ optim:
   clip_grad_norm: True
   optimizer: adamW
   weight_decay: 0.0
-  base_lr: 1e-3
+  base_lr: 0.0003
   max_epoch: 200
   scheduler: cosine_with_warmup
   num_warmup_epochs: 10
-  min_lr: 1e-6
