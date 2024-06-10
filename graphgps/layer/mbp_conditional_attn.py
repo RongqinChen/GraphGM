@@ -171,6 +171,12 @@ class ConditionalAttention(nn.Module):
             self.norm1_e = nn.BatchNorm1d(hidden_dim, track_running_stats=not self.bn_no_runner, eps=1e-5, momentum=self.bn_momentum)
             self.norm2_e = nn.BatchNorm1d(hidden_dim, track_running_stats=not self.bn_no_runner, eps=1e-5, momentum=self.bn_momentum)
 
+        if not self.layer_norm and not self.batch_norm:
+            self.norm1_h = nn.Identity()
+            self.norm2_h = nn.Identity()
+            self.norm1_e = nn.Identity()
+            self.norm2_e = nn.Identity()
+
         self.FFN_h_layer1 = nn.Linear(hidden_dim, int(hidden_dim * 1.5))
         self.FFN_h_layer2 = nn.Linear(int(hidden_dim * 1.5), hidden_dim)
         self.FFN_e_layer1 = nn.Linear(hidden_dim, int(hidden_dim * 1.5))
@@ -182,13 +188,13 @@ class ConditionalAttention(nn.Module):
 
         h_attn_out, e_attn_out = self.message_pass(batch)
 
-        h = h_attn_out
+        h = h_res + h_attn_out
         if self.deg_scaler:
             sqrt_deg = batch["sqrt_deg"]
             h = torch.stack([h, h * sqrt_deg], dim=-1)
             h = (h * self.deg_coef).sum(dim=-1)
 
-        h = h_res = h + h_res
+        # h = h_res = h + h_res
         h = self.norm1_h(h)
         h = F.dropout(h, self.drop_prob, training=self.training)
         h = self.FFN_h_layer1(h)

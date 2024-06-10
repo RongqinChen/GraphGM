@@ -6,7 +6,7 @@ from scipy.special import comb
 
 
 @torch.no_grad()
-def compute_mixed_bernstein_polynomials(
+def compute_mixed_sym_bernstein_polynomials(
     data: Data, method, power=8,
     add_full_edge_index: bool = False
 ):
@@ -39,20 +39,29 @@ def compute_mixed_bernstein_polynomials(
     adj2 = adj2.to_dense()
 
     identity = torch.eye(num_nodes)
-    base1_list = [identity, adj1] + [None] * (K - 1)
-    base2_list = [identity, adj2] + [None] * (K - 1)
-    for k in range(2, K + 1):
-        lidx, ridx = k // 2, k - k // 2
-        base1_list[k] = base1_list[lidx] @ base1_list[ridx]
-        base2_list[k] = base2_list[lidx] @ base2_list[ridx]
+    K = power
+    base_list = [adj1 @ adj1, adj1 @ adj2, adj2 @ adj2]
+    base_dict = {2: base_list}
+    for k in range(4, K + 1, 2):
+        a_idx = ((k // 2) + 1) // 2 * 2
+        b_idx = k - a_idx
+        base_list = [
+            base_dict[a_idx][1] @ base_dict[b_idx][0],
+            base_dict[a_idx][1] @ base_dict[b_idx][1],
+            base_dict[a_idx][1] @ base_dict[b_idx][2],
+        ]
+        base_dict[k] = base_list
 
-    basis1 = [base / (2 ** k) for k, base in enumerate(base1_list[:-1])]
+    polys = [identity]
+    for k in range(2, K + 1, 2):
+        base_list = base_dict[k]
+        base1 = base_dict[k][0] * ((2 ** -k) * comb(k, k // 2 - 1))
+        base2 = base_dict[k][2] * ((2 ** -k) * comb(k, k // 2 + 1))
+        polys += [base1, base2]
 
-    bp_base_list = [base1_list[k] @ base2_list[K - k] for k in range(K + 1)]
-    bp_coef_list = [2 ** (-K) * comb(K, k) for k in range(K + 1)]
-    basis2 = [bp_base_list[k] * bp_coef_list[k] for k in range(K + 1)]
+    polys.append(base_dict[K][1] * ((2 ** -K) * comb(K, K // 2)))
 
-    polys = torch.stack(basis1 + basis2, dim=-1)  # n x n x (K+2)
+    polys = torch.stack(polys, dim=-1)  # n x n x (K+2)
     loop = polys.diagonal().transpose(0, 1)  # n x (K+2)
     poly_adj = SparseTensor.from_dense(polys, has_value=True)
     poly_row, poly_col, poly_val = poly_adj.coo()

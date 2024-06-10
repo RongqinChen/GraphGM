@@ -6,13 +6,12 @@ from scipy.special import comb
 
 
 @torch.no_grad()
-def compute_bernstein_polynomials(
-    data: Data, method, power=8, add_full_edge_index: bool = False
+def compute_low_bernstein_polynomials(
+    data: Data, method, power=8,
+    add_full_edge_index: bool = False
 ):
-
     assert power > 2
     assert power % 2 == 0, "Parameter `power` should be an even number."
-    K = power
 
     num_nodes = data.num_nodes
     edge_index = data.edge_index
@@ -31,28 +30,29 @@ def compute_bernstein_polynomials(
     # Adj1 = I + A_norm.
     index_1, weight_1 = add_self_loops(edge_index, edge_weight, 1.0, num_nodes)
     adj1 = SparseTensor.from_edge_index(index_1, weight_1, size_tuple, True, True)
-    adj1 = adj1.to_dense()
+    adj1 = adj1.to_dense() / 2.
 
     # Adj2 = I - A_norm.
     index_2, weight_2 = add_self_loops(edge_index, -edge_weight, 1.0, num_nodes)
     adj2 = SparseTensor.from_edge_index(index_2, weight_2, size_tuple, True, True)
-    adj2 = adj2.to_dense()
+    adj2 = adj2.to_dense() / 2.
 
+    middle = adj1 @ adj2
+    base_list = [adj1, adj1 @ adj1, ]
+    while len(base_list) < power:
+        base1 = base_list[-2] @ middle
+        base2 = base_list[-1] @ middle
+        base_list += [base1, base2]
+
+    basis = [
+        base * comb(k, (k - 1) // 2)
+        for k, base in zip(range(1, power + 1), base_list)
+    ]
     identity = torch.eye(num_nodes)
-    base1_list = [identity, adj1 / 2.] + [None] * (K - 1)
-    base2_list = [identity, adj2 / 2.] + [None] * (K - 1)
-    for k in range(2, K + 1):
-        lidx, ridx = k // 2, k - k // 2
-        base1_list[k] = base1_list[lidx] @ base1_list[ridx]
-        base2_list[k] = base2_list[lidx] @ base2_list[ridx]
-
-    bp_base_list = [base1_list[K - k] @ base2_list[k] for k in range(K + 1)]
-    bp_coef_list = [comb(K, k) for k in range(K + 1)]
-    basis = [bp_base_list[k] * bp_coef_list[k] for k in range(K + 1)]
-
-    basis = torch.stack(basis, dim=-1)  # n x n x (K+2)
-    loop = basis.diagonal().transpose(0, 1)  # n x (K+2)
-    poly_adj = SparseTensor.from_dense(basis, has_value=True)
+    basis = [identity] + basis
+    polys = torch.stack(basis, dim=-1)  # n x n x K
+    loop = polys.diagonal().transpose(0, 1)  # n x K
+    poly_adj = SparseTensor.from_dense(polys, has_value=True)
     poly_row, poly_col, poly_val = poly_adj.coo()
     poly_idx = torch.stack([poly_row, poly_col], dim=0)
     data[f"{method}_loop"] = loop
@@ -61,7 +61,7 @@ def compute_bernstein_polynomials(
     data["sqrt_deg"] = deg.pow(0.5).unsqueeze_(1)
 
     if add_full_edge_index:
-        if num_nodes**2 == poly_row.size(0):
+        if num_nodes ** 2 == poly_row.size(0):
             full_index = poly_idx
         else:
             full_mat = torch.ones((num_nodes, num_nodes), dtype=torch.short)

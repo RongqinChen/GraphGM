@@ -19,7 +19,7 @@ dataset:
 posenc_Poly:
   enable: True
   add_full_edge_index: True
-  method: adj_powers
+  method: mixed_low_bern
   power: 64
 model:
   type: MbpModel
@@ -28,7 +28,7 @@ model:
   graph_pooling: add
 mbp_model:
   enable: True
-  hidden_dim: 48
+  hidden_dim: 24
   attn_heads: 4
   drop_prob: 0.0
   attn_drop_prob: 0.2
@@ -46,15 +46,15 @@ mbp_model:
   pe_layer: simple_linear
   # pe_layer: outerprod_linear
   messaging:
-    layer_type: grit
+    layer_type: cattn
     num_blocks: 0
     repeats: 0
   full:
-    layer_type: grit
+    layer_type: cattn
     enable: True
-    repeats: 10
+    repeats: 12
     input_norm: False
 gnn:
   head: san_graph
   act: relu
-  layers_post_mp: 1
+  layers_post_mp: 0

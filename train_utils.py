@@ -29,7 +29,7 @@ def args_setup():
     parser.add_argument(
         "--config_file",
         type=str,
-        default="configs/MBP/count/count-MBP_mixedbern-GRIT-full.yaml",
+        default="configs/MBP/brec/brec-MBP_poly-CATTN-full.yaml",
         help="Additional configuration file for different dataset and models.",
     )
     parser.add_argument(

@@ -14,8 +14,8 @@ from graphgps.loader.dataset.BRECDataset_v3 import BRECDataset, part_dict
 from graphgps.network.mbp_model import MbpModel
 from graphgps.transform.polynomials import compute_polynomials
 
-part_name_list = ["Basic", "Extension", "CFI", "Regular", "4-Vertex_Condition", "Distance_Regular"]
-# part_name_list = ["CFI", "Regular", "4-Vertex_Condition", "Distance_Regular"]
+# part_name_list = ["Basic", "Extension", "CFI", "Regular", "4-Vertex_Condition", "Distance_Regular"]
+part_name_list = ["CFI", "Regular", "4-Vertex_Condition", "Distance_Regular"]
 
 
 class ComputePolynomialBases(BaseTransform):
@@ -60,7 +60,7 @@ def evaluation(run, dataset, args, device):
 
     def T2_calculation(model, dataset):
         with torch.no_grad():
-            loader = DataLoader(dataset, batch_size=24)
+            loader = DataLoader(dataset, batch_size=32)
             # loader = DataLoader(dataset, batch_size=args.batch_size)
             pred_0_list = []
             pred_1_list = []
@@ -79,7 +79,8 @@ def evaluation(run, dataset, args, device):
             D_mean = torch.mean(D, dim=1).reshape(-1, 1)
             S = torch.cov(D)
             inv_S = torch.linalg.pinv(S)
-            return torch.mm(torch.mm(D_mean.T, inv_S), D_mean)
+            result = torch.mm(torch.mm(D_mean.T, inv_S), D_mean)
+            return result
 
     time_start = time.process_time()
     cnt = 0
@@ -105,7 +106,7 @@ def evaluation(run, dataset, args, device):
             #     logger.info(model)
             model.to(device)
 
-            optimizer = torch.optim.AdamW(
+            optimizer = torch.optim.Adam(
                 model.parameters(), lr=args.lr, weight_decay=args.l2_wd
             )
             scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer)
@@ -123,7 +124,7 @@ def evaluation(run, dataset, args, device):
             model.train()
             for _ in range(args.num_epochs):
                 traintest_loader = DataLoader(
-                    dataset_traintest, batch_size=24, shuffle=True
+                    dataset_traintest, batch_size=32, shuffle=True
                     # dataset_traintest, batch_size=args.batch_size, shuffle=True
                 )
                 loss_all = 0
@@ -172,8 +173,8 @@ def evaluation(run, dataset, args, device):
                 fail_in_reliability += 1
                 fail_in_reliability_part += 1
             if args.VERBOSE:
-                logger.info(f"isomorphic: {isomorphic_flag} {T_square_traintest}")
-                logger.info(f"reliability: {reliability_flag} {T_square_reliability}")
+                logger.info(f"isomorphic: {isomorphic_flag} {T_square_traintest.cpu().item()}")
+                logger.info(f"reliability: {reliability_flag} {T_square_reliability.cpu().item()}")
 
         end = time.process_time()
         time_cost_part = round(end - start, 2)
