@@ -1,7 +1,7 @@
 
 K=8
 CUDA_VISIBLE_DEVICES=0 \
-python main.py --cfg configs/MBP/zinc/zinc-MBP_bern-CATTN-full.yaml seed 4  \
+python main.py --cfg configs/MBP/zinc/zinc-MBP_mixedbern-CATTN-full.yaml seed 4  \
 posenc_Poly.power $((K)) \
 mbp_model.attn_drop_prob 0.20 \
 mbp_model.drop_prob 0.00 \
@@ -14,7 +14,7 @@ name_tag K$((K))ADP20DP00 &
 
 K=8
 CUDA_VISIBLE_DEVICES=0 \
-python main.py --cfg configs/MBP/zinc/zinc-MBP_bern-CATTN-full.yaml seed 3  \
+python main.py --cfg configs/MBP/zinc/zinc-MBP_mixedbern-CATTN-full.yaml seed 3  \
 posenc_Poly.power $((K)) \
 mbp_model.attn_drop_prob 0.20 \
 mbp_model.drop_prob 0.00 \
@@ -26,7 +26,7 @@ wait
 
 K=8
 CUDA_VISIBLE_DEVICES=0 \
-python main.py --cfg configs/MBP/zinc/zinc-MBP_bern-CATTN-full.yaml seed 2  \
+python main.py --cfg configs/MBP/zinc/zinc-MBP_mixedbern-CATTN-full.yaml seed 2  \
 posenc_Poly.power $((K)) \
 mbp_model.attn_drop_prob 0.20 \
 mbp_model.drop_prob 0.00 \
@@ -38,7 +38,7 @@ name_tag K$((K))ADP20DP00 &
 
 K=8
 CUDA_VISIBLE_DEVICES=0 \
-python main.py --cfg configs/MBP/zinc/zinc-MBP_bern-CATTN-full.yaml seed 1  \
+python main.py --cfg configs/MBP/zinc/zinc-MBP_mixedbern-CATTN-full.yaml seed 1  \
 posenc_Poly.power $((K)) \
 mbp_model.attn_drop_prob 0.20 \
 mbp_model.drop_prob 0.00 \
@@ -50,7 +50,7 @@ name_tag K$((K))ADP20DP00 &
 
 K=8
 CUDA_VISIBLE_DEVICES=0 \
-python main.py --cfg configs/MBP/zinc/zinc-MBP_bern-CATTN-full.yaml seed 0  \
+python main.py --cfg configs/MBP/zinc/zinc-MBP_mixedbern-CATTN-full.yaml seed 0  \
 posenc_Poly.power $((K)) \
 mbp_model.attn_drop_prob 0.20 \
 mbp_model.drop_prob 0.00 \
