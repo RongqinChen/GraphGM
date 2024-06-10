@@ -19,7 +19,7 @@ dataset:
 posenc_Poly:
   enable: True
   add_full_edge_index: True
-  method: mixed_middle_bern
+  method: mixed_sym_bern
   power: 32
 model:
   type: MbpModel
