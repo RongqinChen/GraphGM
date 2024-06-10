@@ -19,8 +19,8 @@ dataset:
 posenc_Poly:
   enable: True
   add_full_edge_index: True
-  method: mixed_bern
-  power: 22
+  method: mixed_low_bern
+  power: 32
 model:
   type: MbpModel
   loss_fun: l1
@@ -43,16 +43,18 @@ mbp_model:
   weight_fn: softmax
   agg: add
   act: relu
+  pe_layer: simple_linear
+  # pe_layer: outerprod_linear
   messaging:
-    layer_type: grit
-    num_blocks: 6
-    repeats: 1
+    layer_type: gine
+    num_blocks: 0
+    repeats: 0
   full:
-    layer_type: grit
+    layer_type: gine
     enable: True
-    repeats: 2
+    repeats: 10
     input_norm: False
 gnn:
   head: inductive_node
   act: relu
-  layers: 1
+  layers_post_mp: 1
