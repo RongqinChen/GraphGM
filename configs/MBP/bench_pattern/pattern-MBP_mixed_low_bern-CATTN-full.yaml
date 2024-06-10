@@ -2,14 +2,13 @@ out_dir: results
 metric_best: accuracy-SBM
 tensorboard_each_run: False  # Log to Tensorboard each run
 accelerator: "cuda:0"
-num_workers: 1
+num_workers: 8
 wandb:
   use: False
   project: PATTERN
 dataset:
   format: PyG-GNNBenchmarkDataset
   name: PATTERN
-  on_the_fly: False
   task: graph
   task_type: classification
   transductive: False
@@ -20,22 +19,22 @@ dataset:
   edge_encoder: True
   edge_encoder_name: DummyEdge
   edge_encoder_bn: False
+  precompute_on_the_fly: True
 posenc_Poly:
   enable: True
-  method: low_middle_pass
-  order: 16
-  emb_dim: 18
-  add_full_edge_index: False
+  method: mixed_low_bern
+  power: 20
+  add_full_edge_index: True
 train:
   mode: custom
-  batch_size: 32
+  batch_size: 16
   eval_period: 1
   ckpt_period: 100
 model:
-  type: GseModel
+  type: MbpModel
   loss_fun: weighted_cross_entropy
   edge_decoding: dot
-gse_model:
+mbp_model:
   enable: True
   hidden_dim: 64
   attn_heads: 8
@@ -52,14 +51,16 @@ gse_model:
   weight_fn: softmax
   agg: add
   act: relu
+  pe_layer: simple_linear
+  # pe_layer: outerprod_linear
   messaging:
-    layer_type: grit
-    num_blocks: 5
-    repeats: 1
+    layer_type: cattn
+    num_blocks: 0
+    repeats: 0
   full:
-    layer_type: dense
+    layer_type: cattn
     enable: True
-    repeats: 4
+    repeats: 10
     input_norm: False
 gnn:
   head: inductive_node
@@ -76,6 +77,6 @@ optim:
   optimizer: adamW
   weight_decay: 1e-5
   base_lr: 0.0005
-  max_epoch: 200
+  max_epoch: 100
   scheduler: cosine_with_warmup
   num_warmup_epochs: 5
