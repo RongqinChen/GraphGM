@@ -179,7 +179,7 @@ class MbpModel(torch.nn.Module):
 
         if cfg.mbp_model.full.enable:
             full_poly = "full_" + cfg.posenc_Poly.method
-            if cfg.mbp_model.full.layer_type in {"grit", "cattn"}:
+            if cfg.mbp_model.full.layer_type in {"grit", "cattn", "gine"}:
                 if "full_index" in batch:
                     full_index = batch["full_index"]
                 else:

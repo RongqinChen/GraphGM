@@ -51,29 +51,42 @@ class MbpGINEMessagePassing(nn.Module):
         self.attn_heads = attn_heads
         self.weight_fn = weight_fn
         self.agg = agg
+        self.attn_dropout = nn.Dropout(attn_drop_prob)
         self.clamp = np.abs(clamp) if clamp is not None else None
-        self.dropout = nn.Dropout(attn_drop_prob)
-        self.Q = nn.Linear(hidden_dim, attn_dim * attn_heads, bias=True)
-        self.K = nn.Linear(hidden_dim, attn_dim * attn_heads, bias=True)
-        self.E = nn.Linear(hidden_dim, attn_dim * attn_heads, bias=False)
-        self.conn_lin = nn.Linear(attn_dim * attn_heads, hidden_dim, bias=True)
-        nn.init.xavier_normal_(self.Q.weight)
-        nn.init.xavier_normal_(self.K.weight)
-        nn.init.xavier_normal_(self.E.weight)
-        nn.init.xavier_normal_(self.conn_lin.weight)
+        self.qkv_weight = nn.Parameter(torch.empty((3 * attn_dim * attn_heads, hidden_dim)))
+        self.qkv_bias = nn.Parameter(torch.empty(3 * attn_dim * attn_heads))
+        self.E = nn.Linear(hidden_dim, 2 * attn_dim * attn_heads)
+        self.conn_lin = nn.Linear(attn_dim * attn_heads, hidden_dim)
+
+        nn.init.xavier_uniform_(self.qkv_weight)
+        nn.init.constant_(self.qkv_bias, 0.)
+        nn.init.xavier_uniform_(self.E.weight)
+        nn.init.constant_(self.E.bias, 0.)
         self.act = act_dict[act]()
 
     def forward(self, batch):
+        x = batch.x
+        Qh, Kh, Vh = F._in_projection_packed(x, x, x, self.qkv_weight, self.qkv_bias)
         Eh = self.E(batch[self.poly_method + "_conn"])
+        Eh = Eh.unflatten(-1, (2, self.attn_heads * self.attn_dim))
+        Eh = Eh.unsqueeze(0).transpose(0, -2).squeeze(-2).contiguous()
+        Ew, Eb = Eh[0], Eh[1]
+
         dst, src = batch[self.poly_method + "_index"]
-        Qdst = self.Q(batch.x)[dst]
-        Ksrc = self.K(batch.x)[src]
-        conn1 = Qdst + Ksrc + Eh
-        conn2 = self.act(conn1)
-        conn3 = self.dropout(conn2)
-        conn = self.conn_lin(conn3)
-        agg = scatter(conn, dst, dim=0, reduce=self.agg)
-        return agg, conn
+        Qdst = Qh[dst]
+        Ksrc = Kh[src]
+        Vsrc = Vh[src]
+
+        agg = scatter(Vsrc, dst, dim=0, dim_size=batch.num_nodes, reduce=self.agg)
+        msg1 = Qdst + Ksrc
+        conn1 = msg1 * Ew
+        conn2 = torch.sqrt(torch.relu(conn1)) - torch.sqrt(torch.relu(-conn1))
+        conn3 = conn2 + Eb
+        conn = self.act(conn3)
+        eagg = scatter(conn, dst, dim=0, dim_size=batch.num_nodes, reduce=self.agg)
+        eagg = self.conn_lin(eagg)
+        No = (agg + eagg).flatten(1)
+        return No, conn
 
 
 class MbpGINELayer(nn.Module):
