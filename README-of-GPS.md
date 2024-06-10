@@ -24,7 +24,7 @@ conda create --name graphgm python pytorch=2.1.0 pytorch-cuda=12.1 pyg openbabel
 conda activate graphgm
 pip install pyg_lib torch_scatter torch_sparse torch_cluster torch_spline_conv -f https://data.pyg.org/whl/torch-2.1.0+cu121.html
 
-pip install pytorch-lightning yacs torchmetrics
+pip install lightning yacs torchmetrics
 pip install performer-pytorch
 pip install tensorboardX
 pip install ogb
