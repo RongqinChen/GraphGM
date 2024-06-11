@@ -1,38 +1,31 @@
 out_dir: results
-metric_best: accuracy-SBM
+num_workers: 4
 tensorboard_each_run: False  # Log to Tensorboard each run
 accelerator: "cuda:0"
-num_workers: 4
-wandb:
-  use: False
-  project: PATTERN
 dataset:
-  format: PyG-GNNBenchmarkDataset
-  name: PATTERN
-  task: graph
-  task_type: classification
+  format: null
+  name: null
+  task: null
+  task_type: null
   transductive: False
-  split_mode: standard
   node_encoder: True
-  node_encoder_name: LinearNode
+  node_encoder_name: DummyNode
+  node_encoder_num_types: 1
   node_encoder_bn: False
   edge_encoder: True
   edge_encoder_name: DummyEdge
+  edge_encoder_num_types: 1
   edge_encoder_bn: False
 posenc_Poly:
   enable: True
-  method: mixed_bern
-  power: 4
   add_full_edge_index: True
-train:
-  mode: custom
-  batch_size: 16
-  eval_period: 1
-  ckpt_period: 100
+  method: mixed_sym_bern
+  power: 32
 model:
   type: MbpModel
-  loss_fun: weighted_cross_entropy
+  loss_fun: l1
   edge_decoding: dot
+  graph_pooling: add
 mbp_model:
   enable: True
   hidden_dim: 64
@@ -53,29 +46,15 @@ mbp_model:
   pe_layer: simple_linear
   # pe_layer: outerprod_linear
   messaging:
-    layer_type: grit
+    layer_type: gine
     num_blocks: 0
     repeats: 0
   full:
-    layer_type: grit
+    layer_type: gine
     enable: True
     repeats: 10
     input_norm: False
 gnn:
   head: inductive_node
-  layers_pre_mp: 0
-  layers_post_mp: 3
-  dim_inner: 64  # `hidden_hidden` must match `gnn.dim_inner`
-  batchnorm: True
   act: relu
-  dropout: 0.0
-  agg: mean
-  normalize_adj: False
-optim:
-  clip_grad_norm: True
-  optimizer: adamW
-  weight_decay: 1e-5
-  base_lr: 0.0005
-  max_epoch: 100
-  scheduler: cosine_with_warmup
-  num_warmup_epochs: 5
+  layers_post_mp: 1

@@ -1,14 +1,16 @@
-for((task=4;task>=0;task--));  
+
+for((task=0;task<=2;task++));  
 do
 
-python train_count.py --dataset_name count_graphlet --config_file configs/MBP/count/count-MBP_adj_powers-GRIT-full.yaml --task $((task)) --name_tag G$((task))K24L10Dp20  &
+CUDA_VISIBLE_DEVICES=0 python train_count.py --dataset_name count_graphlet --config_file configs/MBP/count/count-MBP_adj_powers-GINE-full.yaml --task $((task)) --name_tag Graphlet$((task))  &
 
-python train_count.py --dataset_name count_graphlet --config_file configs/MBP/count/count-MBP_adj_powers-GRIT-sparse.yaml --task $((task)) --name_tag G$((task))K24L10Dp20  &
+CUDA_VISIBLE_DEVICES=1 python train_count.py --dataset_name count_graphlet --config_file configs/MBP/count/count-MBP_bern-GINE-full.yaml --task $((task)) --name_tag Graphlet$((task))  &
 
-python train_count.py --dataset_name count_graphlet --config_file configs/MBP/count/count-MBP_mixedbern-GRIT-full.yaml --task $((task)) --name_tag G$((task))K24L10Dp20  &
+CUDA_VISIBLE_DEVICES=2 python train_count.py --dataset_name count_graphlet --config_file configs/MBP/count/count-MBP-mixed_low_bern-GINE-full.yaml --task $((task)) --name_tag Graphlet$((task))  &
 
-python train_count.py --dataset_name count_graphlet --config_file configs/MBP/count/count-MBP_mixedbern-GRIT-sparse.yaml --task $((task)) --name_tag G$((task))K24L10Dp20  &
+CUDA_VISIBLE_DEVICES=3 python train_count.py --dataset_name count_graphlet --config_file configs/MBP/count/count-MBP-mixed_sym_bern-GINE-full.yaml --task $((task)) --name_tag Graphlet$((task))  &
 
 wait
 
 done  
+
