@@ -25,7 +25,7 @@
             "request": "launch",
             "program": "train_BREC.py",
             "console": "integratedTerminal",
-            "args": ["--config_file", "configs/MBP/brec/brec-MBP_adj_powers-GRIT-sparse.yaml"]
+            "args": ["--config_file", "configs/MBP/brec/brec-MBP_mixed_low_bern-GINE-full.yaml"]
         },
         {
             "name": "agg_runs",
