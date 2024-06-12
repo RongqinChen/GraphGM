@@ -20,7 +20,7 @@ posenc_Poly:
   enable: True
   add_full_edge_index: True
   method: adj_powers
-  power: 64
+  power: 32
 model:
   type: MbpModel
   loss_fun: l1
