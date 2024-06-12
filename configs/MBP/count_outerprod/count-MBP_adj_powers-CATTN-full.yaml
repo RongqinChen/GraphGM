@@ -19,7 +19,7 @@ dataset:
 posenc_Poly:
   enable: True
   add_full_edge_index: True
-  method: mixed_sym_bern
+  method: adj_powers
   power: 32
 model:
   type: MbpModel
@@ -43,8 +43,8 @@ mbp_model:
   weight_fn: softmax
   agg: add
   act: relu
-  pe_layer: simple_linear
-  # pe_layer: outerprod_linear
+  # pe_layer: simple_linear
+  pe_layer: outerprod_linear
   messaging:
     layer_type: cattn
     num_blocks: 0

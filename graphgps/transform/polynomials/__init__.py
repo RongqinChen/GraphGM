@@ -1,11 +1,13 @@
 from .adjacency_power_series import compute_adjacency_power_series
 from .bernstein import compute_bernstein_polynomials
 from .mixed_sym_bernstein import compute_mixed_sym_bernstein_polynomials
+from .mixed_low_bernstein import compute_low_bernstein_polynomials
 
 method_dict = {
     'adj_powers': compute_adjacency_power_series,
     'bern': compute_bernstein_polynomials,
     'mixed_sym_bern': compute_mixed_sym_bernstein_polynomials,
+    'mixed_low_bern': compute_low_bernstein_polynomials,
 }
 
 

@@ -72,6 +72,8 @@ class MbpModel(torch.nn.Module):
             emb_dim = cfg.posenc_Poly.power + 2
         elif cfg.posenc_Poly.method in {"adj_powers"}:
             emb_dim = cfg.posenc_Poly.power + 1
+        elif cfg.posenc_Poly.method in {"mixed_low_bern"}:
+            emb_dim = cfg.posenc_Poly.power + 1
 
         MbpMessagingBlock = register.layer_dict["MbpMessagingBlock"]
         MbpFullBlock = register.layer_dict["MbpFullBlock"]

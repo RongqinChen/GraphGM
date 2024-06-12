@@ -43,8 +43,8 @@ mbp_model:
   weight_fn: softmax
   agg: add
   act: relu
-  pe_layer: simple_linear
-  # pe_layer: outerprod_linear
+  # pe_layer: simple_linear
+  pe_layer: outerprod_linear
   messaging:
     layer_type: cattn
     num_blocks: 0

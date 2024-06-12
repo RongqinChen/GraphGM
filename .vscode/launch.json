@@ -20,12 +20,20 @@
             "console": "integratedTerminal"
         },
         {
-            "name": "train_BREC",
+            "name": "BREC",
             "type": "debugpy",
             "request": "launch",
             "program": "train_BREC.py",
             "console": "integratedTerminal",
             "args": ["--config_file", "configs/MBP/brec/brec-MBP_mixed_low_bern-GINE-full.yaml"]
+        },
+        {
+            "name": "count",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "train_count.py",
+            "console": "integratedTerminal",
+            "args": ["--config_file", "configs/MBP/count/count-MBP-mixed_low_bern-GINE-full.yaml"]
         },
         {
             "name": "agg_runs",
