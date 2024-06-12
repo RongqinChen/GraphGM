@@ -68,14 +68,12 @@ class MbpModel(torch.nn.Module):
     def __init__(self, dim_in, dim_out):
         super().__init__()
         assert (cfg.posenc_Poly.power) > 2 ** (cfg.mbp_model.messaging.num_blocks - 2)
-        if cfg.posenc_Poly.method in {"mixed_sym_bern"}:
+        if cfg.posenc_Poly.method in {"mixed_sym_bern", "bern"}:
             emb_dim = cfg.posenc_Poly.power + 2
-        elif cfg.posenc_Poly.method in {"mixed_middle_bern", "mixed_low_bern"}:
+        elif cfg.posenc_Poly.method in {"adj_powers"}:
             emb_dim = cfg.posenc_Poly.power + 1
-        elif cfg.posenc_Poly.method in {"adj_powers", "bern"}:
+        elif cfg.posenc_Poly.method in {"mixed_low_bern"}:
             emb_dim = cfg.posenc_Poly.power + 1
-        # elif cfg.posenc_Poly.method in {"lowpass_bern"}:
-        #     emb_dim = cfg.posenc_Poly.power
 
         MbpMessagingBlock = register.layer_dict["MbpMessagingBlock"]
         MbpFullBlock = register.layer_dict["MbpFullBlock"]

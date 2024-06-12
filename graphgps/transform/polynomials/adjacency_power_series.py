@@ -6,8 +6,7 @@ from torch_geometric.utils import scatter
 
 @torch.no_grad()
 def compute_adjacency_power_series(
-    data: Data, method, power=8,
-    add_full_edge_index: bool = False
+    data: Data, method, power=8, add_full_edge_index: bool = False
 ):
     assert power > 2
     device = data.edge_index.device

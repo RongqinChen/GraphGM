@@ -49,6 +49,7 @@ def compute_bernstein_polynomials(
     bp_base_list = [base1_list[K - k] @ base2_list[k] for k in range(K + 1)]
     bp_coef_list = [comb(K, k) for k in range(K + 1)]
     basis = [bp_base_list[k] * bp_coef_list[k] for k in range(K + 1)]
+    basis = [identity] + basis
 
     basis = torch.stack(basis, dim=-1)  # n x n x (K+2)
     loop = basis.diagonal().transpose(0, 1)  # n x (K+2)

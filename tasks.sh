@@ -1,61 +1,28 @@
+for((task=0;task<=2;task++));  
+do
 
-K=8
-CUDA_VISIBLE_DEVICES=0 \
-python main.py --cfg configs/MBP/zinc/zinc-MBP_mixedbern-CATTN-full.yaml seed 4  \
-posenc_Poly.power $((K)) \
-mbp_model.attn_drop_prob 0.20 \
-mbp_model.drop_prob 0.00 \
-mbp_model.messaging.num_blocks 0 \
-mbp_model.full.repeats 10 \
-name_tag K$((K))ADP20DP00 &
+CUDA_VISIBLE_DEVICES=0 python train_count.py --config_file configs/MBP/count/count-MBP_adj_powers-GINE-full.yaml --task $((task)) --name_tag Circle$((task))  &
 
-# wait
+CUDA_VISIBLE_DEVICES=1 python train_count.py --config_file configs/MBP/count/count-MBP-mixed_low_bern-GINE-full.yaml --task $((task)) --name_tag Circle$((task))  &
 
-
-K=8
-CUDA_VISIBLE_DEVICES=0 \
-python main.py --cfg configs/MBP/zinc/zinc-MBP_mixedbern-CATTN-full.yaml seed 3  \
-posenc_Poly.power $((K)) \
-mbp_model.attn_drop_prob 0.20 \
-mbp_model.drop_prob 0.00 \
-mbp_model.messaging.num_blocks 0 \
-mbp_model.full.repeats 10 \
-name_tag K$((K))ADP20DP00 &
+CUDA_VISIBLE_DEVICES=2 python train_count.py --config_file configs/MBP/count/count-MBP-mixed_sym_bern-GINE-full.yaml --task $((task)) --name_tag Circle$((task))  &
 
 wait
 
-K=8
-CUDA_VISIBLE_DEVICES=0 \
-python main.py --cfg configs/MBP/zinc/zinc-MBP_mixedbern-CATTN-full.yaml seed 2  \
-posenc_Poly.power $((K)) \
-mbp_model.attn_drop_prob 0.20 \
-mbp_model.drop_prob 0.00 \
-mbp_model.messaging.num_blocks 0 \
-mbp_model.full.repeats 10 \
-name_tag K$((K))ADP20DP00 &
+done  
 
-# wait
 
-K=8
-CUDA_VISIBLE_DEVICES=0 \
-python main.py --cfg configs/MBP/zinc/zinc-MBP_mixedbern-CATTN-full.yaml seed 1  \
-posenc_Poly.power $((K)) \
-mbp_model.attn_drop_prob 0.20 \
-mbp_model.drop_prob 0.00 \
-mbp_model.messaging.num_blocks 0 \
-mbp_model.full.repeats 10 \
-name_tag K$((K))ADP20DP00 &
 
-# wait
+for((task=0;task<=2;task++));  
+do
 
-K=8
-CUDA_VISIBLE_DEVICES=0 \
-python main.py --cfg configs/MBP/zinc/zinc-MBP_mixedbern-CATTN-full.yaml seed 0  \
-posenc_Poly.power $((K)) \
-mbp_model.attn_drop_prob 0.20 \
-mbp_model.drop_prob 0.00 \
-mbp_model.messaging.num_blocks 0 \
-mbp_model.full.repeats 10 \
-name_tag K$((K))ADP20DP00 &
+CUDA_VISIBLE_DEVICES=0 python train_count.py --dataset_name count_graphlet --config_file configs/MBP/count/count-MBP_adj_powers-GINE-full.yaml --task $((task)) --name_tag Graphlet$((task))  &
+
+CUDA_VISIBLE_DEVICES=1 python train_count.py --dataset_name count_graphlet --config_file configs/MBP/count/count-MBP-mixed_low_bern-GINE-full.yaml --task $((task)) --name_tag Graphlet$((task))  &
+
+CUDA_VISIBLE_DEVICES=2 python train_count.py --dataset_name count_graphlet --config_file configs/MBP/count/count-MBP-mixed_sym_bern-GINE-full.yaml --task $((task)) --name_tag Graphlet$((task))  &
 
 wait
+
+done  
+

@@ -61,7 +61,7 @@ def main():
     parser.add_argument(
         "--task", type=int, default=0, choices=(0, 1, 2, 3, 4), help="Train task index."
     )
-    parser.add_argument("--runs", type=int, default=3, help="Number of repeat run.")
+    parser.add_argument("--runs", type=int, default=5, help="Number of repeat run.")
     args = parser.parse_args()
     args = train_utils.update_args(args)
 

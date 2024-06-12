@@ -7,8 +7,7 @@ from scipy.special import comb
 
 @torch.no_grad()
 def compute_low_bernstein_polynomials(
-    data: Data, method, power=8,
-    add_full_edge_index: bool = False
+    data: Data, method, power=8, add_full_edge_index: bool = False
 ):
     assert power > 2
     assert power % 2 == 0, "Parameter `power` should be an even number."
