@@ -24,7 +24,7 @@ dataset:
 posenc_Poly:
   enable: True
   add_full_edge_index: True
-  method: adj_powers
+  method: mixed_sym_bern
   power: 6
 train:
   mode: custom
