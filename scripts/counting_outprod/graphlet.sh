@@ -9,7 +9,6 @@ CUDA_VISIBLE_DEVICES=1 python train_count.py --dataset_name count_graphlet --con
 CUDA_VISIBLE_DEVICES=2 python train_count.py --dataset_name count_graphlet --config_file configs/MBP/count_outerprod/count-MBP-mixed_sym_bern-CATTN-full.yaml --task $((task)) --name_tag outerprodGraphlet$((task))  &
 
 wait
-
 done  
 
 
@@ -23,6 +22,4 @@ CUDA_VISIBLE_DEVICES=1 python train_count.py --dataset_name count_graphlet --con
 CUDA_VISIBLE_DEVICES=2 python train_count.py --dataset_name count_graphlet --config_file configs/MBP/count_outerprod/count-MBP-mixed_sym_bern-GINE-full.yaml --task $((task)) --name_tag outerprodGraphlet$((task))  &
 
 wait
-
 done  
-
