@@ -1,9 +1,8 @@
-K=15
+K=14
 seed=4
 CUDA_VISIBLE_DEVICES=0 python main.py \
 --cfg configs/MBP/zinc/zinc-MBP_mixed_low_bern-CATTN-full.yaml \
 seed $((seed)) \
-posenc_Poly.method adj_powers \
 posenc_Poly.power $((K)) \
 mbp_model.attn_drop_prob 0.20 \
 mbp_model.messaging.num_blocks 0 \
@@ -15,7 +14,7 @@ name_tag K$((K))ADP20
 for((seed=0;seed<2;seed++));  
 do   
 
-K=15
+K=14
 CUDA_VISIBLE_DEVICES=0 python main.py \
 --cfg configs/MBP/zinc/zinc-MBP_mixed_low_bern-CATTN-full.yaml \
 seed $((2*seed)) \
@@ -27,7 +26,7 @@ name_tag K$((K))ADP20 &
 
 # wait
 
-K=15
+K=14
 CUDA_VISIBLE_DEVICES=0 python main.py \
 --cfg configs/MBP/zinc/zinc-MBP_mixed_low_bern-CATTN-full.yaml \
 seed $((2*seed+1)) \
