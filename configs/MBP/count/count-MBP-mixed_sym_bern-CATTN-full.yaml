@@ -19,7 +19,7 @@ dataset:
 posenc_Poly:
   enable: True
   add_full_edge_index: True
-  method: mixed_low_bern
+  method: mixed_sym_bern
   power: 32
 model:
   type: MbpModel
@@ -46,11 +46,11 @@ mbp_model:
   # pe_layer: simple_linear
   pe_layer: outerprod_linear
   messaging:
-    layer_type: gine
+    layer_type: cattn
     num_blocks: 0
     repeats: 0
   full:
-    layer_type: gine
+    layer_type: cattn
     enable: True
     repeats: 10
     input_norm: False
