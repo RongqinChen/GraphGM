@@ -28,7 +28,7 @@ model:
   graph_pooling: add
 mbp_model:
   enable: True
-  hidden_dim: 64
+  hidden_dim: 32
   attn_heads: 8
   drop_prob: 0.0
   attn_drop_prob: 0.2
@@ -52,7 +52,7 @@ mbp_model:
   full:
     layer_type: cattn
     enable: True
-    repeats: 10
+    repeats: 16
     input_norm: False
 gnn:
   head: san_graph
