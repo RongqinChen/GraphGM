@@ -24,8 +24,8 @@ dataset:
 posenc_Poly:
   enable: True
   add_full_edge_index: True
-  method: mixed_bern
-  power: 6
+  method: adj_powers
+  power: 15
 train:
   mode: custom
   batch_size: 32

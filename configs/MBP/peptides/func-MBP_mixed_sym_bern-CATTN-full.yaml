@@ -20,8 +20,8 @@ dataset:
 posenc_Poly:
   enable: True
   add_full_edge_index: True
-  method: mixed_bern
-  power: 4
+  method: mixed_sym_bern
+  power: 8
 train:
   mode: custom
   batch_size: 16
@@ -41,7 +41,7 @@ mbp_model:
   residual: True
   layer_norm: False
   batch_norm: True
-  bn_momentum: 0.01
+  bn_momentum: 0.1
   bn_no_runner: False
   rezero: False
   deg_scaler: True
@@ -52,18 +52,18 @@ mbp_model:
   pe_layer: simple_linear
   # pe_layer: outerprod_linear
   messaging:
-    layer_type: grit
+    layer_type: cattn
     num_blocks: 0
     repeats: 0
   full:
-    layer_type: grit
+    layer_type: cattn
     enable: True
     repeats: 4
     input_norm: False
 gnn:
   head: san_graph
   layers_pre_mp: 0
-  layers_post_mp: 2
+  layers_post_mp: 1
   dim_inner: 96  # `gt.dim_hidden` must match `gnn.dim_inner`
   batchnorm: True
   act: relu
