@@ -3,7 +3,6 @@ seed=4
 CUDA_VISIBLE_DEVICES=0 python main.py \
 --cfg configs/MBP/zinc/zinc-MBP_adj_powers.yaml \
 seed $((seed)) \
-posenc_Poly.method adj_powers \
 posenc_Poly.power $((K)) \
 mbp_model.attn_drop_prob 0.20 \
 mbp_model.messaging.num_blocks 0 \

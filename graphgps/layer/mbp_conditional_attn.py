@@ -186,32 +186,30 @@ class ConditionalAttention(nn.Module):
         h_res = batch.x
         e_res = batch[self.poly_method + "_conn"]
 
-        h_attn_out, e_attn_out = self.message_pass(batch)
-
-        h = h_res + h_attn_out
+        h, e = self.message_pass(batch)
+        h = h_res = h_res + h
         if self.deg_scaler:
             sqrt_deg = batch["sqrt_deg"]
             h = torch.stack([h, h * sqrt_deg], dim=-1)
             h = (h * self.deg_coef).sum(dim=-1)
 
-        # h = h_res = h + h_res
         h = self.norm1_h(h)
         h = F.dropout(h, self.drop_prob, training=self.training)
         h = self.FFN_h_layer1(h)
         h = self.act(h)
         h = F.dropout(h, self.drop_prob, training=self.training)
         h = self.FFN_h_layer2(h)
-        h = h + h_res
+        h = h_res + h
         h = self.norm2_h(h)
 
-        e = e_res = e_attn_out + e_res
+        e = e_res = e_res + e
         e = self.norm1_e(e)
         e = F.dropout(e, self.drop_prob, training=self.training)
         e = self.FFN_e_layer1(e)
         e = self.act(e)
         e = F.dropout(e, self.drop_prob, training=self.training)
         e = self.FFN_e_layer2(e)
-        e = e + e_res
+        e = e_res + e
         e = self.norm2_e(e)
 
         batch.x = h
