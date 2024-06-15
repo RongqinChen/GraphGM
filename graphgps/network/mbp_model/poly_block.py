@@ -21,13 +21,7 @@ class PolyBlock(nn.Module):
         Layer = Layer_dict[cfg.poly.layer_type]
         self.layer_list = nn.ModuleList()
         for _ in range(self.repeats):
-            layer = Layer(
-                cfg.hidden_dim, cfg.attn_heads, cfg.drop_prob,
-                cfg.attn_drop_prob, cfg.residual, cfg.layer_norm,
-                cfg.batch_norm, cfg.bn_momentum, cfg.bn_no_runner,
-                cfg.rezero, cfg.deg_scaler, cfg.clamp,
-                cfg.weight_fn, cfg.agg, cfg.act,
-            )
+            layer = Layer(cfg)
             self.layer_list.append(layer)
 
     def forward(self, batch: Batch):

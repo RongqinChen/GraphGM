@@ -53,7 +53,7 @@ class MbpModel(torch.nn.Module):
         poly_method = poly_cfg.method
 
         if model_cfg.poly.num_blocks > 0:
-            assert poly_method in {"mixed_sym_bern"}
+            assert poly_method in {"mixed_sym_bern", "deco_bern"}
 
         assert (poly_cfg.power) > 2 ** (model_cfg.poly.num_blocks - 2)
         if poly_method in {"mixed_sym_bern", "bern", "deco_bern"}:
@@ -74,11 +74,11 @@ class MbpModel(torch.nn.Module):
         self.block_dict = nn.ModuleDict()
         for lidx in range(model_cfg.poly.num_blocks):
             repeats = max(2, model_cfg.poly.repeats) if lidx == 0 else model_cfg.poly.repeats
-            poly_block = PolyBlock(poly_method, repeats, model_cfg)
+            poly_block = PolyBlock(repeats, model_cfg)
             conn_layer = PELayer(emb_dim, model_cfg.hidden_dim)
             self.block_dict[f"{lidx}_conn_enc"] = conn_layer
             self.block_dict[f"{lidx}_poly_blk"] = poly_block
-        
+
         if model_cfg.poly.num_blocks == 0:
             conn_layer = PELayer(emb_dim, model_cfg.hidden_dim)
             self.block_dict["all_conn_enc"] = conn_layer
@@ -166,9 +166,8 @@ class MbpModel(torch.nn.Module):
             batch["poly_index"] = poly_idx_add
             batch["poly_conn"] = poly_h_add
         else:
-            x_list.append(all_loop_val)
             x_cat = torch.concat(x_list, 1)
-            x = self.block_dict["JK_mlp"](x_cat)
+            x = self.JK_mlp(x_cat)
             batch['x'] = x
             if full_idx.size(1) > all_poly_idx.size(1):
                 # pad to complete graphs

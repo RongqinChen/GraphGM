@@ -43,7 +43,7 @@ class ConditionalAttention(nn.Module):
         agg = cfg.agg
         act = cfg.act
         bn_momentum = cfg.bn_momentum
-    
+
         super().__init__()
         self.attn_heads = attn_heads
         self.attn_features = in_features // attn_heads
@@ -99,7 +99,7 @@ class ConditionalAttention(nn.Module):
 
         conn = Qdst + Ksrc
         conn = conn * Ew
-        # conn = torch.sqrt(torch.relu(conn)) - torch.sqrt(torch.relu(-conn))
+        conn = torch.sqrt(torch.relu(conn)) - torch.sqrt(torch.relu(-conn))
         conn = conn + Eb
         conn = self.act(conn)
         conn = self.dropout(conn)
