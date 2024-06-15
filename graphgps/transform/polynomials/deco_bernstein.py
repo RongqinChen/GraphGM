@@ -64,15 +64,15 @@ def compute_deco_bernstein_polynomials(
 
     polys = [adj1, adj2]
 
-    idx, val = extract_sparse(adj1)
-    data[f"{method}_1_index"], data[f"{method}_1_conn"] = idx, val
+    # idx, val = extract_sparse(adj1)
+    # data[f"{method}_1_index"], data[f"{method}_1_conn"] = idx, val
     for k in range(2, K + 1, 2):
         base_list = base_dict[k]
         base1 = base_dict[k][0] * ((2 ** -k) * comb(k, k // 2 - 1))
         base2 = base_dict[k][2] * ((2 ** -k) * comb(k, k // 2 + 1))
         polys += [base1, base2]
-        idx, val = extract_sparse(base1)
-        data[f"{method}_{k}_index"], data[f"{method}_{k}_conn"] = idx, val
+        # idx, val = extract_sparse(base1)
+        # data[f"{method}_{k}_index"], data[f"{method}_{k}_conn"] = idx, val
 
     polys = torch.stack(polys, dim=-1)  # n x n x (K+2)
     loop = polys.diagonal().transpose(0, 1)  # n x (K+2)

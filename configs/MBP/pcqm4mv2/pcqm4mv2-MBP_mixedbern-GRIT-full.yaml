@@ -54,8 +54,7 @@ mbp_model:
   agg: add
   act: relu
   pe_layer: simple_linear
-  # pe_layer: outerprod_linear
-  messaging:
+  poly:
     layer_type: grit
     num_blocks: 0
     repeats: 0

@@ -53,11 +53,11 @@ DecoNet:
   act: relu
   pe_layer: simple_linear
   conv:
-    num_blocks: 4
-    repeats: 2
+    num_blocks: 0
+    repeats: 0
   full:
     enable: True
-    repeats: 2
+    repeats: 10
 gnn:
   head: san_graph
   layers_post_mp: 2

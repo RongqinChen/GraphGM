@@ -58,7 +58,7 @@ class DecoNet(torch.nn.Module):
             self.block_dict[f"{lidx}_conv"] = conv_block
 
         JK_features = (cfg.DecoNet.conv.num_blocks + 2) * cfg.DecoNet.hidden_dim
-        self.JK_mlp = nn.Sequential(
+        self.block_dict["JK_mlp"] = nn.Sequential(
             nn.Linear(JK_features, cfg.DecoNet.hidden_dim),
             nn.BatchNorm1d(cfg.DecoNet.hidden_dim),
             register.act_dict[cfg.DecoNet.act](),
@@ -69,7 +69,7 @@ class DecoNet(torch.nn.Module):
         PELayer = register.layer_dict[pe_layer]
         self.loop_layer = PELayer(emb_dim, cfg.DecoNet.hidden_dim)
         self.conn_layer = PELayer(emb_dim, cfg.DecoNet.hidden_dim)
-        full_block = ConditionalAttentionBlock(repeats, cfg.DecoNet)
+        full_block = ConditionalAttentionBlock(cfg.DecoNet.full.repeats, cfg.DecoNet)
         self.block_dict["full"] = full_block
 
         GNNHead = register.head_dict[cfg.gnn.head]
@@ -92,14 +92,13 @@ class DecoNet(torch.nn.Module):
         power_idx_dict[0] = 0
         for lidx in range(cfg.DecoNet.conv.num_blocks):
             if lidx < cfg.DecoNet.conv.num_blocks - 1:
-                # power_idx = power_idx_dict[lidx]
-                # mask = all_poly_val[:, power_idx] != 0.0
-                # poly_idx = all_poly_idx[:, mask]
-                # poly_val = all_poly_val[mask, power_idx]
-                k = 2 ** lidx
-                poly_idx = batch[f"{poly_method}_{k}_index"]
-                poly_val = batch[f"{poly_method}_{k}_conn"]
-
+                power_idx = power_idx_dict[lidx]
+                mask = all_poly_val[:, power_idx] != 0.0
+                poly_idx = all_poly_idx[:, mask]
+                poly_val = all_poly_val[mask, power_idx]
+                # k = 2 ** lidx
+                # poly_idx = batch[f"{poly_method}_{k}_index"]
+                # poly_val = batch[f"{poly_method}_{k}_conn"]
             else:
                 # poly_sgn: all true
                 poly_idx = all_poly_idx
@@ -114,10 +113,10 @@ class DecoNet(torch.nn.Module):
         all_loop_val = self.loop_layer(all_loop_val)
         all_poly_val = self.conn_layer(all_poly_val)
 
-        nh_list.append(all_loop_val)
-        nh_cat = torch.concat(nh_list, 1)
-        nh = self.JK_mlp(nh_cat)
-        batch['x'] = nh
+        # nh_list.append(all_loop_val)
+        # nh_cat = torch.concat(nh_list, 1)
+        # nh = self.block_dict["JK_mlp"](nh_cat)
+        batch['x'] = batch['x'] + all_loop_val
 
         full_idx = batch["full_index"]
         if full_idx.size(1) > all_poly_idx.size(1):
@@ -139,7 +138,6 @@ class DecoNet(torch.nn.Module):
         batch = self.block_dict["full"](batch)
         batch = self.post_mp(batch)
 
-        torch.cuda.empty_cache()
         return batch
 
     def reset(self):
