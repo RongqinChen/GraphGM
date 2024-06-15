@@ -66,6 +66,18 @@
             "justMyCode": true
         },
         {
+            "name": "struct-deco_bern",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "main.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--cfg",
+                "configs/DecoNet/struct-deco_bern.yaml",
+            ],
+            "justMyCode": true
+        },
+        {
             "name": "ppa",
             "type": "debugpy",
             "request": "launch",
@@ -74,6 +86,9 @@
             "args": [
                 "--cfg",
                 "configs/GSE/ogbg/ppa-GSE_grit-Poly.yaml",
+                "posenc_Poly.power", "2",
+                "DecoNet.conv.num_blocks", "2",
+                "name_tag", "debug"
             ],
             "justMyCode": true
         },
