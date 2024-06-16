@@ -20,8 +20,8 @@ dataset:
 posenc_Poly:
   enable: True
   add_full_edge_index: True
-  method: mixed_sym_bern
-  power: 8
+  method: deco_bern
+  power: 22
 train:
   mode: custom
   batch_size: 16
@@ -32,10 +32,10 @@ model:
   type: MbpModel
   loss_fun: cross_entropy
   graph_pooling: mean
-mbp_model:
+MbpModel:
   enable: True
   hidden_dim: 96
-  attn_heads: 4
+  attn_heads: 8
   drop_prob: 0.0
   attn_drop_prob: 0.5
   residual: True
@@ -61,12 +61,7 @@ mbp_model:
     input_norm: False
 gnn:
   head: san_graph
-  layers_pre_mp: 0
   layers_post_mp: 1
-  dim_inner: 96  # `gt.dim_hidden` must match `gnn.dim_inner`
-  batchnorm: True
-  act: relu
-  dropout: 0.0
 optim:
   clip_grad_norm: True
   optimizer: adamW

@@ -1,44 +1,44 @@
 out_dir: results
-metric_best: mae
-metric_agg: argmin
+metric_best: accuracy-SBM
+tensorboard_each_run: False  # Log to Tensorboard each run
 accelerator: "cuda:0"
-num_workers: 2
+num_workers: 4
 wandb:
   use: False
-  project: peptides-struct
+  project: CLUSTER
 dataset:
-  format: OGB
-  name: peptides-structural
+  format: PyG-GNNBenchmarkDataset
+  name: CLUSTER
   task: graph
-  on_the_fly: True
-  task_type: regression
+  task_type: classification
   transductive: False
+  split_mode: standard
   node_encoder: True
-  node_encoder_name: Atom
+  node_encoder_name: LinearNode
   node_encoder_bn: False
   edge_encoder: True
-  edge_encoder_name: Bond
+  edge_encoder_name: DummyEdge
   edge_encoder_bn: False
+  precompute_on_the_fly: True
 posenc_Poly:
   enable: True
+  method: deco_bern
+  power: 30
   add_full_edge_index: True
-  method: low_middle_pass
-  order: 16
-  emb_dim: 18
 train:
   mode: custom
   batch_size: 16
   eval_period: 1
   ckpt_period: 100
 model:
-  type: GseModel
-  loss_fun: l1
-  graph_pooling: mean
-gse_model:
+  type: MbpModel
+  loss_fun: weighted_cross_entropy
+  edge_decoding: dot
+MbpModel:
   enable: True
-  hidden_dim: 72
+  hidden_dim: 64
   attn_heads: 8
-  drop_prob: 0.05
+  drop_prob: 0.0
   attn_drop_prob: 0.2
   residual: True
   layer_norm: False
@@ -51,22 +51,24 @@ gse_model:
   weight_fn: softmax
   agg: add
   act: relu
+  pe_layer: simple_linear
   poly:
-    layer_type: grit
-    num_blocks: 5
-    repeats: 1
+    layer_type: cattn
+    num_blocks: 0
+    repeats: 0
   full:
-    layer_type: dense
+    layer_type: cattn
     enable: True
-    repeats: 1
+    repeats: 10
     input_norm: False
-  head: san_graph
+gnn:
+  head: inductive_node
+  layers_post_mp: 2
 optim:
   clip_grad_norm: True
   optimizer: adamW
   weight_decay: 1e-5
-  base_lr: 1e-3
-  max_epoch: 200
+  base_lr: 0.0005
+  max_epoch: 150
   scheduler: cosine_with_warmup
-  num_warmup_epochs: 10
-  min_lr: 1e-6
+  num_warmup_epochs: 5

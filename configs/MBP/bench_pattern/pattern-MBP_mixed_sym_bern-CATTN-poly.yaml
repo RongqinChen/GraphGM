@@ -2,7 +2,7 @@ out_dir: results
 metric_best: accuracy-SBM
 tensorboard_each_run: False  # Log to Tensorboard each run
 accelerator: "cuda:0"
-num_workers: 8
+num_workers: 4
 wandb:
   use: False
   project: PATTERN
@@ -54,23 +54,16 @@ MbpModel:
   pe_layer: simple_linear
   poly:
     layer_type: cattn
-    num_blocks: 0
-    repeats: 0
+    num_blocks: 6
+    repeats: 1
   full:
     layer_type: cattn
     enable: True
-    repeats: 10
+    repeats: 3
     input_norm: False
 gnn:
   head: inductive_node
-  layers_pre_mp: 0
-  layers_post_mp: 3
-  dim_inner: 64  # `hidden_hidden` must match `gnn.dim_inner`
-  batchnorm: True
-  act: relu
-  dropout: 0.0
-  agg: mean
-  normalize_adj: False
+  layers_post_mp: 2
 optim:
   clip_grad_norm: True
   optimizer: adamW
