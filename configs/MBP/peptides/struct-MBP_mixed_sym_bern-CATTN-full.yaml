@@ -21,11 +21,11 @@ dataset:
 posenc_Poly:
   enable: True
   add_full_edge_index: True
-  method: mixed_bern
+  method: mixed_sym_bern
   power: 8
 train:
   mode: custom
-  batch_size: 32
+  batch_size: 16
   eval_period: 1
   ckpt_period: 100
   enable_ckpt: False  # Checkpointing can now be disabled to save I/O when e.g. just benchmarking.
@@ -36,7 +36,7 @@ model:
   graph_pooling: mean
 mbp_model:
   enable: True
-  hidden_dim: 80
+  hidden_dim: 96
   attn_heads: 8
   drop_prob: 0.05
   attn_drop_prob: 0.2
@@ -52,21 +52,20 @@ mbp_model:
   agg: add
   act: relu
   pe_layer: simple_linear
-  # pe_layer: outerprod_linear
-  messaging:
-    layer_type: grit
-    num_blocks: 4
-    repeats: 1
+  poly:
+    layer_type: cattn
+    num_blocks: 0
+    repeats: 0
   full:
-    layer_type: grit
+    layer_type: cattn
     enable: True
-    repeats: 1
+    repeats: 4
     input_norm: False
 gnn:
   head: san_graph
   layers_pre_mp: 0
-  layers_post_mp: 2
-  dim_inner: 80  # `gt.dim_hidden` must match `gnn.dim_inner`
+  layers_post_mp: 1
+  dim_inner: 96  # `gt.dim_hidden` must match `gnn.dim_inner`
   batchnorm: True
   act: relu
   dropout: 0.0

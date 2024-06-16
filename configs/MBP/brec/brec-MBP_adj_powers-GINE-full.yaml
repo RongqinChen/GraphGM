@@ -28,7 +28,7 @@ model:
   graph_pooling: add
 mbp_model:
   enable: True
-  hidden_dim: 64
+  hidden_dim: 32
   attn_heads: 8
   drop_prob: 0.0
   attn_drop_prob: 0.2
@@ -44,15 +44,14 @@ mbp_model:
   agg: add
   act: relu
   pe_layer: simple_linear
-  # pe_layer: outerprod_linear
-  messaging:
+  poly:
     layer_type: gine
     num_blocks: 0
     repeats: 0
   full:
     layer_type: gine
     enable: True
-    repeats: 10
+    repeats: 16
     input_norm: False
 gnn:
   head: san_graph

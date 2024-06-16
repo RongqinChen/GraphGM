@@ -1,15 +1,17 @@
 out_dir: results
-metric_best: ap
+metric_best: mae
+metric_agg: argmin
 accelerator: "cuda:0"
-num_workers: 8
+num_workers: 2
 wandb:
   use: False
-  project: molpcba
+  project: peptides-struct
 dataset:
   format: OGB
-  name: ogbg-molpcba
+  name: peptides-structural
   task: graph
-  task_type: classification_multilabel
+  on_the_fly: True
+  task_type: regression
   transductive: False
   node_encoder: True
   node_encoder_name: Atom
@@ -20,26 +22,24 @@ dataset:
 posenc_Poly:
   enable: True
   add_full_edge_index: True
-  method: mixed_bern
-  power: 8
+  method: low_middle_pass
+  order: 16
+  emb_dim: 18
 train:
   mode: custom
-  batch_size: 512
+  batch_size: 16
   eval_period: 1
-  enable_ckpt: False  # Checkpointing can now be disabled to save I/O when e.g. just benchmarking.
-  ckpt_best: False  # WARNING: Checkpoint every epoch a better model is found may increase I/O significantly.
-  ckpt_clean: True # Delete old ckpt each time.
-  ckpt_period: 10
+  ckpt_period: 100
 model:
-  type: MbpModel
-  loss_fun: cross_entropy
+  type: GseModel
+  loss_fun: l1
   graph_pooling: mean
-mbp_model:
+gse_model:
   enable: True
-  hidden_dim: 384
+  hidden_dim: 72
   attn_heads: 8
-  drop_prob: 0.2
-  attn_drop_prob: 0.5
+  drop_prob: 0.05
+  attn_drop_prob: 0.2
   residual: True
   layer_norm: False
   batch_norm: True
@@ -51,24 +51,22 @@ mbp_model:
   weight_fn: softmax
   agg: add
   act: relu
-  messaging:
+  poly:
     layer_type: grit
-    num_blocks: 0
-    repeats: 0
+    num_blocks: 5
+    repeats: 1
   full:
-    layer_type: grit
+    layer_type: dense
     enable: True
-    repeats: 5
+    repeats: 1
     input_norm: False
-gnn:
   head: san_graph
-  layers_post_mp: 2
 optim:
   clip_grad_norm: True
   optimizer: adamW
   weight_decay: 1e-5
   base_lr: 1e-3
-  max_epoch: 100
+  max_epoch: 200
   scheduler: cosine_with_warmup
-  num_warmup_epochs: 5
-  min_lr: 1e-5
+  num_warmup_epochs: 10
+  min_lr: 1e-6

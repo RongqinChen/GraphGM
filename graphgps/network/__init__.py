@@ -1,3 +1,4 @@
+from .mbp_model import *  # noqa, register custom modules
 from os.path import dirname, basename, isfile, join
 import glob
 

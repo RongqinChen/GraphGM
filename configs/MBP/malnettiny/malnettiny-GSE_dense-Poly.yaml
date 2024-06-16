@@ -47,7 +47,7 @@ gse_model:
   weight_fn: softmax
   agg: add
   act: relu
-  messaging:
+  poly:
     layer_type: grit
     num_blocks: 2
     repeats: 2
