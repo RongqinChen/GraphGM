@@ -22,7 +22,7 @@ dataset:
   precompute_on_the_fly: True
 posenc_Poly:
   enable: True
-  method: mixed_sym_bern
+  method: deco_bern
   power: 20
   add_full_edge_index: True
 train:
@@ -34,7 +34,7 @@ model:
   type: MbpModel
   loss_fun: weighted_cross_entropy
   edge_decoding: dot
-mbp_model:
+MbpModel:
   enable: True
   hidden_dim: 64
   attn_heads: 8
