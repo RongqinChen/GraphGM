@@ -89,7 +89,7 @@ class MbpModel(torch.nn.Module):
                 nn.BatchNorm1d(model_cfg.hidden_dim),
                 register.act_dict[model_cfg.act](),
                 nn.Dropout(model_cfg.drop_prob),
-            )
+            ) if model_cfg.jumping_knowledge else None
 
         repeats = model_cfg.full.repeats
         full_block = FullBlock(repeats, model_cfg)
@@ -166,9 +166,10 @@ class MbpModel(torch.nn.Module):
             batch["poly_index"] = poly_idx_add
             batch["poly_conn"] = poly_h_add
         else:
-            x_cat = torch.concat(x_list, 1)
-            x = self.JK_mlp(x_cat)
-            batch['x'] = x
+            if self.JK_mlp is not None:
+                x_cat = torch.concat(x_list, 1)
+                x = self.JK_mlp(x_cat)
+                batch['x'] = x
             if full_idx.size(1) > all_poly_idx.size(1):
                 # pad to complete graphs
                 full_val = all_poly_val.new_zeros((full_idx.size(1), model_cfg.hidden_dim))

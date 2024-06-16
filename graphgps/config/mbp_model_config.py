@@ -33,6 +33,7 @@ def mbp_model_cfg(cfg):
     cfg.MbpModel.poly.layer_type = 'cattn'
     cfg.MbpModel.poly.repeats = 2
     cfg.MbpModel.poly.num_blocks = 3
+    cfg.MbpModel.jumping_knowledge = False
 
     cfg.MbpModel.full = CN()
     cfg.MbpModel.full.layer_type = 'cattn'

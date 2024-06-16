@@ -25,7 +25,7 @@ posenc_Poly:
   enable: True
   add_full_edge_index: True
   method: deco_bern
-  power: 8
+  power: 16
 train:
   mode: custom
   batch_size: 32
@@ -59,8 +59,9 @@ MbpModel:
   pe_layer: simple_linear
   poly:
     layer_type: cattn
-    num_blocks: 4
+    num_blocks: 5
     repeats: 2
+  jumping_knowledge: False
   full:
     layer_type: cattn
     enable: True
