@@ -25,7 +25,7 @@ posenc_Poly:
   enable: True
   add_full_edge_index: True
   method: deco_bern
-  power: 16
+  power: 14
 train:
   mode: custom
   batch_size: 32
