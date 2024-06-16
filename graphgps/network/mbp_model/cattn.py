@@ -33,7 +33,7 @@ def pyg_softmax(src, index, num_nodes=None):
 
 
 class ConditionalAttention(nn.Module):
-    def __init__(self, cfg):
+    def __init__(self, cfg: CfgNode):
         in_features = cfg.hidden_dim
         attn_heads = cfg.attn_heads
         clamp = cfg.clamp
