@@ -24,8 +24,8 @@ dataset:
 posenc_Poly:
   enable: True
   add_full_edge_index: True
-  method: mixed_bern
-  power: 6
+  method: deco_bern
+  power: 14
 train:
   mode: custom
   batch_size: 256
@@ -39,7 +39,7 @@ model:
   loss_fun: l1
   edge_decoding: dot
   graph_pooling: add
-mbp_model:
+MbpModel:
   enable: True
   hidden_dim: 64
   attn_heads: 8
@@ -59,12 +59,13 @@ mbp_model:
   pe_layer: simple_linear
   poly:
     layer_type: cattn
-    num_blocks: 0
-    repeats: 0
+    num_blocks: 5
+    repeats: 2
+  jumping_knowledge: False
   full:
     layer_type: cattn
     enable: True
-    repeats: 10
+    repeats: 2
     input_norm: False
 gnn:
   head: san_graph
