@@ -112,10 +112,9 @@ dict_keys = {
 data_collection = {'tud', 'cifar10', 'mnist', 'qm9', 'molpcba', 'csl', 'exp'}
 
 if __name__ == '__main__':
-    # dname = sys.argv[1]
-    # dname = dname.lower()
+    dname = sys.argv[1]
+    dname = dname.lower()
 
-    dname = 'zinc'
     for root, dirnames, _ in os.walk('results'):
         for dirname in dirnames:
             dirname: str = dirname
