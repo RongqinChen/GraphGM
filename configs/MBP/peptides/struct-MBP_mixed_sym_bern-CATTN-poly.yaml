@@ -2,7 +2,7 @@ out_dir: results
 metric_best: mae
 metric_agg: argmin
 accelerator: "cuda:0"
-num_workers: 2
+num_workers: 4
 wandb:
   use: False
   project: peptides-struct
@@ -10,7 +10,6 @@ dataset:
   format: OGB
   name: peptides-structural
   task: graph
-  on_the_fly: True
   task_type: regression
   transductive: False
   node_encoder: True
@@ -22,23 +21,23 @@ dataset:
 posenc_Poly:
   enable: True
   add_full_edge_index: True
-  method: low_middle_pass
-  order: 16
-  emb_dim: 18
+  method: deco_bern
+  power: 22
 train:
   mode: custom
   batch_size: 16
   eval_period: 1
-  ckpt_period: 100
+  enable_ckpt: False  # Checkpointing can now be disabled to save I/O when e.g. just benchmarking.
+  ckpt_best: False  # WARNING: Checkpoint every epoch a better model is found may increase I/O significantly.
 model:
-  type: GseModel
+  type: MbpModel
   loss_fun: l1
   graph_pooling: mean
-gse_model:
+MbpModel:
   enable: True
-  hidden_dim: 72
+  hidden_dim: 64
   attn_heads: 8
-  drop_prob: 0.05
+  drop_prob: 0.0
   attn_drop_prob: 0.2
   residual: True
   layer_norm: False
@@ -51,22 +50,24 @@ gse_model:
   weight_fn: softmax
   agg: add
   act: relu
+  pe_layer: simple_linear
   poly:
-    layer_type: grit
-    num_blocks: 5
+    layer_type: cattn
+    num_blocks: 6
     repeats: 1
   full:
-    layer_type: dense
+    layer_type: cattn
     enable: True
-    repeats: 1
+    repeats: 2
     input_norm: False
+gnn:
   head: san_graph
+  layers_post_mp: 1
 optim:
   clip_grad_norm: True
   optimizer: adamW
-  weight_decay: 1e-5
-  base_lr: 1e-3
+  weight_decay: 0.0
+  base_lr: 0.0003
   max_epoch: 200
   scheduler: cosine_with_warmup
   num_warmup_epochs: 10
-  min_lr: 1e-6

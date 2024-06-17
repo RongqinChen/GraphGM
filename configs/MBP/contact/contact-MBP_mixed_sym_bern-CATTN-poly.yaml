@@ -1,44 +1,48 @@
 out_dir: results
-metric_best: accuracy-SBM
+metric_best: mrr
+metric_agg: argmax
 tensorboard_each_run: False  # Log to Tensorboard each run
 accelerator: "cuda:0"
-num_workers: 8
+num_workers: 4
 wandb:
   use: False
-  project: CLUSTER
+  project: pcqm4m-contact
 dataset:
-  format: PyG-GNNBenchmarkDataset
-  name: CLUSTER
-  task: graph
+  format: OGB
+  name: PCQM4Mv2Contact-shuffle
+  task: graph  # PCQM4Mv2Contact is edge-level task, but because it is inductive, set to 'graph'
   task_type: classification
+  resample_negative: True
   transductive: False
-  split_mode: standard
   node_encoder: True
-  node_encoder_name: LinearNode
+  node_encoder_name: Atom
   node_encoder_bn: False
   edge_encoder: True
-  edge_encoder_name: DummyEdge
+  edge_encoder_name: Bond
   edge_encoder_bn: False
   precompute_on_the_fly: True
 posenc_Poly:
   enable: True
-  method: mixed_low_bern
-  power: 32
   add_full_edge_index: True
+  method: deco_bern
+  power: 14
 train:
   mode: custom
-  batch_size: 16
+  batch_size: 256
   eval_period: 1
+  enable_ckpt: False  # Checkpointing can now be disabled to save I/O when e.g. just benchmarking.
+  ckpt_best: False  # WARNING: Checkpoint every epoch a better model is found may increase I/O significantly.
+  ckpt_clean: True # Delete old ckpt each time.
   ckpt_period: 100
 model:
   type: MbpModel
-  loss_fun: weighted_cross_entropy
+  loss_fun: cross_entropy
   edge_decoding: dot
-mbp_model:
+MbpModel:
   enable: True
-  hidden_dim: 48
+  hidden_dim: 64
   attn_heads: 8
-  drop_prob: 0.01
+  drop_prob: 0.0
   attn_drop_prob: 0.5
   residual: True
   layer_norm: False
@@ -54,28 +58,21 @@ mbp_model:
   pe_layer: simple_linear
   poly:
     layer_type: cattn
-    num_blocks: 0
-    repeats: 0
+    num_blocks: 5
+    repeats: 1
   full:
     layer_type: cattn
     enable: True
-    repeats: 16
+    repeats: 2
     input_norm: False
 gnn:
-  head: inductive_node
-  layers_pre_mp: 0
-  layers_post_mp: 3
-  dim_inner: 48  # `gt.dim_hidden` must match `gnn.dim_inner`
-  batchnorm: True
-  act: relu
-  dropout: 0.0
-  agg: mean
-  normalize_adj: False
+  head: inductive_edge
+  layers_post_mp: 1
 optim:
   clip_grad_norm: True
   optimizer: adamW
-  weight_decay: 1e-5
-  base_lr: 0.0005
-  max_epoch: 150
+  weight_decay: 0.0
+  base_lr: 0.0003
+  max_epoch: 200
   scheduler: cosine_with_warmup
-  num_warmup_epochs: 5
+  num_warmup_epochs: 10
