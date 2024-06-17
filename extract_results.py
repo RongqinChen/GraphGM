@@ -8,17 +8,6 @@ import json
 import numpy as np
 
 
-def parse_label(label, d_collect: bool = False):
-    offset = 1 if d_collect else 0
-    items = label.split('/')
-    dname = items[offset+1]
-    mname = items[offset+2]
-    key = items[offset+3]
-    timestamp = items[offset+4]
-    fold = items[offset+5][4]
-    return dname, mname, key, timestamp, fold
-
-
 def reformat_results(result_fpath, d_collect=False):
     with open(result_fpath, 'r') as rfile:
         result_dict: Mapping = json.load(rfile)
@@ -64,29 +53,6 @@ def reformat_results(result_fpath, d_collect=False):
     return results_dict2
 
 
-def extract_results(src_dir, dst_path, alias_keys, all_keys, d_collect):
-
-    dst_file = open(dst_path, 'w')
-    results_fpath_list = [
-        osp.join(folder, file)
-        for folder, _, files in os.walk(src_dir)
-        for file in files if file == 'results.json'
-    ]
-
-    header_flag = True
-    for result_fpath in sorted(results_fpath_list):
-        print(result_fpath)
-        results_dict2 = reformat_results(result_fpath, d_collect)
-        if len(results_dict2) > 0:
-            if header_flag:
-                print(*alias_keys, sep=',', file=dst_file)
-                header_flag = False
-            values = [results_dict2[key] for key in all_keys]
-            print(*values, sep=',', file=dst_file)
-
-    dst_file.close()
-
-
 def key_name_factor(metric: str, has_test: bool):
     if has_test:
         alias_keys = [
@@ -125,79 +91,58 @@ def key_name_factor(metric: str, has_test: bool):
 
 dict_keys = {
     'arxiv': key_name_factor('ACC', True),
-    'Struct': key_name_factor('MAE', True),
-    'Func': key_name_factor('AP', True),
+    'struct': key_name_factor('MAE', True),
+    'func': key_name_factor('AP', True),
     'molpcba': key_name_factor('AP', True),
-    'TUD': key_name_factor('ACC', False),
-    'MNIST': key_name_factor('ACC', True),
-    'CIFAR10': key_name_factor('ACC', True),
-    'PATTERN': key_name_factor('ACC-SBM', True),
-    'CLUSTER': key_name_factor('ACC-SBM', True),
-    'VOC': key_name_factor('F1', True),
-    'COCO': key_name_factor('F1', True),
-    'CSL': key_name_factor('ACC', True),
-    'EXP': key_name_factor('ACC', True),
-    'SR': key_name_factor('ACC', False),
-    'ZINC_subset': key_name_factor('MAE', True),
-    'ZINC_full': key_name_factor('MAE', True),
-    'QM9': key_name_factor('MAE', True),
+    'tud': key_name_factor('ACC', False),
+    'mnist': key_name_factor('ACC', True),
+    'cifar10': key_name_factor('ACC', True),
+    'pattern': key_name_factor('ACC-SBM', True),
+    'cluster': key_name_factor('ACC-SBM', True),
+    'voc': key_name_factor('F1', True),
+    'coco': key_name_factor('F1', True),
+    'csl': key_name_factor('ACC', True),
+    'exp': key_name_factor('ACC', True),
+    'sr': key_name_factor('ACC', False),
+    'zinc': key_name_factor('MAE', True),
+    'zinc_full': key_name_factor('MAE', True),
+    'qm9': key_name_factor('MAE', True),
 }
 
-data_collection = {'TUD', 'CIFAR10', 'MNIST', 'QM9', 'molpcba', 'CSL', 'EXP'}
+data_collection = {'tud', 'cifar10', 'mnist', 'qm9', 'molpcba', 'csl', 'exp'}
 
 if __name__ == '__main__':
-    dname = sys.argv[1]
-    dname = dname.lower()
-    if 'tu' in dname:
-        dname = 'TUD'
-        in_dir = f'logs/{dname}'
-    elif 'csl' in dname:
-        dname = 'CSL'
-        in_dir = f'logs/{dname}'
-    elif 'exp' in dname:
-        dname = 'EXP'
-        in_dir = f'logs/{dname}'
-    elif 'sr' in dname:
-        dname = 'SR'
-        in_dir = f'logs/{dname}'
-    elif 'str' in dname:
-        dname = 'Struct'
-        in_dir = f'logs/{dname}'
-    elif 'func' in dname:
-        dname = 'Func'
-        in_dir = f'logs/{dname}'
-    elif 'mni' in dname:
-        dname = 'MNIST'
-        in_dir = f'logs/Bench/{dname}'
-    elif 'cif' in dname:
-        dname = 'CIFAR10'
-        in_dir = f'logs/Bench/{dname}'
-    elif 'pat' in dname:
-        dname = 'PATTERN'
-        in_dir = f'logs/Bench/{dname}'
-    elif 'clu' in dname:
-        dname = 'CLUSTER'
-        in_dir = f'logs/Bench/{dname}'
-    elif 'voc' in dname:
-        dname = 'VOC'
-        in_dir = f'logs/{dname}'
-    elif 'co' in dname:
-        dname = 'COCO'
-        in_dir = f'logs/{dname}'
-    elif 'zinc_subset' in dname:
-        dname = 'ZINC_subset'
-        in_dir = f'logs/{dname}'
-    elif 'zinc_full' in dname:
-        dname = 'ZINC_full'
-        in_dir = f'logs/{dname}'
-    elif 'qm9' == dname:
-        dname = 'QM9'
-        in_dir = f'logs/{dname}'
-    elif 'pcba' in dname:
-        dname = 'molpcba'
-        in_dir = f'logs/OGBG/{dname}'
+    # dname = sys.argv[1]
+    # dname = dname.lower()
 
-    dst_path = f'{in_dir}/results.csv'
-    alias_keys, all_keys = dict_keys[dname]
-    d_collect = dname in data_collection
-    extract_results(in_dir, dst_path, alias_keys, all_keys, d_collect)
+    dname = 'zinc'
+    for root, dirnames, _ in os.walk('results'):
+        for dirname in dirnames:
+            dirname: str = dirname
+            if not dirname.startswith(dname + '-'):
+                continue
+
+            src_path = f'{root}/{dirname}/result_summary.json'
+            if not osp.exists(src_path):
+                continue
+            dst_path = f'{root}/{dirname}/stat.csv'
+            with open(src_path, 'r') as rfile:
+                results_dict = json.load(rfile)
+
+            summary_dict = defaultdict(list)
+            for result in results_dict.values():
+                for k, v in result.items():
+                    if isinstance(v, str) and v.startswith('mae: '):
+                        v = float(v[5:])
+                    summary_dict[k].append(v)
+
+            out_dict = dict()
+            for k, v in summary_dict.items():
+                if isinstance(v[0], str):
+                    out_dict[k] = v[0]
+                else:
+                    out_dict[k] = np.mean(v)
+                    out_dict[k + '_std'] = np.std(v)
+
+            with open(dst_path, 'w') as wfile:
+                json.dump(out_dict, wfile, indent='  ')
