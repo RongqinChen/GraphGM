@@ -22,13 +22,13 @@ dataset:
 posenc_Poly:
   enable: True
   add_full_edge_index: True
-  method: mixed_bern
-  power: 6
+  method: deco_bern
+  power: 22
 train:
   mode: custom
   batch_size: 256
   eval_period: 1
-  enable_ckpt: False  # Checkpointing can now be disabled to save I/O when e.g. just benchmarking.
+  enable_ckpt: True  # Checkpointing can now be disabled to save I/O when e.g. just benchmarking.
   ckpt_best: False  # WARNING: Checkpoint every epoch a better model is found may increase I/O significantly.
   ckpt_clean: True # Delete old ckpt each time.
   ckpt_period: 20
@@ -36,12 +36,12 @@ model:
   type: MbpModel
   loss_fun: l1
   graph_pooling: mean
-mbp_model:
+MbpModel:
   enable: True
   hidden_dim: 256
   attn_heads: 8
-  drop_prob: 0.1
-  attn_drop_prob: 0.1
+  drop_prob: 0.2
+  attn_drop_prob: 0.0
   residual: True
   layer_norm: False
   batch_norm: True
@@ -55,13 +55,13 @@ mbp_model:
   act: relu
   pe_layer: simple_linear
   poly:
-    layer_type: grit
+    layer_type: cattn
     num_blocks: 0
     repeats: 0
   full:
-    layer_type: grit
+    layer_type: cattn
     enable: True
-    repeats: 16
+    repeats: 10
     input_norm: False
 gnn:
   head: san_graph
@@ -69,8 +69,9 @@ gnn:
 optim:
   clip_grad_norm: True
   optimizer: adamW
-  weight_decay: 0.0
-  base_lr: 0.0002
+  weight_decay: 1e-5
+  base_lr: 1e-3
   max_epoch: 150
+  num_warmup_epochs: 50
   scheduler: cosine_with_warmup
-  num_warmup_epochs: 10
+  min_lr: 1e-5
