@@ -62,6 +62,8 @@ class MbpModel(torch.nn.Module):
             emb_dim = poly_cfg.power + 1
         elif poly_method in {"mixed_low_bern"}:
             emb_dim = poly_cfg.power + 1
+        else:
+            emb_dim = poly_cfg.power
 
         PolyBlock = register.layer_dict["PolyBlock"]
         FullBlock = register.layer_dict["FullBlock"]

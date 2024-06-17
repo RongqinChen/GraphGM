@@ -3,6 +3,7 @@ from .bernstein import compute_bernstein_polynomials
 from .mixed_sym_bernstein import compute_mixed_sym_bernstein_polynomials
 from .mixed_low_bernstein import compute_low_bernstein_polynomials
 from .deco_bernstein import compute_deco_bernstein_polynomials
+from .spect_adj_powers import compute_spect_adj_powers
 
 method_dict = {
     'adj_powers': compute_adjacency_power_series,
@@ -10,6 +11,7 @@ method_dict = {
     'mixed_sym_bern': compute_mixed_sym_bernstein_polynomials,
     'mixed_low_bern': compute_low_bernstein_polynomials,
     'deco_bern': compute_deco_bernstein_polynomials,
+    'spect_adj_powers': compute_spect_adj_powers,
 }
 
 
