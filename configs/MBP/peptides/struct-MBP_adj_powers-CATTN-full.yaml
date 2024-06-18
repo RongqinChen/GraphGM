@@ -1,0 +1,73 @@
+out_dir: results
+metric_best: mae
+metric_agg: argmin
+accelerator: "cuda:0"
+num_workers: 0
+wandb:
+  use: False
+  project: peptides-struct
+dataset:
+  format: OGB
+  name: peptides-structural
+  task: graph
+  task_type: regression
+  transductive: False
+  node_encoder: True
+  node_encoder_name: Atom
+  node_encoder_bn: False
+  edge_encoder: True
+  edge_encoder_name: Bond
+  edge_encoder_bn: False
+posenc_Poly:
+  enable: True
+  add_full_edge_index: True
+  method: adj_powers
+  power: 15
+train:
+  mode: custom
+  batch_size: 16
+  eval_period: 1
+  enable_ckpt: False  # Checkpointing can now be disabled to save I/O when e.g. just benchmarking.
+  ckpt_best: False  # WARNING: Checkpoint every epoch a better model is found may increase I/O significantly.
+model:
+  type: MbpModel
+  loss_fun: l1
+  graph_pooling: mean
+MbpModel:
+  enable: True
+  hidden_dim: 80
+  attn_heads: 8
+  drop_prob: 0.05
+  attn_drop_prob: 0.2
+  residual: True
+  layer_norm: False
+  batch_norm: True
+  bn_momentum: 0.1
+  bn_no_runner: False
+  rezero: False
+  deg_scaler: True
+  clamp: 5.0
+  weight_fn: softmax
+  agg: add
+  act: relu
+  pe_layer: simple_linear
+  poly:
+    layer_type: cattn
+    num_blocks: 0
+    repeats: 0
+  full:
+    layer_type: cattn
+    enable: True
+    repeats: 4
+    input_norm: False
+gnn:
+  head: san_graph
+  layers_post_mp: 1
+optim:
+  clip_grad_norm: True
+  optimizer: adamW
+  weight_decay: 0.0
+  base_lr: 0.0003
+  max_epoch: 200
+  scheduler: cosine_with_warmup
+  num_warmup_epochs: 10
