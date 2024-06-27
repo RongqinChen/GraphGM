@@ -34,7 +34,7 @@ model:
   type: MbpModel
   loss_fun: weighted_cross_entropy
   edge_decoding: dot
-mbp_model:
+MbpModel:
   enable: True
   hidden_dim: 56
   attn_heads: 8
