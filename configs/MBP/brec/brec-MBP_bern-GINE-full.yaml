@@ -26,9 +26,9 @@ model:
   loss_fun: l1
   edge_decoding: dot
   graph_pooling: add
-mbp_model:
+MbpModel:
   enable: True
-  hidden_dim: 32
+  hidden_dim: 64
   attn_heads: 8
   drop_prob: 0.0
   attn_drop_prob: 0.2

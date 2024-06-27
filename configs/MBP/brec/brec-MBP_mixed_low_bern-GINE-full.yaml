@@ -19,7 +19,7 @@ dataset:
 posenc_Poly:
   enable: True
   add_full_edge_index: True
-  method: adj_powers
+  method: mixed_low_bern
   power: 32
 model:
   type: MbpModel
@@ -54,6 +54,6 @@ MbpModel:
     repeats: 10
     input_norm: False
 gnn:
-  head: inductive_node
+  head: san_graph
   act: relu
-  layers_post_mp: 1
+  layers_post_mp: 0

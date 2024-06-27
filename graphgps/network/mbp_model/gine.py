@@ -7,7 +7,6 @@ from torch_geometric.utils.num_nodes import maybe_num_nodes
 from torch_geometric.data import Data, Batch
 from torch_scatter import scatter, scatter_add, scatter_max
 from yacs.config import CfgNode
-import opt_einsum as oe
 
 
 def pyg_softmax(src, index, num_nodes=None):
@@ -33,10 +32,16 @@ def pyg_softmax(src, index, num_nodes=None):
 
 
 class GINE(nn.Module):
-    def __init__(
-        self, in_features, attn_heads, clamp,
-        attn_drop_prob, drop_prob, weight_fn, agg, act, bn_momentum
-    ):
+    def __init__(self, cfg: CfgNode):
+        in_features=cfg.hidden_dim
+        attn_heads=cfg.attn_heads
+        clamp=cfg.clamp
+        attn_drop_prob=cfg.attn_drop_prob
+        drop_prob=cfg.drop_prob
+        weight_fn=cfg.weight_fn
+        agg=cfg.agg
+        act=cfg.act
+        bn_momentum=cfg.bn_momentum
         super().__init__()
         self.attn_heads = attn_heads
         self.attn_features = in_features // attn_heads
@@ -78,6 +83,7 @@ class GINE(nn.Module):
 
     def forward(self, batch: Data | Batch):
         x = batch['x']
+        Ex: Tensor = batch["poly_conn"]
         xh = self.conn_lin1(Ex)
         xh = xh.view((-1, 2, self.attn_heads * self.attn_features))
         xh = xh.transpose(0, 1).contiguous()

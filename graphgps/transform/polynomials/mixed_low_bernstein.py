@@ -49,8 +49,8 @@ def compute_low_bernstein_polynomials(
     ]
     identity = torch.eye(num_nodes)
     basis = [identity] + basis
-    polys = torch.stack(basis, dim=-1)  # n x n x K
-    loop = polys.diagonal().transpose(0, 1)  # n x K
+    polys = torch.stack(basis, dim=-1)  # n x n x (K+1)
+    loop = polys.diagonal().transpose(0, 1)  # n x (K+1)
     poly_adj = SparseTensor.from_dense(polys, has_value=True)
     poly_row, poly_col, poly_val = poly_adj.coo()
     poly_idx = torch.stack([poly_row, poly_col], dim=0)
