@@ -21,7 +21,7 @@ posenc_Poly:
   enable: True
   add_full_edge_index: True
   method: adj_powers
-  power: 15
+  power: 17
 train:
   mode: custom
   batch_size: 16

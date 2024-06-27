@@ -37,7 +37,7 @@ MbpModel:
   enable: True
   hidden_dim: 80
   attn_heads: 8
-  drop_prob: 0.05
+  drop_prob: 0.0
   attn_drop_prob: 0.2
   residual: True
   layer_norm: False
