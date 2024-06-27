@@ -34,7 +34,7 @@ model:
   type: MbpModel
   loss_fun: weighted_cross_entropy
   edge_decoding: dot
-MbpModel:
+mbp_model:
   enable: True
   hidden_dim: 64
   attn_heads: 8
@@ -54,16 +54,16 @@ MbpModel:
   pe_layer: simple_linear
   poly:
     layer_type: cattn
-    num_blocks: 6
-    repeats: 1
+    num_blocks: 0
+    repeats: 0
   full:
     layer_type: cattn
     enable: True
-    repeats: 3
+    repeats: 10
     input_norm: False
 gnn:
   head: inductive_node
-  layers_post_mp: 2
+  layers_post_mp: 3
 optim:
   clip_grad_norm: True
   optimizer: adamW

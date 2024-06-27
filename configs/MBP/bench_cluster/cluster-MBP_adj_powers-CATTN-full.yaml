@@ -2,7 +2,7 @@ out_dir: results
 metric_best: accuracy-SBM
 tensorboard_each_run: False  # Log to Tensorboard each run
 accelerator: "cuda:0"
-num_workers: 8
+num_workers: 4
 wandb:
   use: False
   project: CLUSTER
@@ -23,7 +23,7 @@ dataset:
 posenc_Poly:
   enable: True
   method: adj_powers
-  power: 32
+  power: 30
   add_full_edge_index: True
 train:
   mode: custom
@@ -36,7 +36,7 @@ model:
   edge_decoding: dot
 mbp_model:
   enable: True
-  hidden_dim: 48
+  hidden_dim: 56
   attn_heads: 8
   drop_prob: 0.01
   attn_drop_prob: 0.5
@@ -59,18 +59,11 @@ mbp_model:
   full:
     layer_type: cattn
     enable: True
-    repeats: 16
+    repeats: 15
     input_norm: False
 gnn:
   head: inductive_node
-  layers_pre_mp: 0
   layers_post_mp: 3
-  dim_inner: 48  # `gt.dim_hidden` must match `gnn.dim_inner`
-  batchnorm: True
-  act: relu
-  dropout: 0.0
-  agg: mean
-  normalize_adj: False
 optim:
   clip_grad_norm: True
   optimizer: adamW

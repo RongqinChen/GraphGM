@@ -22,7 +22,7 @@ dataset:
   precompute_on_the_fly: True
 posenc_Poly:
   enable: True
-  method: deco_bern
+  method: adj_powers
   power: 30
   add_full_edge_index: True
 train:
@@ -34,12 +34,12 @@ model:
   type: MbpModel
   loss_fun: weighted_cross_entropy
   edge_decoding: dot
-MbpModel:
+mbp_model:
   enable: True
-  hidden_dim: 64
+  hidden_dim: 56
   attn_heads: 8
-  drop_prob: 0.0
-  attn_drop_prob: 0.2
+  drop_prob: 0.01
+  attn_drop_prob: 0.5
   residual: True
   layer_norm: False
   batch_norm: True
@@ -59,11 +59,11 @@ MbpModel:
   full:
     layer_type: cattn
     enable: True
-    repeats: 10
+    repeats: 15
     input_norm: False
 gnn:
   head: inductive_node
-  layers_post_mp: 2
+  layers_post_mp: 3
 optim:
   clip_grad_norm: True
   optimizer: adamW

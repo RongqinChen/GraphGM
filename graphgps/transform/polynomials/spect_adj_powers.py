@@ -32,10 +32,10 @@ def compute_spect_adj_powers(
     while (k := len(base_list)) <= power:
         base = base_list[k // 2] @ base_list[k - k // 2]
         base_list.append(base)
-    
+
     base_list = base_list[1:]
-    polys = torch.stack(base_list, dim=-1)  # n x n x (K+1)
-    loop = polys.diagonal().transpose(0, 1)  # n x (K+1)
+    polys = torch.stack(base_list, dim=-1)  # n x n x (K)
+    loop = polys.diagonal().transpose(0, 1)  # n x (K)
 
     poly_adj = SparseTensor.from_dense(polys, has_value=True)
     poly_row, poly_col, poly_val = poly_adj.coo()
