@@ -19,7 +19,7 @@ dataset:
 posenc_Poly:
   enable: True
   add_full_edge_index: True
-  method: adj_powers
+  method: spect_adj_powers
   power: 32
 model:
   type: MbpModel
@@ -45,15 +45,15 @@ MbpModel:
   act: relu
   pe_layer: simple_linear
   poly:
-    layer_type: gine
+    layer_type: cattn
     num_blocks: 0
     repeats: 0
   full:
-    layer_type: gine
+    layer_type: cattn
     enable: True
     repeats: 10
     input_norm: False
 gnn:
-  head: inductive_node
+  head: san_graph
   act: relu
-  layers_post_mp: 1
+  layers_post_mp: 0

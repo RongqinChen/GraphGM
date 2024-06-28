@@ -36,10 +36,10 @@ model:
   edge_decoding: dot
 MbpModel:
   enable: True
-  hidden_dim: 64
+  hidden_dim: 56
   attn_heads: 8
-  drop_prob: 0.0
-  attn_drop_prob: 0.2
+  drop_prob: 0.01
+  attn_drop_prob: 0.5
   residual: True
   layer_norm: False
   batch_norm: True
@@ -54,16 +54,16 @@ MbpModel:
   pe_layer: simple_linear
   poly:
     layer_type: cattn
-    num_blocks: 6
-    repeats: 1
+    num_blocks: 0
+    repeats: 0
   full:
     layer_type: cattn
     enable: True
-    repeats: 3
+    repeats: 15
     input_norm: False
 gnn:
   head: inductive_node
-  layers_post_mp: 2
+  layers_post_mp: 3
 optim:
   clip_grad_norm: True
   optimizer: adamW

@@ -9,13 +9,13 @@ wandb:
   project: ZINC
 dataset:
   format: PyG-ZINC
-  name: subset
+  name: full
   task: graph
   task_type: regression
   transductive: False
   node_encoder: True
   node_encoder_name: TypeDictNode
-  node_encoder_num_types: 21  # actually 21 in Zinc-12k, 28 in Zinc-full
+  node_encoder_num_types: 28 # actually 21 in Zinc-12k, 28 in Zinc-full
   node_encoder_bn: False
   edge_encoder: True
   edge_encoder_name: TypeDictEdge
@@ -24,7 +24,7 @@ dataset:
 posenc_Poly:
   enable: True
   add_full_edge_index: True
-  method: mixed_low_bern
+  method: adj_powers
   power: 15
 train:
   mode: custom

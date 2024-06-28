@@ -112,27 +112,29 @@ dict_keys = {
 data_collection = {'tud', 'cifar10', 'mnist', 'qm9', 'molpcba', 'csl', 'exp'}
 
 if __name__ == '__main__':
-    dname = sys.argv[1]
-    dname = dname.lower()
-
-    for root, dirnames, _ in os.walk('results'):
+    # dname = sys.argv[1]
+    # dname = dname.lower()
+    result_root = 'results'
+    for root, dirnames, _ in os.walk(result_root):
         for dirname in dirnames:
             dirname: str = dirname
-            if not dirname.startswith(dname + '-'):
-                continue
+            # if not dirname.startswith(dname + '-'):
+            #     continue
 
             src_path = f'{root}/{dirname}/result_summary.json'
             if not osp.exists(src_path):
                 continue
-            dst_path = f'{root}/{dirname}/stat.csv'
+            dst_path = f'{root}/{dirname}/stat.json'
             with open(src_path, 'r') as rfile:
                 results_dict = json.load(rfile)
 
             summary_dict = defaultdict(list)
             for result in results_dict.values():
                 for k, v in result.items():
-                    if isinstance(v, str) and v.startswith('mae: '):
-                        v = float(v[5:])
+                    if isinstance(v, str) and ': 'in v:
+                        v0, v1 = v.split(': ')
+                        k = k + '_' + v0
+                        v = float(v1)
                     summary_dict[k].append(v)
 
             out_dict = dict()

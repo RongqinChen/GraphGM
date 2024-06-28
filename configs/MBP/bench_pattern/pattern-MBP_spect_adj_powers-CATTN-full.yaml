@@ -1,31 +1,39 @@
 out_dir: results
-num_workers: 4
+metric_best: accuracy-SBM
 tensorboard_each_run: False  # Log to Tensorboard each run
 accelerator: "cuda:0"
+num_workers: 4
+wandb:
+  use: False
+  project: PATTERN
 dataset:
-  format: null
-  name: null
-  task: null
-  task_type: null
+  format: PyG-GNNBenchmarkDataset
+  name: PATTERN
+  task: graph
+  task_type: classification
   transductive: False
+  split_mode: standard
   node_encoder: True
-  node_encoder_name: DummyNode
-  node_encoder_num_types: 1
+  node_encoder_name: LinearNode
   node_encoder_bn: False
   edge_encoder: True
   edge_encoder_name: DummyEdge
-  edge_encoder_num_types: 1
   edge_encoder_bn: False
+  precompute_on_the_fly: True
 posenc_Poly:
   enable: True
+  method: spect_adj_powers
+  power: 20
   add_full_edge_index: True
-  method: adj_powers
-  power: 32
+train:
+  mode: custom
+  batch_size: 16
+  eval_period: 1
+  ckpt_period: 100
 model:
   type: MbpModel
-  loss_fun: l1
+  loss_fun: weighted_cross_entropy
   edge_decoding: dot
-  graph_pooling: add
 MbpModel:
   enable: True
   hidden_dim: 64
@@ -45,15 +53,22 @@ MbpModel:
   act: relu
   pe_layer: simple_linear
   poly:
-    layer_type: gine
+    layer_type: cattn
     num_blocks: 0
     repeats: 0
   full:
-    layer_type: gine
+    layer_type: cattn
     enable: True
     repeats: 10
     input_norm: False
 gnn:
   head: inductive_node
-  act: relu
-  layers_post_mp: 1
+  layers_post_mp: 3
+optim:
+  clip_grad_norm: True
+  optimizer: adamW
+  weight_decay: 1e-5
+  base_lr: 0.0005
+  max_epoch: 150
+  scheduler: cosine_with_warmup
+  num_warmup_epochs: 5

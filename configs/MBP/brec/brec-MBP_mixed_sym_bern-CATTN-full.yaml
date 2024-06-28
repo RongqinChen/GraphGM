@@ -19,16 +19,16 @@ dataset:
 posenc_Poly:
   enable: True
   add_full_edge_index: True
-  method: mixed_sym_bern
+  method: deco_bern
   power: 32
 model:
   type: MbpModel
   loss_fun: l1
   edge_decoding: dot
   graph_pooling: add
-mbp_model:
+MbpModel:
   enable: True
-  hidden_dim: 32
+  hidden_dim: 64
   attn_heads: 8
   drop_prob: 0.0
   attn_drop_prob: 0.2
@@ -51,7 +51,7 @@ mbp_model:
   full:
     layer_type: cattn
     enable: True
-    repeats: 16
+    repeats: 10
     input_norm: False
 gnn:
   head: san_graph

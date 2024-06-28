@@ -11,11 +11,11 @@ from torch_geometric.transforms import BaseTransform
 import train_utils
 from torch_geometric.data import Data
 from graphgps.loader.dataset.BRECDataset_v3 import BRECDataset, part_dict
-from graphgps.network.mbp_model import MbpModel
+from graphgps.network.mbp_model.network import MbpModel
 from graphgps.transform.polynomials import compute_polynomials
 
-# part_name_list = ["Basic", "Extension", "CFI", "Regular", "4-Vertex_Condition", "Distance_Regular"]
-part_name_list = ["CFI", "Regular", "4-Vertex_Condition", "Distance_Regular"]
+part_name_list = ["Basic", "Extension", "CFI", "Regular", "4-Vertex_Condition", "Distance_Regular"]
+# part_name_list = ["CFI", "Regular", "4-Vertex_Condition", "Distance_Regular"]
 
 
 class ComputePolynomialBases(BaseTransform):
