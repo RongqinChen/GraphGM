@@ -33,15 +33,15 @@ def pyg_softmax(src, index, num_nodes=None):
 
 class GINE(nn.Module):
     def __init__(self, cfg: CfgNode):
-        in_features=cfg.hidden_dim
-        attn_heads=cfg.attn_heads
-        clamp=cfg.clamp
-        attn_drop_prob=cfg.attn_drop_prob
-        drop_prob=cfg.drop_prob
-        weight_fn=cfg.weight_fn
-        agg=cfg.agg
-        act=cfg.act
-        bn_momentum=cfg.bn_momentum
+        in_features = cfg.hidden_dim
+        attn_heads = cfg.attn_heads
+        clamp = cfg.clamp
+        attn_drop_prob = cfg.attn_drop_prob
+        drop_prob = cfg.drop_prob
+        weight_fn = cfg.weight_fn
+        agg = cfg.agg
+        act = cfg.act
+        bn_momentum = cfg.bn_momentum
         super().__init__()
         self.attn_heads = attn_heads
         self.attn_features = in_features // attn_heads
@@ -83,14 +83,11 @@ class GINE(nn.Module):
 
     def forward(self, batch: Data | Batch):
         x = batch['x']
-        Ex: Tensor = batch["poly_conn"]
-        xh = self.conn_lin1(Ex)
-        xh = xh.view((-1, 2, self.attn_heads * self.attn_features))
-        xh = xh.transpose(0, 1).contiguous()
-        Qh, Kh = xh[0], xh[1]
+        Qh, Kh, Vh = F._in_projection_packed(x, x, x, self.qkv_weight, self.qkv_bias)
         dst, src = batch["poly_index"]
         Qdst = Qh[dst]
         Ksrc = Kh[src]
+        Vsrc = Vh[src]
 
         Ex: Tensor = batch["poly_conn"]
         Eh = self.conn_lin1(Ex)
@@ -100,7 +97,7 @@ class GINE(nn.Module):
 
         conn = Qdst + Ksrc
         conn = conn * Ew
-        # conn = torch.sqrt(torch.relu(conn)) - torch.sqrt(torch.relu(-conn))
+        conn = torch.sqrt(torch.relu(conn)) - torch.sqrt(torch.relu(-conn))
         conn = conn + Eb
         conn = self.act(conn)
         conn = self.dropout(conn)
@@ -109,9 +106,21 @@ class GINE(nn.Module):
         conn2 = conn2 + Ex
         conn2 = self.conn_norm(conn2)
         conn2 = self.act(conn2)
+        conn2 = conn2.view((-1, self.attn_heads, self.attn_features))
+
+        # score = conn.view((-1, self.attn_heads, self.attn_features))
+        # score = oe.contract("ehd, dhc->ehc", score, self.Wscore, backend="torch")
+        # # score: N, self.attn_heads, 1
+        # if self.clamp is not None:
+        #     score = torch.clamp(score, min=-self.clamp, max=self.clamp)
+        # score = pyg_softmax(score, dst)  # (num relative) x attn_heads x 1
+        # score = self.attn_dropout(score)
 
         # Aggregate with Attn-Score
-        nh = scatter(conn2, dst, dim=0, dim_size=batch.num_nodes, reduce=self.agg)
+        Vsrc = Vsrc.view(-1, self.attn_heads, self.attn_features)
+        nagg = scatter(Vsrc, dst, dim=0, dim_size=batch.num_nodes, reduce=self.agg)
+        cagg = scatter(conn2, dst, dim=0, dim_size=batch.num_nodes, reduce=self.agg)
+        nh = (nagg + cagg).flatten(1)
 
         sqrt_deg = batch["sqrt_deg"]
         nh = torch.stack([nh, nh * sqrt_deg], dim=-1)
