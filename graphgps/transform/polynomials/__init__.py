@@ -4,6 +4,8 @@ from .bernstein import compute_bernstein_polynomials
 from .mixed_low_bernstein import compute_low_bernstein_polynomials
 from .deco_bernstein import compute_deco_bernstein_polynomials
 from .spect_adj_powers import compute_spect_adj_powers
+from .bern_lp import compute_bernstein_landing_probility
+
 
 method_dict = {
     'adj_powers': compute_adjacency_power_series,
@@ -12,6 +14,7 @@ method_dict = {
     'mixed_low_bern': compute_low_bernstein_polynomials,
     'deco_bern': compute_deco_bernstein_polynomials,
     'spect_adj_powers': compute_spect_adj_powers,
+    'bern_lp': compute_bernstein_landing_probility
 }
 
 

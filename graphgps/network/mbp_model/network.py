@@ -56,7 +56,7 @@ class MbpModel(torch.nn.Module):
             assert poly_method in {"mixed_sym_bern", "deco_bern"}
 
         assert (poly_cfg.power) > 2 ** (model_cfg.poly.num_blocks - 2)
-        if poly_method in {"mixed_sym_bern", "bern", "deco_bern"}:
+        if poly_method in {"mixed_sym_bern", "bern", "bern_lp", "deco_bern"}:
             emb_dim = poly_cfg.power + 2
         elif poly_method in {"adj_powers"}:
             emb_dim = poly_cfg.power + 1
