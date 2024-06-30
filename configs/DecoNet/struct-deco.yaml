@@ -2,7 +2,7 @@ out_dir: results
 metric_best: mae
 metric_agg: argmin
 accelerator: "cuda:0"
-num_workers: 4
+num_workers: 2
 wandb:
   use: False
   project: peptides-struct
@@ -18,7 +18,7 @@ dataset:
   edge_encoder: True
   edge_encoder_name: Bond
   edge_encoder_bn: False
-  precompute_on_the_fly: True
+  precompute_on_the_fly: False
 posenc_Poly:
   enable: True
   add_full_edge_index: True
@@ -50,7 +50,7 @@ DecoNet:
     attn_heads: 8
     clamp: 5
     attn_drop_prob: 0.2
-    drop_prob: 0.2
+    drop_prob: 0.0
     weight_fn: softmax
     agg: add
     act: relu

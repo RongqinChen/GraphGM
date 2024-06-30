@@ -18,8 +18,8 @@ class FeatureEncoder(torch.nn.Module):
 
     def __init__(self, dim_in):
         super(FeatureEncoder, self).__init__()
-        k1_hidden_dim = cfg.DecoNet.conv.k1_hidden_dim
         if cfg.dataset.node_encoder:
+            k1_hidden_dim = cfg.DecoNet.conv.k1_hidden_dim
             # Encode integer node features via nn.Embeddings
             NodeEncoder = register.node_encoder_dict[cfg.dataset.node_encoder_name]
             self.node_encoder = NodeEncoder(k1_hidden_dim)
@@ -29,12 +29,13 @@ class FeatureEncoder(torch.nn.Module):
                 ))
             # Update dim_in to reflect the new dimension fo the node features
         if cfg.dataset.edge_encoder:
+            hidden_dim = cfg.DecoNet.conv.hidden_dim
             # Encode integer edge features via nn.Embeddings
             EdgeEncoder = register.edge_encoder_dict[cfg.dataset.edge_encoder_name]
-            self.edge_encoder = EdgeEncoder(k1_hidden_dim)
+            self.edge_encoder = EdgeEncoder(hidden_dim)
             if cfg.dataset.edge_encoder_bn:
                 self.edge_encoder_bn = BatchNorm1dNode(new_layer_config(
-                    k1_hidden_dim, -1, -1, has_act=False, has_bias=False, cfg=cfg
+                    hidden_dim, -1, -1, has_act=False, has_bias=False, cfg=cfg
                 ))
 
     def forward(self, batch):
