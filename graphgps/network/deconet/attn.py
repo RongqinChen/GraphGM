@@ -1,13 +1,12 @@
 import numpy as np
 import torch
 import torch.nn.functional as F
-from torch import nn, Tensor
+from torch import Tensor, nn
+from torch_geometric.data import Batch, Data
 from torch_geometric.graphgym.register import act_dict
 from torch_geometric.utils.num_nodes import maybe_num_nodes
-from torch_geometric.data import Data, Batch
 from torch_scatter import scatter, scatter_add, scatter_max
 from yacs.config import CfgNode
-import opt_einsum as oe
 
 
 def pyg_softmax(src, index, num_nodes=None):
@@ -84,30 +83,30 @@ class ConditionalAttention(nn.Module):
         Vsrc = Vh[src]
 
         Ex: Tensor = batch["full_conn"]
-        Eh = self.conn_lin1(Ex)
+        Eh: Tensor = self.conn_lin1(Ex)
         Eh = Eh.view((-1, 2, self.attn_heads * self.attn_features))
         Eh = Eh.transpose(0, 1).contiguous()
         Ew, Eb = Eh[0], Eh[1]
 
-        conn = Qdst + Ksrc
+        conn: Tensor = Qdst + Ksrc
         conn = conn * Ew
         conn = torch.sqrt(torch.relu(conn)) - torch.sqrt(torch.relu(-conn))
         conn = conn + Eb
         conn = self.act(conn)
         conn = self.dropout(conn)
 
-        conn2 = self.conn_lin2(conn)
+        conn2: Tensor = self.conn_lin2(conn)
         conn2 = conn2 + Ex
         conn2 = self.conn_norm(conn2)
         conn2 = self.act(conn2)
         conn2 = conn2.view((-1, self.attn_heads, self.attn_features))
 
-        score = conn.view((-1, self.attn_heads, self.attn_features))
-        score = oe.contract("ehd, dhc->ehc", score, self.Wscore, backend="torch")
+        conn = conn.view((-1, self.attn_heads, self.attn_features))
+        score = torch.einsum("ehd,dhc->ehc", conn, self.Wscore)
         # score: N, self.attn_heads, 1
         if self.clamp is not None:
             score = torch.clamp(score, min=-self.clamp, max=self.clamp)
-        score = pyg_softmax(score, dst)  # (num relative) x attn_heads x 1
+        score = pyg_softmax(score, dst)  # e x h x 1
         score = self.attn_dropout(score)
 
         # Aggregate with Attn-Score
@@ -135,12 +134,12 @@ class ConditionalAttention(nn.Module):
         return batch
 
 
-class ConditionalAttentionBlock(nn.Module):
+class GlobalAttentionBlock(nn.Module):
 
-    def __init__(self, repeats, cfg: CfgNode):
+    def __init__(self, cfg: CfgNode):
         super().__init__()
         self.attn_list = nn.ModuleList()
-        for _ in range(repeats):
+        for _ in range(cfg.num_layers):
             attn = ConditionalAttention(
                 cfg.hidden_dim, cfg.attn_heads, cfg.clamp, cfg.attn_drop_prob,
                 cfg.drop_prob, cfg.weight_fn, cfg.agg, cfg.act, cfg.bn_momentum

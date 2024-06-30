@@ -1,3 +1,3 @@
-from .net import DecoNet
+from .network import DecoNet
 
-__all__ = [DecoNet]
+__all__ = ["DecoNet"]

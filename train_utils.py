@@ -39,7 +39,7 @@ def args_setup():
 
     # training args
     parser.add_argument(
-        "--batch_size", type=int, default=128, help="Batch size per GPU."
+        "--batch_size", type=int, default=16, help="Batch size per GPU."
     )
     parser.add_argument("--num_workers", type=int, default=0, help="Number of worker.")
     parser.add_argument("--lr", type=float, default=0.001, help="Learning rate.")

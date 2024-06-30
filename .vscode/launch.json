@@ -72,8 +72,7 @@
             "program": "main.py",
             "console": "integratedTerminal",
             "args": [
-                "--cfg",
-                "configs/DecoNet/struct-deco_bern.yaml",
+                "--cfg", "configs/DecoNet/struct-deco.yaml",
             ],
             "justMyCode": true
         },
