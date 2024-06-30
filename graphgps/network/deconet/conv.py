@@ -18,14 +18,14 @@ class DecoConv(nn.Module):
 
     def forward(self, batch: Data | Batch, poly_adj):
         x = batch["x"]
-        x = self.act(x)
-        h = matmul(poly_adj, x)
         h = self.lin(h)
+        h = matmul(poly_adj, h)
         h = h + x
         if self.batch_norm is not None:
             h = self.batch_norm(h)
+        h = self.act(h)
         h = self.dropout(h)
-        batch["x"] = x
+        batch["x"] = h
         return batch
 
 

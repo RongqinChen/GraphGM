@@ -50,12 +50,8 @@ class ConditionalAttention(nn.Module):
         self.qkv_weight = nn.Parameter(torch.empty((3 * in_features, in_features)))
         self.qkv_bias = nn.Parameter(torch.empty(3 * in_features))
         self.conn_lin1 = nn.Linear(in_features, 2 * in_features)
-        # self.conn_lin2 = nn.Conv1d(in_features, in_features, 1, groups=attn_heads)
-        # self.score_lin = nn.Conv1d(in_features, attn_heads, 1, groups=attn_heads)
-
-        self.Aw = nn.Parameter(torch.zeros(self.attn_features, self.attn_heads, 1))
-        self.Bw = nn.Parameter(torch.zeros(self.attn_features, self.attn_heads, self.attn_features))
-
+        self.Wscore = nn.Parameter(torch.zeros(self.attn_features, self.attn_heads, 1))
+        self.conn_lin2 = nn.Linear(in_features, in_features)
         self.conn_norm = nn.BatchNorm1d(in_features, eps=1e-5, momentum=bn_momentum)
         self.deg_coef = nn.Parameter(torch.zeros(1, in_features, 2))
         self.FFN_n_layer1 = nn.Linear(in_features, in_features * 2)
@@ -67,13 +63,12 @@ class ConditionalAttention(nn.Module):
     def reset_parameters(self):
         nn.init.xavier_uniform_(self.qkv_weight)
         nn.init.constant_(self.qkv_bias, 0.)
-        self.conn_lin1.reset_parameters()
-        # self.score_lin.reset_parameters()
-        # self.conn_lin2.reset_parameters()
-        nn.init.xavier_uniform_(self.Aw)
-        nn.init.xavier_uniform_(self.Bw)
+        nn.init.xavier_normal_(self.conn_lin1.weight)
+        nn.init.xavier_normal_(self.conn_lin2.weight)
+        nn.init.constant_(self.conn_lin1.bias, 0.)
+        nn.init.constant_(self.conn_lin2.bias, 0.)
+        nn.init.xavier_normal_(self.Wscore)
         self.conn_norm.reset_parameters()
-
         nn.init.xavier_normal_(self.deg_coef)
         self.FFN_n_layer1.reset_parameters()
         self.FFN_n_layer2.reset_parameters()
@@ -100,20 +95,15 @@ class ConditionalAttention(nn.Module):
         conn = conn + Eb
         conn = self.act(conn)
         conn = self.dropout(conn)
-        # conn = conn.unsqueeze(-1)
-        # conn: N, self.attn_heads * self.attn_features, 1
-        # conn2 = self.conn_lin2(conn).squeeze(-1)
-        # conn2 = conn.squeeze(-1)
 
-        conn = conn.view((-1, self.attn_heads, self.attn_features))
-        conn2 = oe.contract("nhd, dhc -> nhc", conn, self.Bw, backend="torch")
-        conn2 = conn2 + Ex.view((-1, self.attn_heads, self.attn_features))
-        # conn2 = self.conn_norm(conn2)
+        conn2 = self.conn_lin2(conn)
+        conn2 = conn2 + Ex
+        conn2 = self.conn_norm(conn2)
         conn2 = self.act(conn2)
-        conn2 = self.dropout(conn2)
+        conn2 = conn2.view((-1, self.attn_heads, self.attn_features))
 
-        score = oe.contract("ehd, dhc->ehc", conn, self.Aw, backend="torch")
-        # score = self.score_lin(conn)
+        score = conn.view((-1, self.attn_heads, self.attn_features))
+        score = oe.contract("ehd, dhc->ehc", score, self.Wscore, backend="torch")
         # score: N, self.attn_heads, 1
         if self.clamp is not None:
             score = torch.clamp(score, min=-self.clamp, max=self.clamp)
