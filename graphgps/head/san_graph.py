@@ -16,16 +16,16 @@ class SANGraphHead(nn.Module):
         L (int): Number of hidden layers.
     """
 
-    def __init__(self, dim_in, dim_out, L=2):
+    def __init__(self, dim_in, dim_out):
         super().__init__()
+        self.L = num_layers = cfg.gnn.layers_post_mp
         self.pooling_fun = register.pooling_dict[cfg.model.graph_pooling]
         list_FC_layers = [
             nn.Linear(dim_in // 2 ** l, dim_in // 2 ** (l + 1), bias=True)
-            for l in range(L)]
+            for l in range(num_layers)]
         list_FC_layers.append(
-            nn.Linear(dim_in // 2 ** L, dim_out, bias=True))
+            nn.Linear(dim_in // 2 ** num_layers, dim_out, bias=True))
         self.FC_layers = nn.ModuleList(list_FC_layers)
-        self.L = L
         self.activation = register.act_dict[cfg.gnn.act]()
 
     def _apply_index(self, batch):

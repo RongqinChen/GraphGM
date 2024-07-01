@@ -11,7 +11,7 @@ from torch_geometric.graphgym.models.layer import (BatchNorm1dNode,
 from torch_sparse import SparseTensor
 
 from .conv import DecoConv
-from .attn import GlobalAttentionBlock
+from .global_block import GlobalBlock
 
 
 class FeatureEncoder(torch.nn.Module):
@@ -29,7 +29,7 @@ class FeatureEncoder(torch.nn.Module):
                 ))
             # Update dim_in to reflect the new dimension fo the node features
         if cfg.dataset.edge_encoder:
-            hidden_dim = cfg.DecoNet.global_attention.hidden_dim
+            hidden_dim = cfg.DecoNet.gblock.hidden_dim
             # Encode integer edge features via nn.Embeddings
             EdgeEncoder = register.edge_encoder_dict[cfg.dataset.edge_encoder_name]
             self.edge_encoder = EdgeEncoder(hidden_dim)
@@ -62,7 +62,7 @@ class DecoNet(torch.nn.Module):
             conv = DecoConv(3, ccfg.hidden_dim, ccfg.hidden_dim, ccfg)
             self.conv_dict[f"{lidx}_conv"] = conv
 
-        gcfg = cfg.DecoNet.global_attention
+        gcfg = cfg.DecoNet.gblock
         pe_layer = cfg.DecoNet.pe_layer
         PELayer = register.layer_dict[pe_layer]
         self.loop_layer = PELayer(pe_dim, ccfg.hidden_dim)
@@ -75,9 +75,9 @@ class DecoNet(torch.nn.Module):
             nn.Dropout(gcfg.drop_prob),
         )
 
-        self.global_block = GlobalAttentionBlock(gcfg)
+        self.global_block = GlobalBlock(gcfg)
         GNNHead = register.head_dict[cfg.gnn.head]
-        self.post_mp = GNNHead(2 * gcfg.hidden_dim, dim_out, cfg.gnn.layers_post_mp)
+        self.post_mp = GNNHead(2 * gcfg.hidden_dim, dim_out)
         self.reset()
 
     def forward(self, batch: Batch | Data):
@@ -142,7 +142,7 @@ class DecoNet(torch.nn.Module):
 
         full_idx = batch["full_index"]
         if full_idx.size(1) > all_poly_idx.size(1):
-            hidden_dim = cfg.DecoNet.global_attention.hidden_dim
+            hidden_dim = cfg.DecoNet.gblock.hidden_dim
             full_val = all_poly_val.new_zeros((full_idx.size(1), hidden_dim))
             full_idx, full_val = torch_sparse.coalesce(
                 torch.cat([full_idx, all_poly_idx, batch.edge_index], dim=1),

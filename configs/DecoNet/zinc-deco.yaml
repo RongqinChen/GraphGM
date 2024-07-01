@@ -47,7 +47,7 @@ DecoNet:
     batch_norm: True
     act: relu
     drop_prob: 0.0
-  global_attention:
+  gblock:
     num_layers: 5
     hidden_dim: 64
     attn_heads: 8
@@ -65,7 +65,7 @@ gnn:
 optim:
   clip_grad_norm: True
   optimizer: adamW
-  weight_decay: 1e-5
+  weight_decay: 0.0
   base_lr: 1e-3
   max_epoch: 2000
   num_warmup_epochs: 50

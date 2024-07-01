@@ -43,12 +43,13 @@ DecoNet:
     batch_norm: True
     act: relu
     drop_prob: 0.0
-  global_attention:
+  gblock:
+    layer_name: dot_prod_attn
     num_layers: 1
     hidden_dim: 96
     attn_heads: 8
     clamp: 5
-    attn_drop_prob: 0.2
+    attn_drop_prob: 0.0
     drop_prob: 0.0
     weight_fn: softmax
     agg: add

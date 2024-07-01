@@ -34,10 +34,11 @@ def pyg_softmax(src, index, num_nodes=None):
 class ConditionalAttention(nn.Module):
 
     def __init__(
-        self, in_features, attn_heads, clamp,
+        self, poly_method, in_features, attn_heads, clamp,
         attn_drop_prob, drop_prob, weight_fn, agg, act, bn_momentum
     ):
         super().__init__()
+        self.poly_method = poly_method
         self.attn_heads = attn_heads
         self.attn_features = in_features // attn_heads
         self.weight_fn = weight_fn
@@ -77,12 +78,12 @@ class ConditionalAttention(nn.Module):
     def forward(self, batch: Data | Batch):
         x = batch['x']
         Qh, Kh, Vh = F._in_projection_packed(x, x, x, self.qkv_weight, self.qkv_bias)
-        dst, src = batch["full_index"]
+        dst, src = batch[f"{self.poly_method}_index"]
         Qdst = Qh[dst]
         Ksrc = Kh[src]
         Vsrc = Vh[src]
 
-        Ex: Tensor = batch["full_conn"]
+        Ex: Tensor = batch[f"{self.poly_method}_conn"]
         Eh: Tensor = self.conn_lin1(Ex)
         Eh = Eh.view((-1, 2, self.attn_heads * self.attn_features))
         Eh = Eh.transpose(0, 1).contiguous()
@@ -130,23 +131,5 @@ class ConditionalAttention(nn.Module):
         nh = self.norm2_h(nh)
 
         batch['x'] = nh
-        batch["full_conn"] = conn2.flatten(1)
-        return batch
-
-
-class GlobalAttentionBlock(nn.Module):
-
-    def __init__(self, cfg: CfgNode):
-        super().__init__()
-        self.attn_list = nn.ModuleList()
-        for _ in range(cfg.num_layers):
-            attn = ConditionalAttention(
-                cfg.hidden_dim, cfg.attn_heads, cfg.clamp, cfg.attn_drop_prob,
-                cfg.drop_prob, cfg.weight_fn, cfg.agg, cfg.act, cfg.bn_momentum
-            )
-            self.attn_list.append(attn)
-
-    def forward(self, batch: Data | Batch):
-        for attn in self.attn_list:
-            batch = attn(batch)
+        batch[f"{self.poly_method}_conn"] = conn2.flatten(1)
         return batch

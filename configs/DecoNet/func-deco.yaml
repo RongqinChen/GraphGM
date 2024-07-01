@@ -40,23 +40,24 @@ DecoNet:
     hidden_dim: 64
     bias: True
     batch_norm: True
-    act: relu
+    act: gelu
     drop_prob: 0.0
-  global_attention:
+  gblock:
+    layer_name: dot_prod_attn
     num_layers: 1
     hidden_dim: 96
     attn_heads: 8
     clamp: 5
-    attn_drop_prob: 0.5
+    attn_drop_prob: 0.0
     drop_prob: 0.0
     weight_fn: softmax
     agg: add
-    act: relu
+    act: gelu
     bn_momentum: 0.1
   pe_layer: simple_linear
 gnn:
-  head: san_graph
-  layers_post_mp: 1
+  head: default
+  layers_post_mp: 1 
 optim:
   clip_grad_norm: True
   optimizer: adamW
