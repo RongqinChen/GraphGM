@@ -1,41 +1,39 @@
-K=15
-seed=4
+
+for((seed=0;seed<5;seed++));  
+do   
+
+K=8
 CUDA_VISIBLE_DEVICES=0 python main.py \
 --cfg configs/MBP/zinc/zinc-MBP_adj_powers.yaml \
 seed $((seed)) \
 posenc_Poly.power $((K)) \
-mbp_model.attn_drop_prob 0.20 \
-mbp_model.messaging.num_blocks 0 \
-mbp_model.full.repeats 10 \
 name_tag K$((K))ADP20 
 
+done  
 
 
-for((seed=0;seed<2;seed++));  
+for((seed=0;seed<5;seed++));  
 do   
 
-K=15
+K=10
 CUDA_VISIBLE_DEVICES=0 python main.py \
 --cfg configs/MBP/zinc/zinc-MBP_adj_powers.yaml \
-seed $((2*seed)) \
+seed $((seed)) \
 posenc_Poly.power $((K)) \
-mbp_model.attn_drop_prob 0.20 \
-mbp_model.messaging.num_blocks 0 \
-mbp_model.full.repeats 10 \
-name_tag K$((K))ADP20 &
+name_tag K$((K))ADP20 
 
-# wait
+done  
 
-K=15
+
+
+for((seed=0;seed<5;seed++));  
+do   
+
+K=12
 CUDA_VISIBLE_DEVICES=0 python main.py \
 --cfg configs/MBP/zinc/zinc-MBP_adj_powers.yaml \
-seed $((2*seed+1)) \
+seed $((seed)) \
 posenc_Poly.power $((K)) \
-mbp_model.attn_drop_prob 0.20 \
-mbp_model.messaging.num_blocks 0 \
-mbp_model.full.repeats 10 \
-name_tag K$((K))ADP20 &
-
-wait
+name_tag K$((K))ADP20 
 
 done  
