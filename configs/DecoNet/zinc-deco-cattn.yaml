@@ -23,7 +23,7 @@ posenc_Poly:
   enable: True
   add_full_edge_index: True
   method: deconet_bern
-  power: 8
+  power: 16
 train:
   mode: custom
   batch_size: 32
@@ -38,7 +38,7 @@ model:
   graph_pooling: mean
 DecoNet:
   conv:
-    num_layers: 5
+    num_layers: 6
     k1_hidden_dim: 64
     hidden_dim: 64
     bias: True

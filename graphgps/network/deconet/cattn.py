@@ -34,11 +34,11 @@ def pyg_softmax(src, index, num_nodes=None):
 class ConditionalAttention(nn.Module):
 
     def __init__(
-        self, poly_method, in_features, attn_heads, clamp,
+        self, poly_name, in_features, attn_heads, clamp,
         attn_drop_prob, drop_prob, weight_fn, agg, act, bn_momentum
     ):
         super().__init__()
-        self.poly_method = poly_method
+        self.poly_name = poly_name
         self.attn_heads = attn_heads
         self.attn_features = in_features // attn_heads
         self.weight_fn = weight_fn
@@ -78,12 +78,12 @@ class ConditionalAttention(nn.Module):
     def forward(self, batch: Data | Batch):
         x = batch['x']
         Qh, Kh, Vh = F._in_projection_packed(x, x, x, self.qkv_weight, self.qkv_bias)
-        dst, src = batch[f"{self.poly_method}_index"]
+        dst, src = batch[f"{self.poly_name}_index"]
         Qdst = Qh[dst]
         Ksrc = Kh[src]
         Vsrc = Vh[src]
 
-        Ex: Tensor = batch[f"{self.poly_method}_conn"]
+        Ex: Tensor = batch[f"{self.poly_name}_conn"]
         Eh: Tensor = self.conn_lin1(Ex)
         Eh = Eh.view((-1, 2, self.attn_heads * self.attn_features))
         Eh = Eh.transpose(0, 1).contiguous()
@@ -131,5 +131,5 @@ class ConditionalAttention(nn.Module):
         nh = self.norm2_h(nh)
 
         batch['x'] = nh
-        batch[f"{self.poly_method}_conn"] = conn2.flatten(1)
+        batch[f"{self.poly_name}_conn"] = conn2.flatten(1)
         return batch

@@ -22,7 +22,7 @@ class GlobalBlock(nn.Module):
                 attn = DotProductAttention(cfg.hidden_dim, cfg.attn_heads, cfg.drop_prob, cfg.attn_drop_prob)
             elif cfg.layer_type == 'conditional':
                 attn = ConditionalAttention(
-                    cfg.hidden_dim, cfg.attn_heads, cfg.clamp, cfg.attn_drop_prob,
+                    'full', cfg.hidden_dim, cfg.attn_heads, cfg.clamp, cfg.attn_drop_prob,
                     cfg.drop_prob, cfg.weight_fn, cfg.agg, cfg.act, cfg.bn_momentum
                 )
             self.attn_list.append(attn)
