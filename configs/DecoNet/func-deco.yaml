@@ -4,7 +4,6 @@ accelerator: "cuda:0"
 num_workers: 4
 wandb:
   use: False
-  project: peptides-functional
 dataset:
   format: OGB
   name: peptides-functional
@@ -17,56 +16,53 @@ dataset:
   edge_encoder: True
   edge_encoder_name: Bond
   edge_encoder_bn: False
+  precompute_on_the_fly: False
 posenc_Poly:
   enable: True
   add_full_edge_index: True
-  method: deco_bern
-  power: 22
+  method: deconet_bern
+  power: 16
 train:
   mode: custom
-  batch_size: 16
+  batch_size: 64
   eval_period: 1
+  ckpt_period: 100
   enable_ckpt: False  # Checkpointing can now be disabled to save I/O when e.g. just benchmarking.
   ckpt_best: False  # WARNING: Checkpoint every epoch a better model is found may increase I/O significantly.
 model:
-  type: MbpModel
+  type: DecoNet
   loss_fun: cross_entropy
   graph_pooling: mean
-MbpModel:
-  enable: True
-  hidden_dim: 96
-  attn_heads: 4
-  drop_prob: 0.0
-  attn_drop_prob: 0.5
-  residual: True
-  layer_norm: False
-  batch_norm: True
-  bn_momentum: 0.1
-  bn_no_runner: False
-  rezero: False
-  deg_scaler: True
-  clamp: 5.0
-  weight_fn: softmax
-  agg: add
-  act: relu
+DecoNet:
+  conv:
+    num_layers: 6
+    k1_hidden_dim: 64
+    hidden_dim: 64
+    bias: True
+    batch_norm: True
+    act: gelu
+    drop_prob: 0.0
+  gblock:
+    layer_name: dot_prod_attn
+    num_layers: 1
+    hidden_dim: 96
+    attn_heads: 8
+    clamp: 5
+    attn_drop_prob: 0.0
+    drop_prob: 0.0
+    weight_fn: softmax
+    agg: add
+    act: gelu
+    bn_momentum: 0.1
   pe_layer: simple_linear
-  poly:
-    layer_type: cattn
-    num_blocks: 0
-    repeats: 0
-  full:
-    layer_type: cattn
-    enable: True
-    repeats: 4
-    input_norm: False
 gnn:
-  head: san_graph
-  layers_post_mp: 1
+  head: default
+  layers_post_mp: 1 
 optim:
   clip_grad_norm: True
   optimizer: adamW
   weight_decay: 0.0
-  base_lr: 0.0003
+  base_lr: 0.001
   max_epoch: 200
   scheduler: cosine_with_warmup
   num_warmup_epochs: 10

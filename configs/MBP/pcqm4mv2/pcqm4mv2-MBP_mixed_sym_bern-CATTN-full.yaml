@@ -23,7 +23,7 @@ posenc_Poly:
   enable: True
   add_full_edge_index: True
   method: deco_bern
-  power: 22
+  power: 8
 train:
   mode: custom
   batch_size: 256
@@ -40,8 +40,8 @@ MbpModel:
   enable: True
   hidden_dim: 256
   attn_heads: 8
-  drop_prob: 0.2
-  attn_drop_prob: 0.0
+  drop_prob: 0.1
+  attn_drop_prob: 0.1
   residual: True
   layer_norm: False
   batch_norm: True
@@ -61,7 +61,7 @@ MbpModel:
   full:
     layer_type: cattn
     enable: True
-    repeats: 10
+    repeats: 16
     input_norm: False
 gnn:
   head: san_graph
@@ -69,9 +69,9 @@ gnn:
 optim:
   clip_grad_norm: True
   optimizer: adamW
-  weight_decay: 1e-5
-  base_lr: 1e-3
+  weight_decay: 0.0
+  base_lr: 2e-4
   max_epoch: 150
-  num_warmup_epochs: 50
+  num_warmup_epochs: 10
   scheduler: cosine_with_warmup
   min_lr: 1e-5
