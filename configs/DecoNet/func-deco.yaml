@@ -33,6 +33,7 @@ model:
   loss_fun: cross_entropy
   graph_pooling: mean
 DecoNet:
+  enable: True
   conv:
     num_layers: 6
     k1_hidden_dim: 64

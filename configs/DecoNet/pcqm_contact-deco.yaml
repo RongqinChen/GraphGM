@@ -35,6 +35,7 @@ model:
   loss_fun: cross_entropy
   edge_decoding: dot
 DecoNet:
+  enable: True
   conv:
     num_layers: 6
     k1_hidden_dim: 64

@@ -33,6 +33,7 @@ model:
   type: DecoNet
   loss_fun: weighted_cross_entropy
 DecoNet:
+  enable: True
   conv:
     num_layers: 6
     k1_hidden_dim: 64
