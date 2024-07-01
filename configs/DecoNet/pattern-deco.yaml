@@ -1,23 +1,23 @@
 out_dir: results
-metric_best: mae
-metric_agg: argmin
+metric_best: accuracy-SBM
 accelerator: "cuda:0"
 num_workers: 4
 wandb:
   use: False
+  project: PATTERN
 dataset:
-  format: OGB
-  name: peptides-structural
+  format: PyG-GNNBenchmarkDataset
+  name: PATTERN
   task: graph
-  task_type: regression
+  task_type: classification
   transductive: False
+  split_mode: standard
   node_encoder: True
-  node_encoder_name: Atom
+  node_encoder_name: LinearNode
   node_encoder_bn: False
   edge_encoder: True
-  edge_encoder_name: Bond
+  edge_encoder_name: DummyEdge
   edge_encoder_bn: False
-  precompute_on_the_fly: False
 posenc_Poly:
   enable: True
   add_full_edge_index: True
@@ -32,8 +32,7 @@ train:
   ckpt_best: False  # WARNING: Checkpoint every epoch a better model is found may increase I/O significantly.
 model:
   type: DecoNet
-  loss_fun: l1
-  graph_pooling: mean
+  loss_fun: weighted_cross_entropy
 DecoNet:
   conv:
     num_layers: 6
@@ -57,13 +56,13 @@ DecoNet:
     bn_momentum: 0.1
   pe_layer: simple_linear
 gnn:
-  head: san_graph
-  layers_post_mp: 1
+  head: inductive_node
+  layers_post_mp: 3
 optim:
   clip_grad_norm: True
   optimizer: adamW
   weight_decay: 0.0
-  base_lr: 0.001
-  max_epoch: 200
+  base_lr: 0.0005
+  max_epoch: 100
   scheduler: cosine_with_warmup
-  num_warmup_epochs: 10
+  num_warmup_epochs: 5
