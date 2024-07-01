@@ -17,12 +17,13 @@ class GNNInductiveEdgeHead(nn.Module):
         dim_out (int): Output dimension. For binary prediction, dim_out=1.
     """
 
-    def __init__(self, dim_in, dim_out, layers_post_mp):
+    def __init__(self, dim_in, dim_out):
+        num_layers = cfg.gnn.layers_post_mp
         super().__init__()
         # module to decode edges from node embeddings
         if cfg.model.edge_decoding == 'concat':
             self.layer_post_mp = MLP(
-                new_layer_config(dim_in * 2, dim_out, layers_post_mp,
+                new_layer_config(dim_in * 2, dim_out, num_layers,
                                  has_act=False, has_bias=True, cfg=cfg))
             # requires parameter
             self.decode_module = lambda v1, v2: \
@@ -33,7 +34,7 @@ class GNNInductiveEdgeHead(nn.Module):
                     'Binary edge decoding ({})is used for multi-class '
                     'edge/link prediction.'.format(cfg.model.edge_decoding))
             self.layer_post_mp = MLP(
-                new_layer_config(dim_in, dim_in, cfg.gnn.layers_post_mp,
+                new_layer_config(dim_in, dim_in, num_layers,
                                  has_act=False, has_bias=True, cfg=cfg))
             if cfg.model.edge_decoding == 'dot':
                 self.decode_module = lambda v1, v2: torch.sum(v1 * v2, dim=-1)

@@ -16,10 +16,11 @@ class OGBCodeGraphHead(nn.Module):
         L (int): Number of hidden layers.
     """
 
-    def __init__(self, dim_in, dim_out, L=1):
+    def __init__(self, dim_in, dim_out):
+        num_layers = cfg.gnn.layers_post_mp
         super().__init__()
         self.pooling_fun = register.pooling_dict[cfg.model.graph_pooling]
-        self.L = L
+        self.L = num_layers
         num_vocab = 5002
         self.max_seq_len = 5
 
