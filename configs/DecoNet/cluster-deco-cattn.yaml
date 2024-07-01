@@ -1,0 +1,68 @@
+out_dir: results
+metric_best: accuracy-SBM
+accelerator: "cuda:0"
+num_workers: 4
+wandb:
+  use: False
+  project: CLUSTER
+dataset:
+  format: PyG-GNNBenchmarkDataset
+  name: CLUSTER
+  task: graph
+  task_type: classification
+  transductive: False
+  split_mode: standard
+  node_encoder: True
+  node_encoder_name: LinearNode
+  node_encoder_bn: False
+  edge_encoder: True
+  edge_encoder_name: DummyEdge
+  edge_encoder_bn: False
+posenc_Poly:
+  enable: True
+  add_full_edge_index: True
+  method: deconet_bern
+  power: 32
+train:
+  mode: custom
+  batch_size: 32
+  eval_period: 1
+  ckpt_period: 100
+  enable_ckpt: False  # Checkpointing can now be disabled to save I/O when e.g. just benchmarking.
+  ckpt_best: False  # WARNING: Checkpoint every epoch a better model is found may increase I/O significantly.
+model:
+  type: DecoNet
+  loss_fun: weighted_cross_entropy
+DecoNet:
+  conv:
+    num_layers: 7
+    k1_hidden_dim: 64
+    hidden_dim: 64
+    bias: True
+    batch_norm: True
+    act: gelu
+    drop_prob: 0.0
+  gblock:
+    layer_type: conditional
+    num_layers: 2
+    hidden_dim: 96
+    attn_heads: 8
+    clamp: 5
+    attn_drop_prob: 0.2
+    drop_prob: 0.0
+    weight_fn: softmax
+    agg: add
+    act: gelu
+    bn_momentum: 0.1
+  pe_layer: simple_linear
+gnn:
+  head: inductive_node
+  layers_post_mp: 3
+optim:
+  clip_grad_norm: True
+  optimizer: adamW
+  weight_decay: 0.0
+  base_lr: 0.0005
+  max_epoch: 100
+  scheduler: cosine_with_warmup
+  num_warmup_epochs: 5
