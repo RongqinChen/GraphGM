@@ -44,7 +44,7 @@ DecoNet:
     drop_prob: 0.0
   global_attention:
     num_layers: 1
-    hidden_dim: 64
+    hidden_dim: 96
     attn_heads: 8
     clamp: 5
     attn_drop_prob: 0.5

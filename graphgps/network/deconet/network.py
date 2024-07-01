@@ -29,7 +29,7 @@ class FeatureEncoder(torch.nn.Module):
                 ))
             # Update dim_in to reflect the new dimension fo the node features
         if cfg.dataset.edge_encoder:
-            hidden_dim = cfg.DecoNet.conv.hidden_dim
+            hidden_dim = cfg.DecoNet.global_attention.hidden_dim
             # Encode integer edge features via nn.Embeddings
             EdgeEncoder = register.edge_encoder_dict[cfg.dataset.edge_encoder_name]
             self.edge_encoder = EdgeEncoder(hidden_dim)
@@ -62,8 +62,12 @@ class DecoNet(torch.nn.Module):
             conv = DecoConv(3, ccfg.hidden_dim, ccfg.hidden_dim, ccfg)
             self.conv_dict[f"{lidx}_conv"] = conv
 
-        JK_features = ccfg.k1_hidden_dim * 2 + ccfg.hidden_dim * ccfg.num_layers
         gcfg = cfg.DecoNet.global_attention
+        pe_layer = cfg.DecoNet.pe_layer
+        PELayer = register.layer_dict[pe_layer]
+        self.loop_layer = PELayer(pe_dim, ccfg.hidden_dim)
+        self.conn_layer = PELayer(pe_dim, gcfg.hidden_dim)
+        JK_features = ccfg.k1_hidden_dim * 2 + ccfg.hidden_dim * ccfg.num_layers
         self.JK_mlp = nn.Sequential(
             nn.Linear(JK_features, gcfg.hidden_dim),
             nn.BatchNorm1d(gcfg.hidden_dim),
@@ -71,13 +75,9 @@ class DecoNet(torch.nn.Module):
             nn.Dropout(gcfg.drop_prob),
         )
 
-        pe_layer = cfg.DecoNet.pe_layer
-        PELayer = register.layer_dict[pe_layer]
-        self.loop_layer = PELayer(pe_dim, gcfg.hidden_dim)
-        self.conn_layer = PELayer(pe_dim, gcfg.hidden_dim)
         self.global_block = GlobalAttentionBlock(gcfg)
         GNNHead = register.head_dict[cfg.gnn.head]
-        self.post_mp = GNNHead(ccfg.hidden_dim + gcfg.hidden_dim, dim_out, cfg.gnn.layers_post_mp)
+        self.post_mp = GNNHead(2 * gcfg.hidden_dim, dim_out, cfg.gnn.layers_post_mp)
         self.reset()
 
     def forward(self, batch: Batch | Data):
