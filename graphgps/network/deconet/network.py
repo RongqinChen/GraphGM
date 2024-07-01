@@ -77,7 +77,7 @@ class DecoNet(torch.nn.Module):
         self.conn_layer = PELayer(pe_dim, gcfg.hidden_dim)
         self.global_block = GlobalAttentionBlock(gcfg)
         GNNHead = register.head_dict[cfg.gnn.head]
-        self.post_mp = GNNHead(2 * gcfg.hidden_dim, dim_out, cfg.gnn.layers_post_mp)
+        self.post_mp = GNNHead(ccfg.hidden_dim + gcfg.hidden_dim, dim_out, cfg.gnn.layers_post_mp)
         self.reset()
 
     def forward(self, batch: Batch | Data):
@@ -160,7 +160,7 @@ class DecoNet(torch.nn.Module):
             batch["full_conn"] = full_val
 
         batch = self.global_block(batch)
-        batch['x'] = torch.hstack((nh_conv, batch['x']))
+        batch['x'] = torch.hstack((batch['x'], nh_conv))
         batch = self.post_mp(batch)
         return batch
 
