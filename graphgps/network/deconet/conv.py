@@ -22,7 +22,8 @@ class DecoConv(nn.Module):
     def forward(self, batch: Data | Batch, poly_adj: SparseTensor):
         x = batch["x"]
         h = matmul(poly_adj, x)
-        h = h.reshape((x.shape[0], self.num_kernels * self.in_channel))
+        h = h.reshape((self.num_kernels, x.shape[0], self.in_channel))
+        h = h.permute((1, 0, 2)).flatten(1, 2).contiguous()
         h = self.lin(h)
         if self.batch_norm is not None:
             h = self.batch_norm(h)

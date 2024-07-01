@@ -98,7 +98,7 @@ class DecoNet(torch.nn.Module):
         ]
 
         poly_val = all_poly_val[:, :2]
-        mask = poly_val[:, 0] > 0.0
+        mask = poly_val[:, 0] != 0.0
         poly_val = poly_val[mask, :]
         poly_idx = all_poly_idx[:, mask]
         dst, src = poly_idx
@@ -117,7 +117,7 @@ class DecoNet(torch.nn.Module):
         for k in range(3, ccfg.num_layers + 1):
             l, r = k_idx_list[k - 2]
             poly_val = all_poly_val[:, l:r]
-            mask = poly_val[:, 0] > 0.0
+            mask = poly_val[:, 0] != 0.0
             poly_val = poly_val[mask, :]
             poly_idx = all_poly_idx[:, mask]
             dst, src = poly_idx
