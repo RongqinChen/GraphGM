@@ -18,9 +18,9 @@ class GlobalBlock(nn.Module):
         super().__init__()
         self.attn_list = nn.ModuleList()
         for _ in range(cfg.num_layers):
-            if cfg.layer_name == 'dot_prod_attn':
+            if cfg.layer_type == 'dot_prod_attn':
                 attn = DotProductAttention(cfg.hidden_dim, cfg.attn_heads, cfg.drop_prob, cfg.attn_drop_prob)
-            elif cfg.layer_name == 'conditional':
+            elif cfg.layer_type == 'conditional':
                 attn = ConditionalAttention(
                     cfg.hidden_dim, cfg.attn_heads, cfg.clamp, cfg.attn_drop_prob,
                     cfg.drop_prob, cfg.weight_fn, cfg.agg, cfg.act, cfg.bn_momentum

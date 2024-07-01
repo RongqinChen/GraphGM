@@ -1,6 +1,5 @@
 out_dir: results
 metric_best: ap
-accelerator: "cuda:0"
 num_workers: 4
 wandb:
   use: False
@@ -24,7 +23,7 @@ posenc_Poly:
   power: 16
 train:
   mode: custom
-  batch_size: 64
+  batch_size: 32
   eval_period: 1
   ckpt_period: 100
   enable_ckpt: False  # Checkpointing can now be disabled to save I/O when e.g. just benchmarking.
@@ -41,15 +40,15 @@ DecoNet:
     bias: True
     batch_norm: True
     act: gelu
-    drop_prob: 0.0
+    drop_prob: 0.2
   gblock:
-    layer_name: dot_prod_attn
+    layer_type: dot_prod_attn
     num_layers: 1
     hidden_dim: 96
     attn_heads: 8
     clamp: 5
-    attn_drop_prob: 0.0
-    drop_prob: 0.0
+    attn_drop_prob: 0.5
+    drop_prob: 0.2
     weight_fn: softmax
     agg: add
     act: gelu

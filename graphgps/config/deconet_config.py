@@ -23,7 +23,7 @@ def DecoNet_cfg(cfg):
 
     cfg.DecoNet.gblock = CN()
     cfg.DecoNet.gblock.enable = True
-    cfg.DecoNet.gblock.layer_name = 'dot_prod_attn'
+    cfg.DecoNet.gblock.layer_type = 'dot_prod_attn'
     cfg.DecoNet.gblock.num_layers = 1
     cfg.DecoNet.gblock.hidden_dim = 64
     cfg.DecoNet.gblock.attn_heads = 8

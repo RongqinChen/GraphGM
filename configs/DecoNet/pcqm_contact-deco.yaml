@@ -1,7 +1,6 @@
 out_dir: results
 metric_best: mrr
 metric_agg: argmax
-accelerator: "cuda:0"
 num_workers: 4
 wandb:
   use: False
@@ -45,7 +44,7 @@ DecoNet:
     act: gelu
     drop_prob: 0.0
   gblock:
-    layer_name: dot_prod_attn
+    layer_type: dot_prod_attn
     num_layers: 1
     hidden_dim: 96
     attn_heads: 8
