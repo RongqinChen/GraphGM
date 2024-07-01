@@ -24,7 +24,7 @@ dataset:
 posenc_Poly:
   enable: True
   add_full_edge_index: True
-  method: deco_bern
+  method: deconet_bern
   power: 8
 train:
   mode: custom
@@ -39,25 +39,26 @@ model:
   loss_fun: l1
   graph_pooling: mean
 DecoNet:
-  enable: True
-  hidden_dim: 64
-  attn_heads: 8
-  drop_prob: 0.0
-  attn_drop_prob: 0.2
-  bn_momentum: 0.1
-  deg_scaler: True
-  bias: True
-  clamp: 5.0
-  weight_fn: softmax
-  agg: add
-  act: relu
-  pe_layer: simple_linear
   conv:
-    num_blocks: 0
-    repeats: 0
-  full:
-    enable: True
-    repeats: 10
+    num_layers: 5
+    k1_hidden_dim: 64
+    hidden_dim: 64
+    bias: True
+    batch_norm: True
+    act: relu
+    drop_prob: 0.0
+  global_attention:
+    num_layers: 5
+    hidden_dim: 64
+    attn_heads: 8
+    clamp: 5
+    attn_drop_prob: 0.2
+    drop_prob: 0.0
+    weight_fn: softmax
+    agg: add
+    act: relu
+    bn_momentum: 0.1
+  pe_layer: simple_linear
 gnn:
   head: san_graph
   layers_post_mp: 2
